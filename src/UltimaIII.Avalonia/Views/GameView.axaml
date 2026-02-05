@@ -1,0 +1,181 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             xmlns:controls="using:UltimaIII.Avalonia.Controls"
+             xmlns:views="using:UltimaIII.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+             x:Class="UltimaIII.Avalonia.Views.GameView"
+             x:DataType="vm:GameViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a5a"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="280"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Game Area -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top Bar -->
+            <Border Grid.Row="0" Background="#252540" Padding="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding LocationName}" FontSize="16" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="1" Margin="20,0">
+                        <Run Text="Gold: "/>
+                        <Run Text="{Binding Gold}" Foreground="#ffd700"/>
+                    </TextBlock>
+                    <TextBlock Grid.Column="2" Margin="20,0">
+                        <Run Text="Food: "/>
+                        <Run Text="{Binding Food}" Foreground="#90ee90"/>
+                    </TextBlock>
+                    <TextBlock Grid.Column="3" Text="{Binding TimeDisplay}" Margin="20,0,0,0"/>
+                </Grid>
+            </Border>
+
+            <!-- Map Display (Normal Mode) -->
+            <Border Grid.Row="1" Background="#000000" IsVisible="{Binding !IsCombatMode}">
+                <controls:TileMapControl x:Name="TileMap"
+                                         GameEngine="{Binding GameEngine}"
+                                         TileSize="32"
+                                         ViewportWidth="15"
+                                         ViewportHeight="15"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- Combat Display -->
+            <Border Grid.Row="1" Background="#1a1a1a" IsVisible="{Binding IsCombatMode}">
+                <views:CombatView DataContext="{Binding CombatVm}"/>
+            </Border>
+
+            <!-- Bottom Controls / Message Log -->
+            <Border Grid.Row="2" Background="#252540" Padding="10" MinHeight="120">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Message Log -->
+                    <Border Grid.Column="0" Background="#1a1a3a" CornerRadius="3" Padding="10">
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding MessageLog}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontSize="12" Foreground="#c0c0c0"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Quick Actions -->
+                    <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10,0,0,0" Spacing="5"
+                                IsVisible="{Binding !IsCombatMode}">
+                        <TextBlock Text="Controls:" FontSize="12" Foreground="#808080"/>
+                        <TextBlock Text="WASD/Arrows: Move" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="Space: Search" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="R: Rest" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="X: Exit Location" FontSize="11" Foreground="#606060"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,10,0,0">
+                            <Button Content="Search" Command="{Binding SearchCommand}" Width="70"/>
+                            <Button Content="Rest" Command="{Binding RestCommand}" Width="70"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Party Panel -->
+        <Border Grid.Column="1" Background="#252540" Padding="10">
+            <StackPanel Spacing="5">
+                <TextBlock Text="PARTY" FontSize="16" FontWeight="Bold" Foreground="#ffd700" Margin="0,0,0,10"/>
+
+                <ItemsControl ItemsSource="{Binding PartyMembers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#1a1a3a" CornerRadius="3" Padding="8" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding ClassRace}" FontSize="11" Foreground="#a0a0a0"/>
+
+                                    <!-- HP Bar -->
+                                    <Grid Margin="0,5,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="50"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="HP" FontSize="10" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="#3a3a3a" Height="12" CornerRadius="2">
+                                            <Border Background="#aa3030" CornerRadius="2" HorizontalAlignment="Left"
+                                                    Width="{Binding HpPercentage, StringFormat={}{0:P0}}"/>
+                                        </Border>
+                                        <TextBlock Grid.Column="2" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Run Text="{Binding CurrentHp}"/>/<Run Text="{Binding MaxHp}"/>
+                                        </TextBlock>
+                                    </Grid>
+
+                                    <!-- MP Bar -->
+                                    <Grid Margin="0,3,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="50"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="MP" FontSize="10" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="#3a3a3a" Height="12" CornerRadius="2">
+                                            <Border Background="#3030aa" CornerRadius="2" HorizontalAlignment="Left"
+                                                    Width="{Binding MpPercentage, StringFormat={}{0:P0}}"/>
+                                        </Border>
+                                        <TextBlock Grid.Column="2" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Run Text="{Binding CurrentMp}"/>/<Run Text="{Binding MaxMp}"/>
+                                        </TextBlock>
+                                    </Grid>
+
+                                    <!-- Status -->
+                                    <TextBlock FontSize="10" Margin="0,3,0,0">
+                                        <Run Text="Status: " Foreground="#808080"/>
+                                        <Run Text="{Binding Status}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,93 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+        xmlns:views="using:UltimaIII.Avalonia.Views"
+        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+        x:Class="UltimaIII.Avalonia.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Ultima III: Exodus"
+        Width="1024" Height="768"
+        MinWidth="800" MinHeight="600"
+        Background="#1a1a2e"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a5a"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <!-- Main Menu -->
+        <Grid IsVisible="{Binding IsMainMenuVisible}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="20">
+                <!-- Title -->
+                <TextBlock Text="ULTIMA III"
+                           FontSize="72"
+                           FontWeight="Bold"
+                           Foreground="#ffd700"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="EXODUS"
+                           FontSize="48"
+                           Foreground="#c0c0c0"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,40"/>
+
+                <!-- Menu Buttons -->
+                <Button Content="New Game"
+                        Command="{Binding NewGameCommand}"
+                        HorizontalAlignment="Center"
+                        Width="200"/>
+                <Button Content="Continue"
+                        Command="{Binding ContinueGameCommand}"
+                        HorizontalAlignment="Center"
+                        Width="200"
+                        IsEnabled="False"/>
+                <Button Content="Exit"
+                        Command="{Binding ExitCommand}"
+                        HorizontalAlignment="Center"
+                        Width="200"/>
+
+                <!-- Credits -->
+                <TextBlock Text="A faithful recreation of the 1983 classic"
+                           FontSize="14"
+                           Foreground="#808080"
+                           HorizontalAlignment="Center"
+                           Margin="0,40,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Game Content -->
+        <ContentControl Content="{Binding CurrentView}" IsVisible="{Binding !IsMainMenuVisible}">
+            <ContentControl.DataTemplates>
+                <DataTemplate DataType="{x:Type vm:CharacterCreationViewModel}">
+                    <views:CharacterCreationView/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:GameViewModel}">
+                    <views:GameView/>
+                </DataTemplate>
+            </ContentControl.DataTemplates>
+        </ContentControl>
+    </Grid>
+</Window>

@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+             x:Class="UltimaIII.Avalonia.Views.CharacterCreationView"
+             x:DataType="vm:CharacterCreationViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a5a"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Character Creation Form -->
+        <Border Grid.Column="0" Background="#252540" CornerRadius="5" Padding="20" Margin="0,0,10,0">
+            <ScrollViewer>
+                <StackPanel Spacing="15">
+                    <TextBlock Text="CREATE THY CHARACTER" FontSize="24" FontWeight="Bold" Foreground="#ffd700"/>
+
+                    <!-- Name -->
+                    <StackPanel>
+                        <TextBlock Text="Name:" FontSize="14"/>
+                        <TextBox Text="{Binding CharacterName}" Width="200" HorizontalAlignment="Left"/>
+                    </StackPanel>
+
+                    <!-- Race Selection -->
+                    <StackPanel>
+                        <TextBlock Text="Race:" FontSize="14"/>
+                        <ComboBox ItemsSource="{Binding AvailableRaces}"
+                                  SelectedItem="{Binding SelectedRace}"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding RaceDescription}"
+                                   FontSize="12"
+                                   Foreground="#a0a0a0"
+                                   TextWrapping="Wrap"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Class Selection -->
+                    <StackPanel>
+                        <TextBlock Text="Class:" FontSize="14"/>
+                        <ComboBox ItemsSource="{Binding AvailableClasses}"
+                                  SelectedItem="{Binding SelectedClass}"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding ClassDescription}"
+                                   FontSize="12"
+                                   Foreground="#a0a0a0"
+                                   TextWrapping="Wrap"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Stats -->
+                    <StackPanel>
+                        <TextBlock Text="Attributes:" FontSize="14" Margin="0,10,0,5"/>
+                        <TextBlock FontSize="12" Foreground="#a0a0a0">
+                            <Run Text="Remaining Points: "/>
+                            <Run Text="{Binding RemainingPoints}" Foreground="#ffd700"/>
+                        </TextBlock>
+
+                        <!-- Strength -->
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Strength:" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Strength}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="STR"/>
+                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="STR"/>
+                        </Grid>
+
+                        <!-- Dexterity -->
+                        <Grid Margin="0,5,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Dexterity:" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Dexterity}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="DEX"/>
+                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="DEX"/>
+                        </Grid>
+
+                        <!-- Intelligence -->
+                        <Grid Margin="0,5,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Intelligence:" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Intelligence}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="INT"/>
+                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="INT"/>
+                        </Grid>
+
+                        <!-- Wisdom -->
+                        <Grid Margin="0,5,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Wisdom:" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Wisdom}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="WIS"/>
+                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="WIS"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Error Message -->
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="#ff6060"
+                               FontSize="12"
+                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                    <!-- Create Button -->
+                    <Button Content="Add to Party"
+                            Command="{Binding CreateCharacterCommand}"
+                            IsEnabled="{Binding CanCreateCharacter}"
+                            HorizontalAlignment="Left"
+                            Padding="20,10"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Party Panel -->
+        <Border Grid.Column="1" Background="#252540" CornerRadius="5" Padding="15">
+            <StackPanel Spacing="10">
+                <TextBlock Text="THY PARTY" FontSize="18" FontWeight="Bold" Foreground="#ffd700"/>
+
+                <ItemsControl ItemsSource="{Binding PartySlots}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#1a1a3a" CornerRadius="3" Padding="10" Margin="0,5,0,0">
+                                <Grid>
+                                    <StackPanel IsVisible="{Binding IsOccupied}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontWeight="Bold"/>
+                                            <Button Grid.Column="1" Content="X" Width="24" Height="24"
+                                                    Command="{Binding $parent[ItemsControl].((vm:CharacterCreationViewModel)DataContext).RemoveCharacterCommand}"
+                                                    CommandParameter="{Binding SlotNumber}"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding DisplayClass}" FontSize="11" Foreground="#a0a0a0"/>
+                                        <TextBlock Text="{Binding DisplayStats}" FontSize="10" Foreground="#808080" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               IsVisible="{Binding !IsOccupied}"
+                                               Foreground="#606060"
+                                               FontStyle="Italic"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Button Content="Begin Quest!"
+                        Command="{Binding BeginQuestCommand}"
+                        HorizontalAlignment="Stretch"
+                        Padding="10"
+                        Margin="0,20,0,0"
+                        FontSize="16"
+                        Background="#3a6a3a"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

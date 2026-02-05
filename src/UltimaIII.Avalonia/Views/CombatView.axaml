@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             xmlns:controls="using:UltimaIII.Avalonia.Controls"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="UltimaIII.Avalonia.Views.CombatView"
+             x:DataType="vm:CombatViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="MinWidth" Value="80"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a5a"/>
+        </Style>
+        <Style Selector="Button:disabled">
+            <Setter Property="Opacity" Value="0.5"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Combat Header -->
+        <Border Grid.Row="0" Background="#3a1a1a" Padding="10">
+            <Grid>
+                <TextBlock Text="COMBAT!" FontSize="20" FontWeight="Bold" Foreground="#ff6060" HorizontalAlignment="Left"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="Current Turn: " Foreground="#808080"/>
+                    <TextBlock Text="{Binding CurrentCombatantName}" FontWeight="Bold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Combat Grid -->
+        <Border Grid.Row="1" Background="#0a0a0a" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+            <controls:CombatMapControl x:Name="CombatMap"
+                                       CombatSystem="{Binding Combat}"
+                                       TileSize="28"
+                                       TargetX="{Binding TargetX}"
+                                       TargetY="{Binding TargetY}"
+                                       ShowTarget="{Binding IsSelectingTarget}"/>
+        </Border>
+
+        <!-- Combat Log -->
+        <Border Grid.Row="2" Background="#1a1a2a" Padding="10" MaxHeight="100">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding CombatMessages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#c0c0c0"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Combat Actions -->
+        <Border Grid.Row="3" Background="#252540" Padding="10">
+            <Grid>
+                <!-- Normal Actions -->
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center"
+                            IsVisible="{Binding !IsSelectingTarget}">
+                    <Button Content="[A]ttack"
+                            Command="{Binding AttackCommand}"
+                            IsEnabled="{Binding IsPlayerTurn}"/>
+                    <Button Content="[C]ast"
+                            Command="{Binding CastCommand}"
+                            IsEnabled="{Binding IsPlayerTurn}"/>
+                    <Button Content="[P]ass"
+                            Command="{Binding PassCommand}"
+                            IsEnabled="{Binding IsPlayerTurn}"/>
+                    <Button Content="[F]lee"
+                            Command="{Binding FleeCommand}"
+                            IsEnabled="{Binding IsPlayerTurn}"/>
+                </StackPanel>
+
+                <!-- Target Selection -->
+                <StackPanel IsVisible="{Binding IsSelectingTarget}" HorizontalAlignment="Center">
+                    <TextBlock Text="Select Target (WASD to move, Enter to confirm, Esc to cancel)"
+                               FontSize="12"
+                               Foreground="#ffd700"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                        <Button Content="Confirm" Command="{Binding ConfirmTargetCommand}"/>
+                        <Button Content="Cancel" Command="{Binding CancelTargetCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
