@@ -33,9 +33,11 @@ public partial class GameViewModel : ViewModelBase
     public const int ViewportHeight = 15;
     public const int TileSize = 32;
 
+    [ObservableProperty]
+    private CombatViewModel? _combatVm;
+
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
     public ObservableCollection<string> MessageLog { get; } = new();
-    public CombatViewModel? CombatVm { get; private set; }
 
     public GameEngine GameEngine => _gameEngine;
 
@@ -48,6 +50,7 @@ public partial class GameViewModel : ViewModelBase
         _gameEngine.OnMessage += OnGameMessage;
         _gameEngine.OnPartyMoved += RefreshDisplay;
         _gameEngine.OnMapChanged += RefreshDisplay;
+        _gameEngine.OnStateChanged += OnStateChanged;
 
         // Initialize party display
         RefreshPartyDisplay();
@@ -59,6 +62,19 @@ public partial class GameViewModel : ViewModelBase
         MessageLog.Add(message);
         while (MessageLog.Count > 10)
             MessageLog.RemoveAt(0);
+    }
+
+    private void OnStateChanged(GameState newState)
+    {
+        if (newState == GameState.Combat)
+        {
+            EnterCombat();
+        }
+        else if (IsCombatMode && newState != GameState.Combat)
+        {
+            ExitCombat();
+        }
+        RefreshDisplay();
     }
 
     private void RefreshPartyDisplay()

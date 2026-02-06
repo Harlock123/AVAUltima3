@@ -68,6 +68,13 @@ public class CombatMapControl : Control
     private static readonly IBrush DeadBrush = new SolidColorBrush(Color.FromRgb(80, 80, 80));
     private static readonly IBrush TargetBrush = new SolidColorBrush(Color.FromArgb(100, 255, 255, 0));
     private static readonly IBrush CurrentTurnBrush = new SolidColorBrush(Color.FromRgb(255, 255, 0));
+    private static readonly IBrush DefaultTerrainBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60));
+
+    static CombatMapControl()
+    {
+        AffectsRender<CombatMapControl>(CombatSystemProperty, TileSizeProperty, TargetXProperty, TargetYProperty, ShowTargetProperty);
+        AffectsMeasure<CombatMapControl>(TileSizeProperty);
+    }
 
     public CombatMapControl()
     {
@@ -83,46 +90,58 @@ public class CombatMapControl : Control
     {
         base.Render(context);
 
+        int gridWidth = CombatSystem.GridWidth;
+        int gridHeight = CombatSystem.GridHeight;
         var combat = CombatSystem;
-        if (combat == null)
-        {
-            context.FillRectangle(Brushes.Black, new Rect(0, 0, Bounds.Width, Bounds.Height));
-            return;
-        }
 
-        // Draw terrain
-        for (int y = 0; y < CombatSystem.GridHeight; y++)
+        // Always draw the grid, even if combat is null
+        for (int y = 0; y < gridHeight; y++)
         {
-            for (int x = 0; x < CombatSystem.GridWidth; x++)
+            for (int x = 0; x < gridWidth; x++)
             {
-                var terrain = combat.GetTerrain(x, y);
                 var rect = new Rect(x * TileSize, y * TileSize, TileSize, TileSize);
 
-                var brush = TerrainBrushes.TryGetValue(terrain, out var b) ? b : Brushes.DarkGray;
-                context.FillRectangle(brush, rect);
+                IBrush brush = DefaultTerrainBrush;
+                if (combat != null)
+                {
+                    var terrain = combat.GetTerrain(x, y);
+                    brush = TerrainBrushes.TryGetValue(terrain, out var b) ? b : DefaultTerrainBrush;
+
+                    // Draw terrain features
+                    if (terrain == TileType.Forest)
+                    {
+                        context.FillRectangle(brush, rect);
+                        var center = rect.Center;
+                        var treeBrush = new SolidColorBrush(Color.FromRgb(20, 60, 20));
+                        context.FillRectangle(treeBrush, new Rect(center.X - 4, center.Y - 8, 8, 16));
+                    }
+                    else if (terrain == TileType.Mountain)
+                    {
+                        context.FillRectangle(brush, rect);
+                        var center = rect.Center;
+                        var mountainPen = new Pen(Brushes.DarkGray, 2);
+                        context.DrawLine(mountainPen, new Point(center.X - 10, center.Y + 10),
+                            new Point(center.X, center.Y - 8));
+                        context.DrawLine(mountainPen, new Point(center.X + 10, center.Y + 10),
+                            new Point(center.X, center.Y - 8));
+                    }
+                    else
+                    {
+                        context.FillRectangle(brush, rect);
+                    }
+                }
+                else
+                {
+                    context.FillRectangle(brush, rect);
+                }
 
                 // Grid lines
                 var pen = new Pen(Brushes.Black, 0.5);
                 context.DrawRectangle(pen, rect);
-
-                // Draw terrain features
-                if (terrain == TileType.Forest)
-                {
-                    var center = rect.Center;
-                    var treeBrush = new SolidColorBrush(Color.FromRgb(20, 60, 20));
-                    context.FillRectangle(treeBrush, new Rect(center.X - 4, center.Y - 8, 8, 16));
-                }
-                else if (terrain == TileType.Mountain)
-                {
-                    var center = rect.Center;
-                    var mountainPen = new Pen(Brushes.DarkGray, 2);
-                    context.DrawLine(mountainPen, new Point(center.X - 10, center.Y + 10),
-                        new Point(center.X, center.Y - 8));
-                    context.DrawLine(mountainPen, new Point(center.X + 10, center.Y + 10),
-                        new Point(center.X, center.Y - 8));
-                }
             }
         }
+
+        if (combat == null) return;
 
         // Draw target cursor
         if (ShowTarget && TargetX >= 0 && TargetY >= 0)

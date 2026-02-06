@@ -75,9 +75,13 @@
             </Border>
 
             <!-- Combat Display -->
-            <Border Grid.Row="1" Background="#1a1a1a" IsVisible="{Binding IsCombatMode}">
-                <views:CombatView DataContext="{Binding CombatVm}"/>
-            </Border>
+            <ContentControl Grid.Row="1" Content="{Binding CombatVm}" IsVisible="{Binding IsCombatMode}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:CombatViewModel">
+                        <views:CombatView/>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
 
             <!-- Bottom Controls / Message Log -->
             <Border Grid.Row="2" Background="#252540" Padding="10" MinHeight="120">
