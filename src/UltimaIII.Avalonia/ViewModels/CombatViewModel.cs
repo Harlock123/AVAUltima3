@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using UltimaIII.Avalonia.Services.Audio;
 using UltimaIII.Core.Engine;
 using UltimaIII.Core.Enums;
 using UltimaIII.Core.Models;
@@ -13,6 +14,7 @@ public partial class CombatViewModel : ViewModelBase
 {
     private readonly CombatSystem _combat;
     private readonly GameViewModel _parentViewModel;
+    private readonly IAudioService _audioService;
 
     [ObservableProperty]
     private string _currentCombatantName = string.Empty;
@@ -45,6 +47,7 @@ public partial class CombatViewModel : ViewModelBase
     {
         _combat = combat;
         _parentViewModel = parentViewModel;
+        _audioService = AudioService.Instance;
 
         _combat.OnCombatMessage += OnCombatMessage;
         _combat.OnTurnChanged += OnTurnChanged;
@@ -59,6 +62,56 @@ public partial class CombatViewModel : ViewModelBase
         CombatMessages.Add(message);
         while (CombatMessages.Count > 8)
             CombatMessages.RemoveAt(0);
+
+        // Play contextual sound effects based on combat message
+        PlayCombatSound(message);
+    }
+
+    private void PlayCombatSound(string message)
+    {
+        var lowerMessage = message.ToLowerInvariant();
+
+        if (lowerMessage.Contains("attacks") || lowerMessage.Contains("swings"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.SwordSwing);
+        }
+
+        if (lowerMessage.Contains("hits") || lowerMessage.Contains("strikes") || lowerMessage.Contains("damage"))
+        {
+            // Check if player or monster is hit
+            if (lowerMessage.Contains("you take") || lowerMessage.Contains("party member"))
+            {
+                _audioService.PlaySoundEffect(SoundEffect.PlayerHit);
+            }
+            else
+            {
+                _audioService.PlaySoundEffect(SoundEffect.SwordHit);
+            }
+        }
+        else if (lowerMessage.Contains("misses") || lowerMessage.Contains("missed"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.SwordMiss);
+        }
+
+        if (lowerMessage.Contains("defeated") || lowerMessage.Contains("slain") || lowerMessage.Contains("dies"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.MonsterDeath);
+        }
+
+        if (lowerMessage.Contains("casts") || lowerMessage.Contains("spell"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.SpellCast);
+        }
+
+        if (lowerMessage.Contains("healed") || lowerMessage.Contains("restored"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.SpellHeal);
+        }
+
+        if (lowerMessage.Contains("magic damage") || lowerMessage.Contains("fire") || lowerMessage.Contains("lightning"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.SpellDamage);
+        }
     }
 
     private void OnTurnChanged()
@@ -72,6 +125,14 @@ public partial class CombatViewModel : ViewModelBase
 
     private void OnCombatEnd()
     {
+        // Check if combat was won or lost (based on remaining party members)
+        bool partyWon = _combat.PlayerCharacters.Any(pc => pc.IsAlive);
+        if (partyWon)
+        {
+            _audioService.PlayMusic(MusicTrack.Victory);
+        }
+        // Note: If party lost, MainViewModel will switch to Defeat music via GameState.GameOver
+
         _parentViewModel.ExitCombat();
     }
 
@@ -95,6 +156,7 @@ public partial class CombatViewModel : ViewModelBase
     {
         if (!IsPlayerTurn || !_combat.IsCombatActive) return;
 
+        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
         PendingAction = CombatActionType.Attack;
         IsSelectingTarget = true;
 
@@ -111,6 +173,7 @@ public partial class CombatViewModel : ViewModelBase
     private void Cast()
     {
         if (!IsPlayerTurn || !_combat.IsCombatActive) return;
+        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
         // TODO: Show spell selection menu
         // For now, default to first available offensive spell
     }
@@ -120,6 +183,7 @@ public partial class CombatViewModel : ViewModelBase
     {
         if (!IsPlayerTurn || !_combat.IsCombatActive) return;
 
+        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
         var action = new CombatAction(CombatActionType.Pass);
         _combat.ExecutePlayerAction(action);
     }
@@ -129,6 +193,7 @@ public partial class CombatViewModel : ViewModelBase
     {
         if (!IsPlayerTurn || !_combat.IsCombatActive) return;
 
+        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
         var action = new CombatAction(CombatActionType.Flee);
         _combat.ExecutePlayerAction(action);
     }
@@ -138,6 +203,7 @@ public partial class CombatViewModel : ViewModelBase
     {
         if (!IsSelectingTarget || !IsPlayerTurn) return;
 
+        _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
         var action = new CombatAction(PendingAction, TargetX, TargetY, PendingSpell);
         _combat.ExecutePlayerAction(action);
 
@@ -148,6 +214,7 @@ public partial class CombatViewModel : ViewModelBase
     [RelayCommand]
     private void CancelTarget()
     {
+        _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
         IsSelectingTarget = false;
         PendingSpell = null;
     }

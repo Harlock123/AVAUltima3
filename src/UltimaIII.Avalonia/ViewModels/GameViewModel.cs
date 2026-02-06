@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using UltimaIII.Avalonia.Services.Audio;
 using UltimaIII.Core.Engine;
 using UltimaIII.Core.Enums;
 using UltimaIII.Core.Models;
@@ -12,6 +13,7 @@ public partial class GameViewModel : ViewModelBase
 {
     private readonly GameEngine _gameEngine;
     private readonly MainViewModel _mainViewModel;
+    private readonly IAudioService _audioService;
 
     [ObservableProperty]
     private bool _isCombatMode = false;
@@ -45,11 +47,12 @@ public partial class GameViewModel : ViewModelBase
     {
         _gameEngine = gameEngine;
         _mainViewModel = mainViewModel;
+        _audioService = AudioService.Instance;
 
         // Subscribe to game events
         _gameEngine.OnMessage += OnGameMessage;
-        _gameEngine.OnPartyMoved += RefreshDisplay;
-        _gameEngine.OnMapChanged += RefreshDisplay;
+        _gameEngine.OnPartyMoved += OnPartyMoved;
+        _gameEngine.OnMapChanged += OnMapChanged;
         _gameEngine.OnStateChanged += OnStateChanged;
 
         // Initialize party display
@@ -62,6 +65,59 @@ public partial class GameViewModel : ViewModelBase
         MessageLog.Add(message);
         while (MessageLog.Count > 10)
             MessageLog.RemoveAt(0);
+
+        // Play contextual sound effects based on message content
+        PlayMessageSound(message);
+    }
+
+    private void PlayMessageSound(string message)
+    {
+        var lowerMessage = message.ToLowerInvariant();
+
+        if (lowerMessage.Contains("blocked") || lowerMessage.Contains("can't go"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+        }
+        else if (lowerMessage.Contains("opened") || lowerMessage.Contains("door opens"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.DoorOpen);
+        }
+        else if (lowerMessage.Contains("locked"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.DoorLocked);
+        }
+        else if (lowerMessage.Contains("gold") || lowerMessage.Contains("coins"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.GoldPickup);
+        }
+        else if (lowerMessage.Contains("found") || lowerMessage.Contains("picked up"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.ItemPickup);
+        }
+        else if (lowerMessage.Contains("level up") || lowerMessage.Contains("leveled up"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.LevelUp);
+        }
+        else if (lowerMessage.Contains("stairs") || lowerMessage.Contains("ladder"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.Stairs);
+        }
+        else if (lowerMessage.Contains("teleport") || lowerMessage.Contains("moongate"))
+        {
+            _audioService.PlaySoundEffect(SoundEffect.Teleport);
+        }
+    }
+
+    private void OnPartyMoved()
+    {
+        _audioService.PlaySoundEffect(SoundEffect.Footstep);
+        RefreshDisplay();
+    }
+
+    private void OnMapChanged()
+    {
+        _audioService.PlaySoundEffect(SoundEffect.Stairs);
+        RefreshDisplay();
     }
 
     private void OnStateChanged(GameState newState)

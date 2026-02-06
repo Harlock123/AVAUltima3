@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using UltimaIII.Avalonia.Services.Audio;
 using UltimaIII.Core.Engine;
 using UltimaIII.Core.Enums;
 
@@ -9,6 +10,7 @@ namespace UltimaIII.Avalonia.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly GameEngine _gameEngine;
+    private readonly IAudioService _audioService;
 
     [ObservableProperty]
     private ViewModelBase? _currentView;
@@ -20,6 +22,10 @@ public partial class MainViewModel : ViewModelBase
     {
         _gameEngine = new GameEngine();
         _gameEngine.OnStateChanged += OnGameStateChanged;
+        _audioService = AudioService.Instance;
+
+        // Start main menu music
+        _audioService.PlayMusic(MusicTrack.MainMenu);
     }
 
     public GameEngine GameEngine => _gameEngine;
@@ -27,6 +33,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void NewGame()
     {
+        _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
         _gameEngine.NewGame();
         CurrentView = new CharacterCreationViewModel(_gameEngine, this);
         IsMainMenuVisible = false;
@@ -35,12 +42,14 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void ContinueGame()
     {
+        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
         // TODO: Implement save/load
     }
 
     [RelayCommand]
     private void Exit()
     {
+        _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
         Environment.Exit(0);
     }
 
@@ -55,6 +64,7 @@ public partial class MainViewModel : ViewModelBase
         switch (newState)
         {
             case GameState.Combat:
+                _audioService.PlayMusic(MusicTrack.Combat);
                 if (CurrentView is GameViewModel gameVm)
                 {
                     gameVm.EnterCombat();
@@ -62,19 +72,31 @@ public partial class MainViewModel : ViewModelBase
                 break;
 
             case GameState.Overworld:
-            case GameState.Town:
-            case GameState.Dungeon:
-                if (CurrentView is GameViewModel)
+                _audioService.PlayMusic(MusicTrack.Overworld);
+                if (CurrentView is not GameViewModel)
                 {
-                    // Already in game view
+                    CurrentView = new GameViewModel(_gameEngine, this);
                 }
-                else
+                break;
+
+            case GameState.Town:
+                _audioService.PlayMusic(MusicTrack.Town);
+                if (CurrentView is not GameViewModel)
+                {
+                    CurrentView = new GameViewModel(_gameEngine, this);
+                }
+                break;
+
+            case GameState.Dungeon:
+                _audioService.PlayMusic(MusicTrack.Dungeon);
+                if (CurrentView is not GameViewModel)
                 {
                     CurrentView = new GameViewModel(_gameEngine, this);
                 }
                 break;
 
             case GameState.GameOver:
+                _audioService.PlayMusic(MusicTrack.Defeat);
                 // Show game over screen
                 IsMainMenuVisible = true;
                 CurrentView = null;
