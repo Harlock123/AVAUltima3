@@ -278,6 +278,7 @@ public partial class CombatViewModel : ViewModelBase
                 case "RIGHT":
                     MoveTarget("Right");
                     break;
+                case "RETURN":
                 case "ENTER":
                 case "SPACE":
                     ConfirmTarget();

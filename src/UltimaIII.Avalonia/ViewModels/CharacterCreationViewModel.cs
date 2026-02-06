@@ -283,6 +283,9 @@ public partial class CharacterSlotViewModel : ObservableObject
     private int _slotNumber;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    [NotifyPropertyChangedFor(nameof(DisplayClass))]
+    [NotifyPropertyChangedFor(nameof(DisplayStats))]
     private Character? _character;
 
     [ObservableProperty]

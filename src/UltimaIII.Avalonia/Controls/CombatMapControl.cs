@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using UltimaIII.Core.Engine;
@@ -76,9 +78,44 @@ public class CombatMapControl : Control
         AffectsMeasure<CombatMapControl>(TileSizeProperty);
     }
 
+    /// <summary>
+    /// Raised when a target is selected via mouse click while ShowTarget is true.
+    /// Event args contain the grid X and Y coordinates.
+    /// </summary>
+    public event EventHandler<TargetSelectedEventArgs>? TargetSelected;
+
     public CombatMapControl()
     {
         ClipToBounds = true;
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+
+        if (!ShowTarget) return;
+
+        var point = e.GetPosition(this);
+        int gridX = (int)(point.X / TileSize);
+        int gridY = (int)(point.Y / TileSize);
+
+        // Validate grid bounds
+        if (gridX >= 0 && gridX < CombatSystem.GridWidth &&
+            gridY >= 0 && gridY < CombatSystem.GridHeight)
+        {
+            // Update target position
+            TargetX = gridX;
+            TargetY = gridY;
+
+            // If it's a double-click or left button, also confirm the target
+            if (e.ClickCount == 2 || e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            {
+                TargetSelected?.Invoke(this, new TargetSelectedEventArgs(gridX, gridY, e.ClickCount == 2));
+            }
+
+            e.Handled = true;
+            InvalidateVisual();
+        }
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -209,5 +246,19 @@ public class CombatMapControl : Control
     public void Refresh()
     {
         Dispatcher.UIThread.Post(InvalidateVisual);
+    }
+}
+
+public class TargetSelectedEventArgs : EventArgs
+{
+    public int GridX { get; }
+    public int GridY { get; }
+    public bool IsDoubleClick { get; }
+
+    public TargetSelectedEventArgs(int gridX, int gridY, bool isDoubleClick = false)
+    {
+        GridX = gridX;
+        GridY = gridY;
+        IsDoubleClick = isDoubleClick;
     }
 }

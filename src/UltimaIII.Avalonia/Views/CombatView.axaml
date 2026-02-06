@@ -76,32 +76,38 @@
         <Border Grid.Row="3" Background="#252540" Padding="10">
             <Grid>
                 <!-- Normal Actions -->
-                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center"
-                            IsVisible="{Binding !IsSelectingTarget}">
-                    <Button Content="[A]ttack"
-                            Command="{Binding AttackCommand}"
-                            IsEnabled="{Binding IsPlayerTurn}"/>
-                    <Button Content="[C]ast"
-                            Command="{Binding CastCommand}"
-                            IsEnabled="{Binding IsPlayerTurn}"/>
-                    <Button Content="[P]ass"
-                            Command="{Binding PassCommand}"
-                            IsEnabled="{Binding IsPlayerTurn}"/>
-                    <Button Content="[F]lee"
-                            Command="{Binding FleeCommand}"
-                            IsEnabled="{Binding IsPlayerTurn}"/>
+                <StackPanel IsVisible="{Binding !IsSelectingTarget}" HorizontalAlignment="Center">
+                    <TextBlock Text="WASD/Arrows: Move    T: Attack    C: Cast    P: Pass    F: Flee"
+                               FontSize="11"
+                               Foreground="#808080"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                        <Button Content="[T] Attack"
+                                Command="{Binding AttackCommand}"
+                                IsEnabled="{Binding IsPlayerTurn}"/>
+                        <Button Content="[C] Cast"
+                                Command="{Binding CastCommand}"
+                                IsEnabled="{Binding IsPlayerTurn}"/>
+                        <Button Content="[P] Pass"
+                                Command="{Binding PassCommand}"
+                                IsEnabled="{Binding IsPlayerTurn}"/>
+                        <Button Content="[F] Flee"
+                                Command="{Binding FleeCommand}"
+                                IsEnabled="{Binding IsPlayerTurn}"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- Target Selection -->
                 <StackPanel IsVisible="{Binding IsSelectingTarget}" HorizontalAlignment="Center">
-                    <TextBlock Text="Select Target (WASD to move, Enter to confirm, Esc to cancel)"
+                    <TextBlock Text="Select Target: Click to select, Double-click to confirm | WASD to move cursor, Enter/Space to confirm, Esc to cancel"
                                FontSize="12"
                                Foreground="#ffd700"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,10"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                        <Button Content="Confirm" Command="{Binding ConfirmTargetCommand}"/>
-                        <Button Content="Cancel" Command="{Binding CancelTargetCommand}"/>
+                        <Button Content="[Enter] Confirm" Command="{Binding ConfirmTargetCommand}"/>
+                        <Button Content="[Esc] Cancel" Command="{Binding CancelTargetCommand}"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>
