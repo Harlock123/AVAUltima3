@@ -361,15 +361,18 @@ public class GameEngine
     {
         if (State == GameState.Combat) return;
 
+        // Towns are safe zones - no random encounters
+        if (State == GameState.Town) return;
+
         // Base encounter chance varies by location
         int encounterChance = State switch
         {
             GameState.Dungeon => 15 + Party.DungeonLevel * 2,
             GameState.Overworld => Party.IsNight ? 8 : 5,
-            _ => 3
+            _ => 0 // No encounters in other states
         };
 
-        if (_rng.Next(100) >= encounterChance) return;
+        if (encounterChance == 0 || _rng.Next(100) >= encounterChance) return;
 
         // Generate monsters
         var monsters = GenerateEncounter();
