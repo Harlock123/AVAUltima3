@@ -198,6 +198,29 @@ public partial class CombatViewModel : ViewModelBase
         _combat.ExecutePlayerAction(action);
     }
 
+    private void MovePlayer(int dx, int dy)
+    {
+        if (!IsPlayerTurn || !_combat.IsCombatActive) return;
+
+        var currentCombatant = _combat.CurrentCombatant;
+        if (currentCombatant == null) return;
+
+        int newX = currentCombatant.X + dx;
+        int newY = currentCombatant.Y + dy;
+
+        var action = new CombatAction(CombatActionType.Move, newX, newY);
+        var result = _combat.ExecutePlayerAction(action);
+
+        if (result.Success)
+        {
+            _audioService.PlaySoundEffect(SoundEffect.Footstep);
+        }
+        else
+        {
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+        }
+    }
+
     [RelayCommand]
     private void ConfirmTarget()
     {
@@ -268,7 +291,26 @@ public partial class CombatViewModel : ViewModelBase
         {
             switch (key.ToUpper())
             {
+                // Movement with arrow keys or WASD
+                case "W":
+                case "UP":
+                    MovePlayer(0, -1);
+                    break;
+                case "S":
+                case "DOWN":
+                    MovePlayer(0, 1);
+                    break;
                 case "A":
+                case "LEFT":
+                    MovePlayer(-1, 0);
+                    break;
+                case "D":
+                case "RIGHT":
+                    MovePlayer(1, 0);
+                    break;
+
+                // Actions with specific keys
+                case "T":  // T for aTtack (since A is now move left)
                     Attack();
                     break;
                 case "C":

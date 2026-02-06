@@ -11,6 +11,7 @@ public enum CombatActionType
     Attack,
     Cast,
     UseItem,
+    Move,
     Pass,
     Flee
 }
@@ -261,6 +262,7 @@ public class CombatSystem
         {
             CombatActionType.Attack => ExecuteAttack(combatant, action.TargetX, action.TargetY),
             CombatActionType.Cast => ExecuteSpell(combatant, action.Spell!.Value, action.TargetX, action.TargetY),
+            CombatActionType.Move => ExecuteMove(combatant, action.TargetX, action.TargetY),
             CombatActionType.Pass => new CombatResult(true, $"{combatant.Name} waits."),
             CombatActionType.Flee => AttemptFlee(combatant),
             _ => new CombatResult(false, "Invalid action")
@@ -315,6 +317,27 @@ public class CombatSystem
         {
             return new CombatResult(true, $"{attacker.Name} misses {target.Name}.");
         }
+    }
+
+    private CombatResult ExecuteMove(CharacterCombatant character, int targetX, int targetY)
+    {
+        // Check if target is adjacent (1 tile away in any direction)
+        int dx = Math.Abs(character.X - targetX);
+        int dy = Math.Abs(character.Y - targetY);
+
+        if (dx > 1 || dy > 1)
+            return new CombatResult(false, "Can only move one tile at a time");
+
+        if (dx == 0 && dy == 0)
+            return new CombatResult(false, "Already at that position");
+
+        if (!IsValidMove(targetX, targetY))
+            return new CombatResult(false, "Cannot move there");
+
+        character.X = targetX;
+        character.Y = targetY;
+
+        return new CombatResult(true, $"{character.Name} moves.");
     }
 
     private CombatResult ExecuteSpell(CharacterCombatant caster, SpellType spellType, int targetX, int targetY)
