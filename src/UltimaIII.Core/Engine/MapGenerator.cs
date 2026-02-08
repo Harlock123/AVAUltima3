@@ -181,12 +181,13 @@ public static class MapGenerator
         // Generate buildings
         GenerateTownBuildings(map, rng);
 
-        // Add some decorative elements
+        // Add some trees in remaining grass areas
         for (int i = 0; i < 10; i++)
         {
             int x = rng.Next(2, TownSize - 2);
             int y = rng.Next(2, TownSize - 2);
-            if (map.GetTile(x, y).Type == TileType.Grass)
+            var tile = map.GetTile(x, y);
+            if (tile.Type == TileType.Grass)
             {
                 map.SetTile(x, y, new MapTile { Type = TileType.Forest });
             }
@@ -207,6 +208,14 @@ public static class MapGenerator
             (24, 12, 6, 6, "inn")
         };
 
+        // Generate unique shop names for this town
+        var shopNames = new Dictionary<string, string>();
+        foreach (var (_, _, _, _, btype) in buildings)
+        {
+            shopNames[btype] = TownNames.GetRandomName(btype, rng);
+        }
+
+        // Build all structures
         foreach (var (bx, by, bw, bh, btype) in buildings)
         {
             // Create building walls
@@ -234,10 +243,128 @@ public static class MapGenerator
             int doorX = bx + bw / 2;
             map.SetTile(doorX, by + bh - 1, new MapTile { Type = TileType.Door });
 
-            // Add counter with shop type tag
+            // Add counter with "type|name" EntityId format
+            string entityId = $"{btype}|{shopNames[btype]}";
             for (int x = bx + 2; x < bx + bw - 2; x++)
             {
-                map.SetTile(x, by + 2, new MapTile { Type = TileType.Counter, EntityId = btype });
+                map.SetTile(x, by + 2, new MapTile { Type = TileType.Counter, EntityId = entityId });
+            }
+
+            // Place sign one tile right of door
+            int signX = doorX + 1;
+            int signY = by + bh - 1;
+            if (map.GetTile(signX, signY).Type == TileType.Wall)
+            {
+                // Sign on the wall row, just outside
+                signY = by + bh;
+            }
+            if (map.IsInBounds(signX, signY) && map.GetTile(signX, signY).Type == TileType.Grass)
+            {
+                map.SetTile(signX, signY, new MapTile { Type = TileType.Sign, EntityId = shopNames[btype] });
+            }
+
+            // Place flowers one tile left of door
+            int flowerX = doorX - 1;
+            int flowerY = by + bh;
+            if (map.IsInBounds(flowerX, flowerY) && map.GetTile(flowerX, flowerY).Type == TileType.Grass)
+            {
+                map.SetTile(flowerX, flowerY, new MapTile { Type = TileType.Flowers });
+            }
+        }
+
+        // Central town square (5x5 area around 16, 14)
+        int sqCenterX = 16;
+        int sqCenterY = 14;
+        for (int dy = -2; dy <= 2; dy++)
+        {
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                int sx = sqCenterX + dx;
+                int sy = sqCenterY + dy;
+                if (map.IsInBounds(sx, sy) && map.GetTile(sx, sy).Type == TileType.Grass)
+                {
+                    map.SetTile(sx, sy, new MapTile { Type = TileType.Path });
+                }
+            }
+        }
+        // Fountain at center
+        map.SetTile(sqCenterX, sqCenterY, new MapTile { Type = TileType.Fountain });
+        // Flowers on corners of the square
+        map.SetTile(sqCenterX - 2, sqCenterY - 2, new MapTile { Type = TileType.Flowers });
+        map.SetTile(sqCenterX + 2, sqCenterY - 2, new MapTile { Type = TileType.Flowers });
+        map.SetTile(sqCenterX - 2, sqCenterY + 2, new MapTile { Type = TileType.Flowers });
+        map.SetTile(sqCenterX + 2, sqCenterY + 2, new MapTile { Type = TileType.Flowers });
+
+        // Main avenue: path from entrance (16, 30) north to town square (16, 14)
+        int entranceX = TownSize / 2; // 16
+        for (int y = TownSize - 2; y >= sqCenterY + 3; y--)
+        {
+            if (map.GetTile(entranceX, y).Type == TileType.Grass)
+            {
+                map.SetTile(entranceX, y, new MapTile { Type = TileType.Path });
+            }
+        }
+
+        // East-west roads connecting building doors
+        // Row 9: connects weapon_shop(door 7,8), armor_shop(door 18,8), guild(door 27,8)
+        int roadY1 = 9;
+        for (int x = 3; x <= 28; x++)
+        {
+            if (map.GetTile(x, roadY1).Type == TileType.Grass)
+            {
+                map.SetTile(x, roadY1, new MapTile { Type = TileType.Path });
+            }
+        }
+
+        // Row 18: connects tavern(door 7,17), healer(door 18,17), inn(door 27,17)
+        int roadY2 = 18;
+        for (int x = 3; x <= 28; x++)
+        {
+            if (map.GetTile(x, roadY2).Type == TileType.Grass)
+            {
+                map.SetTile(x, roadY2, new MapTile { Type = TileType.Path });
+            }
+        }
+
+        // North-south connector from top road through square to bottom road
+        for (int y = roadY1; y <= roadY2; y++)
+        {
+            if (map.GetTile(entranceX, y).Type == TileType.Grass)
+            {
+                map.SetTile(entranceX, y, new MapTile { Type = TileType.Path });
+            }
+        }
+
+        // Lampposts along main avenue (every ~5 tiles)
+        int[] lampY = { 22, 27 };
+        foreach (int ly in lampY)
+        {
+            // Place lamppost one tile to the side of the path
+            int lx = entranceX + 1;
+            if (map.IsInBounds(lx, ly) && map.GetTile(lx, ly).Type == TileType.Grass)
+            {
+                map.SetTile(lx, ly, new MapTile { Type = TileType.Lamppost });
+            }
+        }
+
+        // Lampposts along east-west roads
+        int[] lampX = { 12, 22 };
+        foreach (int lx in lampX)
+        {
+            if (map.IsInBounds(lx, roadY1 - 1) && map.GetTile(lx, roadY1 - 1).Type == TileType.Grass)
+                map.SetTile(lx, roadY1 - 1, new MapTile { Type = TileType.Lamppost });
+            if (map.IsInBounds(lx, roadY2 + 1) && map.GetTile(lx, roadY2 + 1).Type == TileType.Grass)
+                map.SetTile(lx, roadY2 + 1, new MapTile { Type = TileType.Lamppost });
+        }
+
+        // A few extra flower patches in open grass areas
+        int[] flowerSpots = { 2, 10, 20, 29 };
+        foreach (int fx in flowerSpots)
+        {
+            int fy = 22 + rng.Next(0, 5);
+            if (map.IsInBounds(fx, fy) && map.GetTile(fx, fy).Type == TileType.Grass)
+            {
+                map.SetTile(fx, fy, new MapTile { Type = TileType.Flowers });
             }
         }
     }

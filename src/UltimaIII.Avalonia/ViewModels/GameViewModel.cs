@@ -255,11 +255,11 @@ public partial class GameViewModel : ViewModelBase
         _gameEngine.OpenDoor(direction);
     }
 
-    public void EnterShop(ShopType shopType)
+    public void EnterShop(ShopType shopType, string? displayName = null)
     {
         if (IsShopMode || IsCombatMode) return;
         IsShopMode = true;
-        ShopVm = new ShopViewModel(_gameEngine, this, shopType);
+        ShopVm = new ShopViewModel(_gameEngine, this, shopType, displayName);
         _audioService.PlaySoundEffect(SoundEffect.DoorOpen);
     }
 
@@ -341,7 +341,7 @@ public partial class GameViewModel : ViewModelBase
 
         if (_gameEngine.TryEnterShop() && _gameEngine.CurrentShopType.HasValue)
         {
-            EnterShop(_gameEngine.CurrentShopType.Value);
+            EnterShop(_gameEngine.CurrentShopType.Value, _gameEngine.CurrentShopName);
         }
     }
 }

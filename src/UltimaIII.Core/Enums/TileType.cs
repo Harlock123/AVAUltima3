@@ -30,6 +30,9 @@ public enum TileType
     // Town features
     Counter,
     Chest,
+    Path,
+    Flowers,
+    Lamppost,
 
     // Special
     CastleWall,
@@ -63,6 +66,7 @@ public static class TileTypeExtensions
         TileType.Fountain => true,
         TileType.Sign => true,
         TileType.Chest => true,
+        TileType.Path => true,
         TileType.CastleFloor => true,
         TileType.Bridge => true,
         TileType.Ladder => true,

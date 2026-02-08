@@ -78,6 +78,9 @@ public class TileMapControl : Control
         [TileType.Pit] = new SolidColorBrush(Color.FromRgb(30, 30, 30)),
         [TileType.CeilingHole] = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
         [TileType.Trap] = new SolidColorBrush(Color.FromRgb(170, 170, 170)),
+        [TileType.Path] = new SolidColorBrush(Color.FromRgb(160, 140, 120)),
+        [TileType.Flowers] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
+        [TileType.Lamppost] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Void] = new SolidColorBrush(Color.FromRgb(0, 0, 0))
     };
 
@@ -231,6 +234,45 @@ public class TileMapControl : Control
                 // Snow cap
                 context.DrawLine(new Pen(Brushes.White, 2),
                     new Point(center.X - 3, center.Y - 4), new Point(center.X + 3, center.Y - 4));
+                break;
+
+            case TileType.Sign:
+                // Draw sign post with plaque
+                var postPen = new Pen(new SolidColorBrush(Color.FromRgb(100, 60, 30)), 3);
+                context.DrawLine(postPen, new Point(center.X, center.Y + 12), new Point(center.X, center.Y - 4));
+                // Plaque
+                var plaqueRect = new Rect(center.X - 8, center.Y - 10, 16, 8);
+                context.FillRectangle(new SolidColorBrush(Color.FromRgb(180, 140, 80)), plaqueRect);
+                context.DrawRectangle(new Pen(new SolidColorBrush(Color.FromRgb(100, 60, 30)), 1), plaqueRect);
+                break;
+
+            case TileType.Flowers:
+                // Draw colored flower dots on green
+                var red = new SolidColorBrush(Color.FromRgb(255, 80, 80));
+                var yellow = new SolidColorBrush(Color.FromRgb(255, 255, 100));
+                var pink = new SolidColorBrush(Color.FromRgb(255, 150, 200));
+                context.FillRectangle(red, new Rect(center.X - 6, center.Y - 5, 4, 4));
+                context.FillRectangle(yellow, new Rect(center.X + 3, center.Y - 7, 4, 4));
+                context.FillRectangle(pink, new Rect(center.X - 2, center.Y + 3, 4, 4));
+                context.FillRectangle(red, new Rect(center.X + 5, center.Y + 2, 4, 4));
+                break;
+
+            case TileType.Lamppost:
+                // Draw lamppost: thin brown post with yellow glow on top
+                var lampPen = new Pen(new SolidColorBrush(Color.FromRgb(80, 60, 40)), 3);
+                context.DrawLine(lampPen, new Point(center.X, center.Y + 12), new Point(center.X, center.Y - 6));
+                // Lantern glow
+                var glowGeom = new EllipseGeometry(new Rect(center.X - 5, center.Y - 12, 10, 8));
+                context.DrawGeometry(new SolidColorBrush(Color.FromRgb(255, 230, 100)), null, glowGeom);
+                break;
+
+            case TileType.Path:
+                // Subtle cobblestone grid lines
+                var stonePen = new Pen(new SolidColorBrush(Color.FromRgb(140, 120, 100)), 1);
+                context.DrawLine(stonePen, new Point(rect.X + 8, rect.Y), new Point(rect.X + 8, rect.Y + TileSize));
+                context.DrawLine(stonePen, new Point(rect.X + 24, rect.Y), new Point(rect.X + 24, rect.Y + TileSize));
+                context.DrawLine(stonePen, new Point(rect.X, rect.Y + 10), new Point(rect.X + TileSize, rect.Y + 10));
+                context.DrawLine(stonePen, new Point(rect.X, rect.Y + 22), new Point(rect.X + TileSize, rect.Y + 22));
                 break;
         }
     }

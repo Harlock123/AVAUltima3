@@ -17,6 +17,9 @@ public class GameEngine
     public CombatSystem Combat { get; }
     public int MapSeed { get; private set; }
     public ShopType? CurrentShopType { get; private set; }
+    public string? CurrentShopName { get; private set; }
+
+    private string? _lastSignShown;
 
     // Message log
     public List<string> MessageLog { get; } = new();
@@ -268,6 +271,38 @@ public class GameEngine
         {
             GoUpstairs();
         }
+
+        // Check for nearby signs
+        CheckAdjacentSigns();
+    }
+
+    private void CheckAdjacentSigns()
+    {
+        if (CurrentMap == null) return;
+
+        int[] dx = { 0, 0, -1, 1 };
+        int[] dy = { -1, 1, 0, 0 };
+
+        for (int i = 0; i < 4; i++)
+        {
+            int nx = Party.X + dx[i];
+            int ny = Party.Y + dy[i];
+            if (!CurrentMap.IsInBounds(nx, ny)) continue;
+
+            var adjTile = CurrentMap.GetTile(nx, ny);
+            if (adjTile.Type == TileType.Sign && !string.IsNullOrEmpty(adjTile.EntityId))
+            {
+                if (_lastSignShown != adjTile.EntityId)
+                {
+                    _lastSignShown = adjTile.EntityId;
+                    AddMessage($"You see a sign: \"{adjTile.EntityId}\"");
+                }
+                return;
+            }
+        }
+
+        // No sign adjacent — clear last shown
+        _lastSignShown = null;
     }
 
     private void HandleLocationEntry(MapLocation location)
@@ -611,9 +646,20 @@ public class GameEngine
             var tile = CurrentMap.GetTile(nx, ny);
             if (tile.Type == TileType.Counter && !string.IsNullOrEmpty(tile.EntityId))
             {
-                if (ShopDefinition.EntityIdToShopType.TryGetValue(tile.EntityId, out var shopType))
+                // Parse "type|name" format (fall back to plain type for backward compat)
+                string shopTypeId = tile.EntityId;
+                string? shopName = null;
+                int pipeIdx = tile.EntityId.IndexOf('|');
+                if (pipeIdx >= 0)
+                {
+                    shopTypeId = tile.EntityId[..pipeIdx];
+                    shopName = tile.EntityId[(pipeIdx + 1)..];
+                }
+
+                if (ShopDefinition.EntityIdToShopType.TryGetValue(shopTypeId, out var shopType))
                 {
                     CurrentShopType = shopType;
+                    CurrentShopName = shopName;
                     State = GameState.Shop;
                     OnStateChanged?.Invoke(State);
                     return true;
@@ -630,6 +676,7 @@ public class GameEngine
         if (State != GameState.Shop) return;
 
         CurrentShopType = null;
+        CurrentShopName = null;
         State = GameState.Town;
         OnStateChanged?.Invoke(State);
     }

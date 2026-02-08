@@ -83,14 +83,14 @@ public partial class ShopViewModel : ViewModelBase
         }
     }
 
-    public ShopViewModel(GameEngine gameEngine, GameViewModel parentViewModel, ShopType shopType)
+    public ShopViewModel(GameEngine gameEngine, GameViewModel parentViewModel, ShopType shopType, string? displayName = null)
     {
         _gameEngine = gameEngine;
         _parentViewModel = parentViewModel;
         _audioService = AudioService.Instance;
         _shopDef = ShopDefinition.Get(shopType);
 
-        ShopName = _shopDef.Name;
+        ShopName = displayName ?? _shopDef.Name;
         WelcomeMessage = _shopDef.WelcomeMessage;
         PartyGold = gameEngine.Party.Gold;
 
