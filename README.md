@@ -40,6 +40,7 @@ UltimaIII.sln
 - **Time System**: Day/night cycle, moon phases
 - **Fog of War**: Exploration reveals the map
 - **Safe Zones**: Towns have no random encounters
+- **Save/Load**: Persistent game saves with full party, inventory, and quest state
 
 ### Combat System
 - **Turn-Based Tactical Combat**: 11x11 grid
@@ -49,16 +50,43 @@ UltimaIII.sln
 - **Target Selection**: Keyboard (WASD) or mouse (click to select, double-click to confirm)
 - **Monster AI**: Simple pathfinding and attack behavior
 - **20+ Monster Types**: Orcs, Skeletons, Dragons, Demons, etc.
+- **Loot Drops**: Defeated monsters can drop weapons, armor, shields, and consumables based on per-monster loot tables
 
 ### Magic System
-- **Wizard Spells**: 16 spells (offensive, utility)
-- **Cleric Spells**: 16 spells (healing, protection)
+- **Wizard Spells**: 16 spells (offensive, utility, teleportation)
+- **Cleric Spells**: 16 spells (healing, protection, cure, resurrection)
+- **Status Cures**: Sanctu cures poison; Lib Rec removes all ailments (poison, confusion, sleep, paralysis)
+- **Combat Casting**: CuresStatus spells work in combat to heal afflicted party members
 - **Class Restrictions**: Each class has access to different spell levels
 
+### Shop System
+- **6 Shop Types**: Weapon Shop, Armor Shop, Tavern, Healer, Guild, Inn
+- **Unique Shop Names**: Each town has procedurally named shops (e.g. "The Rusty Blade", "The Silver Stag")
+- **Buy/Sell/Equip Tabs**: Purchase equipment, sell items, and equip gear
+- **Party Inventory Selling**: Press Q on the Sell tab to toggle between selling from character inventory or party inventory
+- **Services**: Healing, cure, resurrection (Healer); rest to restore HP/MP (Inn); food (Tavern)
+- **Class Restrictions**: Equipment restricted by character class
+
+### Party Inventory System
+- **Shared Inventory**: Party-wide item storage fed by monster loot drops
+- **Inventory Browser**: Press I to open the inventory screen from anywhere (overworld, town, dungeon)
+- **5 Filter Tabs**: All, Weapons, Armor, Shields, Items
+- **Equip from Party**: Select a character and equip items directly from party inventory
+- **Equipment Swap**: Currently equipped items return to party inventory when replaced
+- **Stackable Items**: Consumables stack with quantity display (e.g. "Healing Potion x3")
+- **Persistent**: Party inventory saves and loads with the game
+
+### Town System
+- **Procedurally Generated Towns**: 32x32 maps with walls, buildings, and a central fountain square
+- **Cobblestone Paths**: Connecting main avenue, east-west roads, and the town square
+- **Shop Signs**: Readable signs next to each shop door displaying the shop name
+- **Decorations**: Flower beds, lampposts along roads, and scattered trees
+- **Door Clearance**: Automatic validation ensures decorations never block shop entrances
+
 ### Map System
-- **Overworld**: 64x64 procedurally generated world
-- **Towns**: 32x32 with shops and buildings
-- **Dungeons**: 8 levels deep with stairs, traps, and treasure
+- **Overworld**: 64x64 procedurally generated world with 8 towns and 4 dungeons
+- **Towns**: 32x32 with shops, paths, signs, and decorative features
+- **Dungeons**: 8 levels deep with stairs, traps, secret doors, and treasure
 
 ### Audio System
 - **Procedural Chiptune Audio**: All music and sound effects generated programmatically
@@ -98,8 +126,11 @@ dotnet run --project src/UltimaIII.Avalonia
 | A / Left Arrow | Move West |
 | D / Right Arrow | Move East |
 | Space | Search |
-| R | Rest (in town only) |
+| R | Rest |
+| B | Enter Shop (when adjacent to counter) |
+| I | Open Party Inventory |
 | X | Exit current location |
+| F5 | Save game |
 
 ### Combat Mode
 | Key | Action |
@@ -121,6 +152,27 @@ dotnet run --project src/UltimaIII.Avalonia
 | Escape | Cancel |
 | Mouse Click | Select target tile |
 | Mouse Double-Click | Select and confirm target |
+
+### Inventory Browser
+| Key | Action |
+|-----|--------|
+| W/S / Up/Down | Browse items |
+| A/D / Left/Right | Switch character |
+| Enter / Space | Equip selected item |
+| 1-5 | Switch tab (All/Weapons/Armor/Shields/Items) |
+| Tab | Cycle tabs |
+| Esc / I | Close inventory |
+
+### Shop Mode
+| Key | Action |
+|-----|--------|
+| W/S / Up/Down | Browse items |
+| A/D / Left/Right | Switch character |
+| Enter / Space | Confirm purchase/sale/equip |
+| 1-4 | Switch tab (Buy/Sell/Equip/Services) |
+| Tab | Cycle tabs |
+| Q | Toggle sell source (Character/Party inventory) |
+| Esc | Leave shop |
 
 ## Technical Details
 
