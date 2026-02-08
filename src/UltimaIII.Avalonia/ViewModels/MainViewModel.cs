@@ -35,6 +35,15 @@ public partial class MainViewModel : ViewModelBase
     {
         _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
         _gameEngine.NewGame();
+        CurrentView = new FortuneTellerViewModel(_gameEngine, this);
+        IsMainMenuVisible = false;
+    }
+
+    [RelayCommand]
+    private void CustomGame()
+    {
+        _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+        _gameEngine.NewGame();
         CurrentView = new CharacterCreationViewModel(_gameEngine, this);
         IsMainMenuVisible = false;
     }

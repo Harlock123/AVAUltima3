@@ -445,6 +445,33 @@ public class CombatSystem
 
         int range = monster.Monster.Definition.Range;
 
+        // Check if monster should cast its special ability
+        if (monster.Monster.Definition.SpecialAbility.HasValue && _rng.Next(100) < 40)
+        {
+            var spell = Spell.Get(monster.Monster.Definition.SpecialAbility.Value);
+
+            // Find best target within spell range
+            CharacterCombatant? spellTarget = null;
+            int spellTargetDist = int.MaxValue;
+            foreach (var pc in PlayerCharacters)
+            {
+                if (!pc.IsAlive) continue;
+                int dist = Math.Max(Math.Abs(monster.X - pc.X), Math.Abs(monster.Y - pc.Y));
+                if (dist <= spell.Range && dist < spellTargetDist)
+                {
+                    spellTargetDist = dist;
+                    spellTarget = pc;
+                }
+            }
+
+            if (spellTarget != null)
+            {
+                ExecuteMonsterSpell(monster, spell, spellTarget);
+                AdvanceTurn();
+                return;
+            }
+        }
+
         if (nearestDistance <= range)
         {
             // Attack!
@@ -491,6 +518,51 @@ public class CombatSystem
         }
 
         AdvanceTurn();
+    }
+
+    private void ExecuteMonsterSpell(MonsterCombatant monster, Spell spell, CharacterCombatant target)
+    {
+        if (spell.MinDamage > 0)
+        {
+            int damage = spell.RollDamage(_rng);
+            target.TakeDamage(damage);
+
+            bool killed = !target.IsAlive;
+            string msg = killed
+                ? $"{monster.Name} casts {spell.Name} on {target.Name} for {damage} damage, slaying them!"
+                : $"{monster.Name} casts {spell.Name} on {target.Name} for {damage} damage!";
+            LogMessage(msg);
+
+            if (spell.AppliesStatus != StatusEffect.None)
+            {
+                target.Status |= spell.AppliesStatus;
+                LogMessage($"{target.Name} is {spell.AppliesStatus}!");
+            }
+
+            // AOE: hit nearby player characters too
+            if (spell.AreaOfEffect > 0)
+            {
+                foreach (var pc in PlayerCharacters)
+                {
+                    if (pc == target || !pc.IsAlive) continue;
+                    int dist = Math.Max(Math.Abs(target.X - pc.X), Math.Abs(target.Y - pc.Y));
+                    if (dist <= spell.AreaOfEffect)
+                    {
+                        int aoeDamage = spell.RollDamage(_rng);
+                        pc.TakeDamage(aoeDamage);
+                        if (spell.AppliesStatus != StatusEffect.None)
+                            pc.Status |= spell.AppliesStatus;
+                        LogMessage($"{pc.Name} is caught in the {spell.Name} for {aoeDamage} damage!");
+                    }
+                }
+            }
+        }
+        else if (spell.AppliesStatus != StatusEffect.None)
+        {
+            target.Status |= spell.AppliesStatus;
+            LogMessage($"{monster.Name} casts {spell.Name} on {target.Name}!");
+            LogMessage($"{target.Name} is {spell.AppliesStatus}!");
+        }
     }
 
     private bool IsValidMove(int x, int y)

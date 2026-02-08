@@ -1,0 +1,122 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             x:Class="UltimaIII.Avalonia.Views.FortuneTellerView"
+             x:DataType="vm:FortuneTellerViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0ff"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#1a1035"/>
+            <Setter Property="Foreground" Value="#ffd700"/>
+            <Setter Property="BorderBrush" Value="#6a4a8a"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style Selector="Button.answer">
+            <Setter Property="Background" Value="#2a1a4a"/>
+            <Setter Property="Foreground" Value="#e0d0ff"/>
+            <Setter Property="BorderBrush" Value="#6a4a8a"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="Button.answer:pointerover">
+            <Setter Property="Background" Value="#3a2a5a"/>
+            <Setter Property="BorderBrush" Value="#ffd700"/>
+        </Style>
+        <Style Selector="Button.proceed">
+            <Setter Property="Background" Value="#3a6a3a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#5a8a5a"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="30,12"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style Selector="Button.proceed:pointerover">
+            <Setter Property="Background" Value="#4a8a4a"/>
+            <Setter Property="BorderBrush" Value="#ffd700"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0820" Padding="40">
+        <Grid MaxWidth="700" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title -->
+            <TextBlock Grid.Row="0" Text="THE FORTUNE TELLER"
+                       FontSize="28" FontWeight="Bold" Foreground="#ffd700"
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+            <!-- Decorative separator -->
+            <TextBlock Grid.Row="1"
+                       Text="* . * . * . * . * . * . * . * . *"
+                       FontSize="14" Foreground="#6a4a8a"
+                       HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <!-- Gypsy narrative text -->
+            <ScrollViewer Grid.Row="2" Margin="0,0,0,20">
+                <TextBlock Text="{Binding GypsyText}"
+                           FontSize="16" TextWrapping="Wrap"
+                           LineHeight="24"
+                           Foreground="#c0b0e0"/>
+            </ScrollViewer>
+
+            <!-- Input Area -->
+            <StackPanel Grid.Row="3" Spacing="10">
+
+                <!-- Name Entry Phase -->
+                <StackPanel IsVisible="{Binding IsNamePhase}" Spacing="15">
+                    <TextBox Text="{Binding CharacterName}"
+                             Watermark="Enter thy name..."
+                             MaxLength="16"
+                             Width="300" HorizontalAlignment="Center"/>
+                    <Button Content="Speak thy name"
+                            Command="{Binding SubmitNameCommand}"
+                            HorizontalAlignment="Center"
+                            Classes="answer"
+                            IsEnabled="{Binding CanProceed}"/>
+                </StackPanel>
+
+                <!-- Question Phase -->
+                <ItemsControl IsVisible="{Binding IsQuestionPhase}"
+                              ItemsSource="{Binding CurrentAnswers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AnswerChoiceViewModel">
+                            <Button Classes="answer" Margin="0,4"
+                                    Command="{Binding $parent[ItemsControl].((vm:FortuneTellerViewModel)DataContext).SelectAnswerCommand}"
+                                    CommandParameter="{Binding Index}">
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="{Binding Label}" Foreground="#ffd700"/>
+                                    <Run Text=" "/>
+                                    <Run Text="{Binding Text}"/>
+                                </TextBlock>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Reveal Phase -->
+                <StackPanel IsVisible="{Binding IsRevealPhase}" Spacing="15"
+                            HorizontalAlignment="Center">
+                    <Button Content="Begin thy quest!"
+                            Command="{Binding BeginAdventureCommand}"
+                            HorizontalAlignment="Center"
+                            Classes="proceed"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

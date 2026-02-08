@@ -401,8 +401,9 @@ public class GameEngine
 
         var selectedDef = weightedMonsters[_rng.Next(weightedMonsters.Count)];
 
-        // Generate 1-4 monsters of the same type
-        int count = _rng.Next(1, 5);
+        // Scale enemy count: 1 to 2x party size
+        int maxEnemies = Math.Max(1, Party.Count * 2);
+        int count = _rng.Next(1, maxEnemies + 1);
         for (int i = 0; i < count; i++)
         {
             monsters.Add(new Monster(selectedDef, _rng));

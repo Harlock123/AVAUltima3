@@ -59,6 +59,10 @@
                         Command="{Binding NewGameCommand}"
                         HorizontalAlignment="Center"
                         Width="200"/>
+                <Button Content="Custom Game"
+                        Command="{Binding CustomGameCommand}"
+                        HorizontalAlignment="Center"
+                        Width="200"/>
                 <Button Content="Continue"
                         Command="{Binding ContinueGameCommand}"
                         HorizontalAlignment="Center"
@@ -81,6 +85,9 @@
         <!-- Game Content -->
         <ContentControl Content="{Binding CurrentView}" IsVisible="{Binding !IsMainMenuVisible}">
             <ContentControl.DataTemplates>
+                <DataTemplate DataType="{x:Type vm:FortuneTellerViewModel}">
+                    <views:FortuneTellerView/>
+                </DataTemplate>
                 <DataTemplate DataType="{x:Type vm:CharacterCreationViewModel}">
                     <views:CharacterCreationView/>
                 </DataTemplate>
