@@ -3,6 +3,11 @@ using UltimaIII.Core.Enums;
 namespace UltimaIII.Core.Models;
 
 /// <summary>
+/// A potential loot drop from a monster.
+/// </summary>
+public record LootDrop(string ItemId, int DropChancePercent);
+
+/// <summary>
 /// Monster template definition.
 /// </summary>
 public class MonsterDefinition
@@ -25,6 +30,7 @@ public class MonsterDefinition
     public StatusEffect InflictsStatus { get; init; }
     public int TileIndex { get; init; } // For sprite rendering
     public int DungeonLevel { get; init; } = 1; // Minimum dungeon level to appear
+    public List<LootDrop> LootTable { get; init; } = new();
 }
 
 /// <summary>
@@ -82,7 +88,8 @@ public class Monster
             ExperienceValue = 15,
             GoldDrop = 10,
             TileIndex = 0,
-            DungeonLevel = 1
+            DungeonLevel = 1,
+            LootTable = { new("short_sword", 10), new("leather", 8) }
         },
         ["goblin"] = new MonsterDefinition
         {
@@ -96,7 +103,8 @@ public class Monster
             ExperienceValue = 10,
             GoldDrop = 5,
             TileIndex = 1,
-            DungeonLevel = 1
+            DungeonLevel = 1,
+            LootTable = { new("dagger", 15) }
         },
         ["skeleton"] = new MonsterDefinition
         {
@@ -111,7 +119,8 @@ public class Monster
             GoldDrop = 8,
             IsUndead = true,
             TileIndex = 2,
-            DungeonLevel = 1
+            DungeonLevel = 1,
+            LootTable = { new("mace", 10), new("small_shield", 8) }
         },
         ["zombie"] = new MonsterDefinition
         {
@@ -158,7 +167,8 @@ public class Monster
             GoldDrop = 3,
             InflictsStatus = StatusEffect.Poisoned,
             TileIndex = 5,
-            DungeonLevel = 1
+            DungeonLevel = 1,
+            LootTable = { new("healing_potion", 5) }
         },
         ["giant_spider"] = new MonsterDefinition
         {
@@ -173,7 +183,8 @@ public class Monster
             GoldDrop = 8,
             InflictsStatus = StatusEffect.Poisoned,
             TileIndex = 6,
-            DungeonLevel = 1
+            DungeonLevel = 1,
+            LootTable = { new("healing_potion", 10) }
         },
         ["gelatinous_cube"] = new MonsterDefinition
         {
@@ -202,7 +213,8 @@ public class Monster
             ExperienceValue = 40,
             GoldDrop = 25,
             TileIndex = 8,
-            DungeonLevel = 2
+            DungeonLevel = 2,
+            LootTable = { new("axe", 12), new("chain_mail", 6) }
         },
         ["ogre"] = new MonsterDefinition
         {
@@ -248,7 +260,8 @@ public class Monster
             IsUndead = true,
             CanFly = true,
             TileIndex = 11,
-            DungeonLevel = 4
+            DungeonLevel = 4,
+            LootTable = { new("long_sword", 15), new("healing_potion", 25) }
         },
         ["lich"] = new MonsterDefinition
         {
@@ -300,7 +313,8 @@ public class Monster
             Range = 4,
             SpecialAbility = SpellType.Fulgar,
             TileIndex = 14,
-            DungeonLevel = 6
+            DungeonLevel = 6,
+            LootTable = { new("great_sword", 10), new("plate_mail", 8) }
         },
         ["balron"] = new MonsterDefinition
         {
@@ -334,7 +348,8 @@ public class Monster
             CanFly = true,
             Range = 6,
             TileIndex = 16,
-            DungeonLevel = 8
+            DungeonLevel = 8,
+            LootTable = { new("great_sword", 20), new("plate_mail", 15), new("healing_potion", 40) }
         },
         ["pirate"] = new MonsterDefinition
         {
@@ -349,7 +364,8 @@ public class Monster
             GoldDrop = 50,
             CanSwim = true,
             TileIndex = 17,
-            DungeonLevel = 1
+            DungeonLevel = 1,
+            LootTable = { new("short_sword", 15), new("small_shield", 10) }
         },
         ["sea_serpent"] = new MonsterDefinition
         {

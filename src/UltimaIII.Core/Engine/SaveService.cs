@@ -27,6 +27,12 @@ public class CharacterSaveData
     public List<string> InventoryIds { get; set; } = new();
 }
 
+public class InventoryEntrySave
+{
+    public string ItemId { get; set; } = string.Empty;
+    public int Quantity { get; set; } = 1;
+}
+
 public class PartySaveData
 {
     public List<CharacterSaveData> Members { get; set; } = new();
@@ -45,6 +51,7 @@ public class PartySaveData
     public int DayCount { get; set; }
     public List<string> Marks { get; set; } = new();
     public List<string> CompletedQuests { get; set; } = new();
+    public List<InventoryEntrySave> SharedInventory { get; set; } = new();
 }
 
 public class GameSave
@@ -106,7 +113,10 @@ public static class SaveService
                 TurnCount = party.TurnCount,
                 DayCount = party.DayCount,
                 Marks = party.Marks.ToList(),
-                CompletedQuests = party.CompletedQuests.ToList()
+                CompletedQuests = party.CompletedQuests.ToList(),
+                SharedInventory = party.SharedInventory
+                    .Select(i => new InventoryEntrySave { ItemId = i.Id, Quantity = i.Quantity })
+                    .ToList()
             }
         };
 
@@ -219,6 +229,19 @@ public static class SaveService
         party.CompletedQuests.Clear();
         foreach (var quest in save.Party.CompletedQuests)
             party.CompletedQuests.Add(quest);
+
+        // Restore shared inventory
+        party.ClearInventory();
+        foreach (var entry in save.Party.SharedInventory)
+        {
+            var template = ItemRegistry.FindById(entry.ItemId);
+            if (template != null)
+            {
+                var item = ItemRegistry.CloneItem(template);
+                item.Quantity = entry.Quantity;
+                party.AddToInventory(item);
+            }
+        }
     }
 
     private static Weapon ResolveWeapon(string id)

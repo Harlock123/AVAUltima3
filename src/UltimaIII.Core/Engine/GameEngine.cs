@@ -515,11 +515,16 @@ public class GameEngine
         else
         {
             // Award rewards
-            var (exp, gold) = Combat.GetCombatRewards();
+            var (exp, gold, loot) = Combat.GetCombatRewards();
             if (gold > 0)
             {
                 Party.AddGold(gold);
                 AddMessage($"Found {gold} gold!");
+            }
+            foreach (var item in loot)
+            {
+                Party.AddToInventory(item);
+                AddMessage($"Found {item.Name}!");
             }
 
             // Return to previous state
@@ -697,6 +702,12 @@ public class GameEngine
             if (member.CurrentHP < member.MaxHP)
             {
                 AddMessage($"{member.Name} recovers some health.");
+            }
+
+            if (member.Status.HasFlag(StatusEffect.Poisoned) && _rng.Next(100) < 33)
+            {
+                member.Status &= ~StatusEffect.Poisoned;
+                AddMessage($"{member.Name}'s poison fades.");
             }
         }
     }

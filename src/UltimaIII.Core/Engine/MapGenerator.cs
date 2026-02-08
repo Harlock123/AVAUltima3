@@ -193,6 +193,9 @@ public static class MapGenerator
             }
         }
 
+        // Final safety pass: ensure no decoration blocks a door approach
+        ClearDoorApproaches(map);
+
         return map;
     }
 
@@ -365,6 +368,41 @@ public static class MapGenerator
             if (map.IsInBounds(fx, fy) && map.GetTile(fx, fy).Type == TileType.Grass)
             {
                 map.SetTile(fx, fy, new MapTile { Type = TileType.Flowers });
+            }
+        }
+
+        // Door clearance pass: ensure the tile in front of every door is passable
+        ClearDoorApproaches(map);
+    }
+
+    private static void ClearDoorApproaches(GameMap map)
+    {
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                if (map.GetTile(x, y).Type != TileType.Door) continue;
+
+                // Check all 4 adjacent tiles; clear any non-passable, non-wall tiles
+                // that block the approach to this door
+                (int dx, int dy)[] offsets = { (0, -1), (0, 1), (-1, 0), (1, 0) };
+                foreach (var (dx, dy) in offsets)
+                {
+                    int nx = x + dx;
+                    int ny = y + dy;
+                    if (!map.IsInBounds(nx, ny)) continue;
+
+                    var tile = map.GetTile(nx, ny);
+                    // Only clear tiles that should be walkable approaches
+                    // (skip walls and floors — those are intentional building structure)
+                    if (tile.Type is TileType.Wall or TileType.Floor or TileType.Counter
+                        or TileType.Door or TileType.CastleWall) continue;
+
+                    if (!tile.Type.IsPassable())
+                    {
+                        map.SetTile(nx, ny, new MapTile { Type = TileType.Path });
+                    }
+                }
             }
         }
     }

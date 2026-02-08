@@ -58,6 +58,12 @@ public partial class ShopViewModel : ViewModelBase
 
     public bool IsTavern => _shopDef.Type == ShopType.Tavern;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SellSourceLabel))]
+    private bool _isSellingFromParty;
+
+    public string SellSourceLabel => IsSellingFromParty ? "Party Inventory" : "Character Inventory";
+
     public ObservableCollection<ShopItemViewModel> Items { get; } = new();
 
     public string SelectedCharacterName
@@ -139,7 +145,15 @@ public partial class ShopViewModel : ViewModelBase
                 break;
 
             case ShopTab.Sell:
-                if (character != null)
+                if (IsSellingFromParty)
+                {
+                    foreach (var item in _gameEngine.Party.GetInventoryItems())
+                    {
+                        if (item.Value > 0)
+                            Items.Add(new ShopItemViewModel(item, true, true, isSelling: true));
+                    }
+                }
+                else if (character != null)
                 {
                     foreach (var item in character.Inventory)
                     {
@@ -259,7 +273,10 @@ public partial class ShopViewModel : ViewModelBase
 
             case ShopTab.Sell:
                 if (selectedItem.Item == null) return;
-                result = ShopEngine.SellItem(_gameEngine.Party, character, selectedItem.Item);
+                if (IsSellingFromParty)
+                    result = ShopEngine.SellPartyItem(_gameEngine.Party, selectedItem.Item);
+                else
+                    result = ShopEngine.SellItem(_gameEngine.Party, character, selectedItem.Item);
                 break;
 
             case ShopTab.Equip:
@@ -371,6 +388,14 @@ public partial class ShopViewModel : ViewModelBase
             case "TAB":
                 CycleTab();
                 break;
+            case "Q":
+                if (CurrentTab == ShopTab.Sell)
+                {
+                    IsSellingFromParty = !IsSellingFromParty;
+                    _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
+                    RefreshItems();
+                }
+                break;
         }
     }
 
@@ -395,34 +420,7 @@ public partial class ShopViewModel : ViewModelBase
         RefreshItems();
     }
 
-    private static Item CreateItemCopy(Item original)
-    {
-        return original switch
-        {
-            Weapon w => new Weapon
-            {
-                Id = w.Id, Name = w.Name, Description = w.Description,
-                WeaponType = w.WeaponType, MinDamage = w.MinDamage, MaxDamage = w.MaxDamage,
-                Range = w.Range, HitBonus = w.HitBonus, IsTwoHanded = w.IsTwoHanded, Value = w.Value
-            },
-            Armor a => new Armor
-            {
-                Id = a.Id, Name = a.Name, Description = a.Description,
-                ArmorType = a.ArmorType, Defense = a.Defense, MagicDefense = a.MagicDefense, Value = a.Value
-            },
-            Shield s => new Shield
-            {
-                Id = s.Id, Name = s.Name, Description = s.Description,
-                ShieldType = s.ShieldType, Defense = s.Defense, Value = s.Value
-            },
-            Consumable c => new Consumable
-            {
-                Id = c.Id, Name = c.Name, Description = c.Description,
-                Effect = c.Effect, EffectStrength = c.EffectStrength, Value = c.Value
-            },
-            _ => original
-        };
-    }
+    private static Item CreateItemCopy(Item original) => ItemRegistry.CloneItem(original);
 }
 
 public partial class ShopItemViewModel : ObservableObject

@@ -249,10 +249,11 @@ public class Spell
         {
             Type = SpellType.Sanctu,
             Name = "Sanctu",
-            Description = "Magical protection",
+            Description = "Cures poison",
             School = SpellSchool.Cleric,
             Level = 3,
             ManaCost = 8,
+            CuresStatus = StatusEffect.Poisoned,
             TargetsSelf = true,
             TargetsParty = true
         },
@@ -281,10 +282,11 @@ public class Spell
         {
             Type = SpellType.Lib_Rec,
             Name = "Lib Rec",
-            Description = "Removes curses",
+            Description = "Removes all ailments",
             School = SpellSchool.Cleric,
             Level = 6,
             ManaCost = 15,
+            CuresStatus = StatusEffect.Poisoned | StatusEffect.Confused | StatusEffect.Asleep | StatusEffect.Paralyzed,
             TargetsParty = true
         },
         [SpellType.Alcort] = new Spell

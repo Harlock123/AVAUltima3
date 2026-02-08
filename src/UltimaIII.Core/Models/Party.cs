@@ -10,8 +10,10 @@ public class Party
     public const int MaxPartySize = 4;
 
     private readonly List<Character> _members = new();
+    private readonly List<Item> _sharedInventory = new();
 
     public IReadOnlyList<Character> Members => _members;
+    public IReadOnlyList<Item> SharedInventory => _sharedInventory;
     public int Gold { get; set; } = 400; // Starting gold in Ultima III
     public int Food { get; set; } = 200; // Food units
 
@@ -131,6 +133,43 @@ public class Party
         }
     }
 
+    // --- Shared Inventory ---
+
+    public void AddToInventory(Item item)
+    {
+        if (item.IsStackable)
+        {
+            var existing = _sharedInventory.FirstOrDefault(i => i.Id == item.Id);
+            if (existing != null)
+            {
+                existing.Quantity += item.Quantity;
+                return;
+            }
+        }
+        _sharedInventory.Add(item);
+    }
+
+    public bool RemoveFromInventory(Item item)
+    {
+        if (item.IsStackable && item.Quantity > 1)
+        {
+            item.Quantity--;
+            return true;
+        }
+        return _sharedInventory.Remove(item);
+    }
+
+    public List<Item> GetInventoryItems(ItemCategory? filter = null)
+    {
+        if (filter == null)
+            return _sharedInventory.ToList();
+        return _sharedInventory.Where(i => i.Category == filter.Value).ToList();
+    }
+
+    public void ClearInventory() => _sharedInventory.Clear();
+
+    // --- Marks ---
+
     public bool HasMark(string markId) => Marks.Contains(markId);
 
     public void AddMark(string markId) => Marks.Add(markId);
@@ -155,11 +194,6 @@ public class Party
             member.Heal(member.MaxHP / 10);
             member.RestoreMana(member.MaxMP / 10);
 
-            // Small chance to cure poison while resting
-            if (member.Status.HasFlag(StatusEffect.Poisoned))
-            {
-                // This would be handled by game logic with random
-            }
         }
 
         AdvanceTime(10);

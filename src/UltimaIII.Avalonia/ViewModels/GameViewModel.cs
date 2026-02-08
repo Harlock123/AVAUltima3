@@ -44,6 +44,12 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty]
     private CombatViewModel? _combatVm;
 
+    [ObservableProperty]
+    private bool _isInventoryMode = false;
+
+    [ObservableProperty]
+    private InventoryViewModel? _inventoryVm;
+
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
     public ObservableCollection<string> MessageLog { get; } = new();
 
@@ -192,7 +198,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode || IsShopMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
     }
@@ -200,14 +206,14 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void Search()
     {
-        if (IsCombatMode || IsShopMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
         _gameEngine.Search();
     }
 
     [RelayCommand]
     private void Rest()
     {
-        if (IsCombatMode || IsShopMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
         _gameEngine.Rest();
         RefreshDisplay();
     }
@@ -215,7 +221,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void ExitLocation()
     {
-        if (IsCombatMode || IsShopMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
         _gameEngine.ExitLocation();
         RefreshDisplay();
     }
@@ -223,7 +229,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void SaveGame()
     {
-        if (IsCombatMode || IsShopMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
         try
         {
             SaveService.SaveGame(_gameEngine);
@@ -271,6 +277,20 @@ public partial class GameViewModel : ViewModelBase
         RefreshDisplay();
     }
 
+    public void OpenInventory()
+    {
+        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
+        IsInventoryMode = true;
+        InventoryVm = new InventoryViewModel(_gameEngine, this);
+    }
+
+    public void CloseInventory()
+    {
+        IsInventoryMode = false;
+        InventoryVm = null;
+        RefreshDisplay();
+    }
+
     public void EnterCombat()
     {
         if (IsCombatMode) return;
@@ -280,6 +300,7 @@ public partial class GameViewModel : ViewModelBase
 
     public void ExitCombat()
     {
+        CombatVm?.Cleanup();
         IsCombatMode = false;
         CombatVm = null;
         RefreshDisplay();
@@ -296,6 +317,12 @@ public partial class GameViewModel : ViewModelBase
         if (IsShopMode && ShopVm != null)
         {
             ShopVm.HandleKeyPress(key);
+            return;
+        }
+
+        if (IsInventoryMode && InventoryVm != null)
+        {
+            InventoryVm.HandleKeyPress(key);
             return;
         }
 
@@ -328,6 +355,9 @@ public partial class GameViewModel : ViewModelBase
                 break;
             case "B":
                 TryEnterShop();
+                break;
+            case "I":
+                OpenInventory();
                 break;
             case "F5":
                 SaveGame();

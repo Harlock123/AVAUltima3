@@ -70,4 +70,40 @@ public static class ItemRegistry
     public static List<Armor> GetAllArmor() => new(Armors);
     public static List<Shield> GetAllShields() => new(Shields);
     public static List<Consumable> GetAllConsumables() => new(Consumables);
+
+    public static Item CloneItem(Item original) => original switch
+    {
+        Weapon w => new Weapon
+        {
+            Id = w.Id, Name = w.Name, Description = w.Description, Value = w.Value, Weight = w.Weight,
+            IsStackable = w.IsStackable, Quantity = 1,
+            WeaponType = w.WeaponType, MinDamage = w.MinDamage, MaxDamage = w.MaxDamage,
+            Range = w.Range, HitBonus = w.HitBonus, IsTwoHanded = w.IsTwoHanded
+        },
+        Armor a => new Armor
+        {
+            Id = a.Id, Name = a.Name, Description = a.Description, Value = a.Value, Weight = a.Weight,
+            IsStackable = a.IsStackable, Quantity = 1,
+            ArmorType = a.ArmorType, Defense = a.Defense, MagicDefense = a.MagicDefense
+        },
+        Shield s => new Shield
+        {
+            Id = s.Id, Name = s.Name, Description = s.Description, Value = s.Value, Weight = s.Weight,
+            IsStackable = s.IsStackable, Quantity = 1,
+            ShieldType = s.ShieldType, Defense = s.Defense
+        },
+        Consumable c => new Consumable
+        {
+            Id = c.Id, Name = c.Name, Description = c.Description, Value = c.Value, Weight = c.Weight,
+            Quantity = 1,
+            Effect = c.Effect, EffectStrength = c.EffectStrength
+        },
+        QuestItem q => new QuestItem
+        {
+            Id = q.Id, Name = q.Name, Description = q.Description, Value = q.Value, Weight = q.Weight,
+            IsStackable = q.IsStackable, Quantity = 1,
+            QuestId = q.QuestId
+        },
+        _ => throw new ArgumentException($"Unknown item type: {original.GetType().Name}")
+    };
 }

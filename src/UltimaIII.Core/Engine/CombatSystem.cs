@@ -171,6 +171,12 @@ public class CombatSystem
 
         LogMessage("Combat begins!");
         OnTurnChanged?.Invoke();
+
+        // If a monster won initiative, execute their turn automatically
+        if (!IsPlayerTurn && IsCombatActive)
+        {
+            ExecuteMonsterTurn();
+        }
     }
 
     private void InitializeTerrain(TileType baseTerrain)
@@ -382,6 +388,21 @@ public class CombatSystem
             return new CombatResult(true,
                 $"{character.Name} casts {spell.Name} on {target.Name} for {damage} damage!" + (killed ? " It is destroyed!" : ""),
                 damage, killed);
+        }
+
+        if (spell.CuresStatus != StatusEffect.None)
+        {
+            var target = GetCombatantAt(targetX, targetY) as CharacterCombatant;
+            if (target != null)
+            {
+                var cured = target.Status & spell.CuresStatus;
+                if (cured != StatusEffect.None)
+                {
+                    target.Status &= ~spell.CuresStatus;
+                    return new CombatResult(true, $"{character.Name} casts {spell.Name}, curing {target.Name} of {cured}!");
+                }
+                return new CombatResult(true, $"{character.Name} casts {spell.Name} on {target.Name}, but there is nothing to cure.");
+            }
         }
 
         if (spell.AppliesStatus != StatusEffect.None)
@@ -616,10 +637,11 @@ public class CombatSystem
         OnCombatMessage?.Invoke(message);
     }
 
-    public (int totalExp, int totalGold) GetCombatRewards()
+    public (int totalExp, int totalGold, List<Item> lootItems) GetCombatRewards()
     {
         int exp = 0;
         int gold = 0;
+        var loot = new List<Item>();
 
         foreach (var monster in Monsters)
         {
@@ -627,9 +649,21 @@ public class CombatSystem
             {
                 exp += monster.Monster.Definition.ExperienceValue;
                 gold += _rng.Next(monster.Monster.Definition.GoldDrop / 2, monster.Monster.Definition.GoldDrop + 1);
+
+                foreach (var drop in monster.Monster.Definition.LootTable)
+                {
+                    if (_rng.Next(100) < drop.DropChancePercent)
+                    {
+                        var template = ItemRegistry.FindById(drop.ItemId);
+                        if (template != null)
+                        {
+                            loot.Add(ItemRegistry.CloneItem(template));
+                        }
+                    }
+                }
             }
         }
 
-        return (exp, gold);
+        return (exp, gold, loot);
     }
 }

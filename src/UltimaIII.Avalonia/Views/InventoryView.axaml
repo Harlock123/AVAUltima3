@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
-             x:Class="UltimaIII.Avalonia.Views.ShopView"
-             x:DataType="vm:ShopViewModel">
+             x:Class="UltimaIII.Avalonia.Views.InventoryView"
+             x:DataType="vm:InventoryViewModel">
 
     <UserControl.Styles>
         <Style Selector="TextBlock">
@@ -43,33 +43,33 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Shop Header -->
+            <!-- Header -->
             <Border Grid.Row="0" Background="#1a1510" Padding="15,10">
                 <StackPanel>
-                    <TextBlock Text="{Binding ShopName}"
+                    <TextBlock Text="Party Inventory"
                                FontSize="22" FontWeight="Bold" Foreground="#ffd700"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding WelcomeMessage}"
-                               FontSize="13" Foreground="#a09080" FontStyle="Italic"
-                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    <TextBlock FontSize="13" Foreground="#a09080" FontStyle="Italic"
+                               HorizontalAlignment="Center" Margin="0,4,0,0">
+                        <Run Text="Items: "/>
+                        <Run Text="{Binding TotalItems}"/>
+                    </TextBlock>
                 </StackPanel>
             </Border>
 
             <!-- Tab Buttons -->
             <Border Grid.Row="1" Background="#15120d" Padding="10,6">
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                    <Button Content="[1] Buy"
-                            Command="{Binding SwitchTabCommand}" CommandParameter="Buy"
-                            IsVisible="{Binding HasBuyTab}"/>
-                    <Button Content="[2] Sell"
-                            Command="{Binding SwitchTabCommand}" CommandParameter="Sell"
-                            IsVisible="{Binding HasSellTab}"/>
-                    <Button Content="[3] Equip"
-                            Command="{Binding SwitchTabCommand}" CommandParameter="Equip"
-                            IsVisible="{Binding HasEquipTab}"/>
-                    <Button Content="Services"
-                            Command="{Binding SwitchTabCommand}" CommandParameter="Services"
-                            IsVisible="{Binding HasServicesTab}"/>
+                    <Button Content="[1] All"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="All"/>
+                    <Button Content="[2] Weapons"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Weapons"/>
+                    <Button Content="[3] Armor"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Armor"/>
+                    <Button Content="[4] Shields"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Shields"/>
+                    <Button Content="[5] Items"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Items"/>
                 </StackPanel>
             </Border>
 
@@ -77,6 +77,7 @@
             <Border Grid.Row="2" Background="#0d0a1a" Padding="10,8">
                 <Grid>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                        <TextBlock Text="Equip on:" FontSize="13" Foreground="#808060" VerticalAlignment="Center"/>
                         <Button Content="&lt;" Command="{Binding PrevCharacterCommand}" Padding="6,3" MinWidth="30"/>
                         <TextBlock Text="{Binding SelectedCharacterName}"
                                    FontSize="14" FontWeight="Bold" Foreground="#ffd700"
@@ -90,26 +91,15 @@
                 </Grid>
             </Border>
 
-            <!-- Sell Source Toggle (visible only on Sell tab) -->
-            <Border Grid.Row="3" Background="#1a1510" Padding="10,4"
-                    IsVisible="{Binding IsSellTab}">
-                <TextBlock FontSize="12" HorizontalAlignment="Center">
-                    <Run Text="Selling from: " Foreground="#808060"/>
-                    <Run Text="{Binding SellSourceLabel}" Foreground="#ffd700"/>
-                    <Run Text="  [Q to toggle]" Foreground="#605040"/>
-                </TextBlock>
-            </Border>
-
-            <!-- Separator (when not sell tab) -->
-            <Border Grid.Row="3" Height="1" Background="#3a2a1a" Margin="10,0"
-                    IsVisible="{Binding !IsSellTab}"/>
+            <!-- Separator -->
+            <Border Grid.Row="3" Height="1" Background="#3a2a1a" Margin="10,0"/>
 
             <!-- Item List -->
             <Border Grid.Row="4" Padding="10,6" MinHeight="150">
                 <ScrollViewer>
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type vm:ShopItemViewModel}">
+                            <DataTemplate DataType="{x:Type vm:InventoryItemViewModel}">
                                 <Border Padding="4,2" Margin="0,1" CornerRadius="2">
                                     <Grid ColumnDefinitions="*, Auto">
                                         <TextBlock Grid.Column="0"
@@ -149,12 +139,12 @@
             <!-- Controls Footer -->
             <Border Grid.Row="7" Background="#15120d" Padding="10,8">
                 <StackPanel>
-                    <TextBlock Text="W/S: Browse   A/D: Character   Tab: Switch Tab   Enter: Confirm   Esc: Leave"
+                    <TextBlock Text="W/S: Browse   A/D: Character   Tab: Switch Tab   Enter: Equip   Esc/I: Close"
                                FontSize="10" Foreground="#605040"
                                HorizontalAlignment="Center" Margin="0,0,0,6"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                        <Button Content="[Enter] Confirm" Command="{Binding ConfirmCommand}"/>
-                        <Button Content="[Esc] Leave" Command="{Binding ExitShopCommand}"/>
+                        <Button Content="[Enter] Equip" Command="{Binding EquipItemCommand}"/>
+                        <Button Content="[Esc] Close" Command="{Binding CloseInventoryCommand}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

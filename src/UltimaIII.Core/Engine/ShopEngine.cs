@@ -191,6 +191,77 @@ public static class ShopEngine
         return $"The party rests well. All HP and MP restored for {cost}g.";
     }
 
+    public static string EquipFromParty(Party party, Character character, Item item)
+    {
+        var classDef = character.ClassDef;
+
+        if (item is Weapon weapon)
+        {
+            if (!classDef.CanUseWeapon(weapon.WeaponType))
+                return $"{character.Name} cannot wield {item.Name}!";
+
+            party.RemoveFromInventory(item);
+
+            if (character.EquippedWeapon != null && character.EquippedWeapon != Weapon.Hands)
+                party.AddToInventory(ItemRegistry.CloneItem(character.EquippedWeapon));
+
+            character.EquippedWeapon = weapon;
+
+            if (weapon.IsTwoHanded && character.EquippedShield != null && character.EquippedShield != Shield.None)
+            {
+                party.AddToInventory(ItemRegistry.CloneItem(character.EquippedShield));
+                character.EquippedShield = Shield.None;
+                return $"{character.Name} equips {item.Name} (shield removed).";
+            }
+
+            return $"{character.Name} equips {item.Name}.";
+        }
+
+        if (item is Armor armor)
+        {
+            if (!classDef.CanUseArmor(armor.ArmorType))
+                return $"{character.Name} cannot wear {item.Name}!";
+
+            party.RemoveFromInventory(item);
+
+            if (character.EquippedArmor != null && character.EquippedArmor != Armor.None)
+                party.AddToInventory(ItemRegistry.CloneItem(character.EquippedArmor));
+
+            character.EquippedArmor = armor;
+            return $"{character.Name} equips {item.Name}.";
+        }
+
+        if (item is Shield shield)
+        {
+            if (!classDef.CanUseShield(shield.ShieldType))
+                return $"{character.Name} cannot use {item.Name}!";
+
+            if (character.EquippedWeapon is { IsTwoHanded: true })
+                return $"Cannot equip a shield with a two-handed weapon!";
+
+            party.RemoveFromInventory(item);
+
+            if (character.EquippedShield != null && character.EquippedShield != Shield.None)
+                party.AddToInventory(ItemRegistry.CloneItem(character.EquippedShield));
+
+            character.EquippedShield = shield;
+            return $"{character.Name} equips {item.Name}.";
+        }
+
+        return "Cannot equip that item.";
+    }
+
+    public static string SellPartyItem(Party party, Item item)
+    {
+        int sellPrice = item.Value / 2;
+        if (sellPrice <= 0)
+            return "That item has no value.";
+
+        party.RemoveFromInventory(item);
+        party.AddGold(sellPrice);
+        return $"Sold {item.Name} for {sellPrice}g.";
+    }
+
     public static bool CanCharacterUse(Character character, Item item)
     {
         var classDef = character.ClassDef;

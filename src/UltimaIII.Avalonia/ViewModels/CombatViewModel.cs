@@ -113,6 +113,13 @@ public partial class CombatViewModel : ViewModelBase
         OnTurnChanged();
     }
 
+    public void Cleanup()
+    {
+        _combat.OnCombatMessage -= OnCombatMessage;
+        _combat.OnTurnChanged -= OnTurnChanged;
+        _combat.OnCombatEnd -= OnCombatEnd;
+    }
+
     private void OnCombatMessage(string message)
     {
         CombatMessages.Add(message);
