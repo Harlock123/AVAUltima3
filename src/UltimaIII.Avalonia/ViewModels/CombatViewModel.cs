@@ -23,7 +23,19 @@ public partial class CombatViewModel : ViewModelBase
     private bool _isPlayerTurn;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNormalMode))]
     private bool _isSelectingTarget;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNormalMode))]
+    private bool _isSelectingSpell;
+
+    [ObservableProperty]
+    private int _selectedSpellIndex;
+
+    public ObservableCollection<SpellChoiceViewModel> AvailableSpells { get; } = new();
+
+    public bool IsNormalMode => !IsSelectingTarget && !IsSelectingSpell;
 
     [ObservableProperty]
     private int _targetX;
@@ -173,9 +185,32 @@ public partial class CombatViewModel : ViewModelBase
     private void Cast()
     {
         if (!IsPlayerTurn || !_combat.IsCombatActive) return;
+
+        var combatant = _combat.CurrentCombatant as CharacterCombatant;
+        if (combatant == null) return;
+
+        var character = combatant.Character;
+        var classDef = character.ClassDef;
+        var spells = Spell.GetSpellsForClass(classDef)
+            .Where(s => !s.IsFieldOnly)
+            .ToList();
+
+        if (spells.Count == 0)
+        {
+            CombatMessages.Add($"{character.Name} cannot cast spells!");
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+            return;
+        }
+
+        AvailableSpells.Clear();
+        for (int i = 0; i < spells.Count; i++)
+        {
+            AvailableSpells.Add(new SpellChoiceViewModel(spells[i], character.CurrentMP >= spells[i].ManaCost, i == 0));
+        }
+
+        SelectedSpellIndex = 0;
+        IsSelectingSpell = true;
         _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
-        // TODO: Show spell selection menu
-        // For now, default to first available offensive spell
     }
 
     [RelayCommand]
@@ -243,6 +278,72 @@ public partial class CombatViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void ConfirmSpellSelection()
+    {
+        if (!IsSelectingSpell || SelectedSpellIndex < 0 || SelectedSpellIndex >= AvailableSpells.Count) return;
+
+        var selectedSpellVm = AvailableSpells[SelectedSpellIndex];
+        if (!selectedSpellVm.CanAfford)
+        {
+            CombatMessages.Add("Not enough MP!");
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+            return;
+        }
+
+        var spell = selectedSpellVm.Spell;
+        IsSelectingSpell = false;
+        AvailableSpells.Clear();
+
+        if (spell.TargetsSelf && !spell.TargetsEnemy && !spell.TargetsParty)
+        {
+            // Self-only spell - execute immediately on caster's position
+            var current = _combat.CurrentCombatant!;
+            var action = new CombatAction(CombatActionType.Cast, current.X, current.Y, spell.Type);
+            _combat.ExecutePlayerAction(action);
+        }
+        else
+        {
+            // Need target selection
+            PendingAction = CombatActionType.Cast;
+            PendingSpell = spell.Type;
+            IsSelectingTarget = true;
+
+            if (spell.TargetsEnemy)
+            {
+                var nearestEnemy = _combat.Monsters.Where(m => m.IsAlive).FirstOrDefault();
+                if (nearestEnemy != null)
+                {
+                    TargetX = nearestEnemy.X;
+                    TargetY = nearestEnemy.Y;
+                }
+            }
+            else if (spell.TargetsParty)
+            {
+                var current = _combat.CurrentCombatant!;
+                TargetX = current.X;
+                TargetY = current.Y;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void CancelSpellSelection()
+    {
+        _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
+        IsSelectingSpell = false;
+        AvailableSpells.Clear();
+    }
+
+    private void MoveSpellSelection(int delta)
+    {
+        if (AvailableSpells.Count == 0) return;
+
+        AvailableSpells[SelectedSpellIndex].IsSelected = false;
+        SelectedSpellIndex = Math.Clamp(SelectedSpellIndex + delta, 0, AvailableSpells.Count - 1);
+        AvailableSpells[SelectedSpellIndex].IsSelected = true;
+    }
+
+    [RelayCommand]
     private void MoveTarget(string direction)
     {
         if (!IsSelectingTarget) return;
@@ -258,7 +359,29 @@ public partial class CombatViewModel : ViewModelBase
 
     public void HandleKeyPress(string key)
     {
-        if (IsSelectingTarget)
+        if (IsSelectingSpell)
+        {
+            switch (key.ToUpper())
+            {
+                case "W":
+                case "UP":
+                    MoveSpellSelection(-1);
+                    break;
+                case "S":
+                case "DOWN":
+                    MoveSpellSelection(1);
+                    break;
+                case "RETURN":
+                case "ENTER":
+                case "SPACE":
+                    ConfirmSpellSelection();
+                    break;
+                case "ESCAPE":
+                    CancelSpellSelection();
+                    break;
+            }
+        }
+        else if (IsSelectingTarget)
         {
             switch (key.ToUpper())
             {
@@ -359,5 +482,35 @@ public partial class CombatantViewModel : ObservableObject
         X = combatant.X;
         Y = combatant.Y;
         IsPlayer = combatant is CharacterCombatant;
+    }
+}
+
+public partial class SpellChoiceViewModel : ObservableObject
+{
+    public Spell Spell { get; }
+    public bool CanAfford { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    private bool _isSelected;
+
+    public string DisplayText
+    {
+        get
+        {
+            var marker = IsSelected ? "> " : "  ";
+            var school = Spell.School == SpellSchool.Wizard ? "WIZ" : "CLR";
+            var afford = CanAfford ? "" : " (low MP)";
+            return $"{marker}[{school}] {Spell.Name} - MP:{Spell.ManaCost}{afford}";
+        }
+    }
+
+    public double ItemOpacity => CanAfford ? 1.0 : 0.5;
+
+    public SpellChoiceViewModel(Spell spell, bool canAfford, bool isSelected)
+    {
+        Spell = spell;
+        CanAfford = canAfford;
+        _isSelected = isSelected;
     }
 }

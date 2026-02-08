@@ -18,11 +18,16 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isMainMenuVisible = true;
 
+    [ObservableProperty]
+    private bool _hasSaveFile;
+
     public MainViewModel()
     {
         _gameEngine = new GameEngine();
         _gameEngine.OnStateChanged += OnGameStateChanged;
         _audioService = AudioService.Instance;
+
+        HasSaveFile = SaveService.SaveExists();
 
         // Start main menu music
         _audioService.PlayMusic(MusicTrack.MainMenu);
@@ -51,8 +56,16 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void ContinueGame()
     {
-        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
-        // TODO: Implement save/load
+        _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+
+        var save = SaveService.LoadSaveFile();
+        if (save == null) return;
+
+        _gameEngine.NewGame();
+        _gameEngine.LoadGame(save);
+
+        CurrentView = new GameViewModel(_gameEngine, this);
+        IsMainMenuVisible = false;
     }
 
     [RelayCommand]

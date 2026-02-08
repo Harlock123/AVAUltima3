@@ -15,6 +15,7 @@ public class GameEngine
     public GameMap? CurrentMap { get; private set; }
     public GameState State { get; private set; } = GameState.MainMenu;
     public CombatSystem Combat { get; }
+    public int MapSeed { get; private set; }
 
     // Message log
     public List<string> MessageLog { get; } = new();
@@ -49,18 +50,14 @@ public class GameEngine
             return;
         }
 
-        // Load overworld map
-        var overworld = MapGenerator.GenerateOverworld(_rng);
-        _maps["overworld"] = overworld;
-        CurrentMap = overworld;
+        // Generate a seed for deterministic map generation
+        MapSeed = _rng.Next();
+        GenerateMaps();
 
         // Set starting position (Lord British's Castle area)
         Party.X = 40;
         Party.Y = 40;
         Party.CurrentMapId = "overworld";
-
-        // Generate towns
-        GenerateTowns();
 
         State = GameState.Overworld;
         OnStateChanged?.Invoke(State);
@@ -72,7 +69,40 @@ public class GameEngine
         UpdateVisibility();
     }
 
-    private void GenerateTowns()
+    public void LoadGame(GameSave save)
+    {
+        // Regenerate maps with the saved seed
+        MapSeed = save.MapSeed;
+        GenerateMaps();
+
+        // Restore party and game state from save data
+        SaveService.ApplySaveData(this, save);
+
+        // Set the current map
+        if (_maps.TryGetValue(Party.CurrentMapId, out var map))
+            CurrentMap = map;
+
+        State = save.State;
+        UpdateVisibility();
+        OnStateChanged?.Invoke(State);
+        OnMapChanged?.Invoke();
+
+        AddMessage("Game loaded.");
+    }
+
+    private void GenerateMaps()
+    {
+        _maps.Clear();
+        var mapRng = new Random(MapSeed);
+
+        var overworld = MapGenerator.GenerateOverworld(mapRng);
+        _maps["overworld"] = overworld;
+        CurrentMap = overworld;
+
+        GenerateTowns(mapRng);
+    }
+
+    private void GenerateTowns(Random rng)
     {
         // Generate several towns
         var townNames = new[] { "Britain", "Yew", "Montor", "Moon", "Grey", "Death Gulch", "Devil Guard", "Fawn" };
@@ -80,7 +110,7 @@ public class GameEngine
         foreach (var name in townNames)
         {
             string id = name.ToLower().Replace(" ", "_");
-            var town = MapGenerator.GenerateTown(_rng, id, name);
+            var town = MapGenerator.GenerateTown(rng, id, name);
             _maps[id] = town;
         }
 
@@ -91,7 +121,7 @@ public class GameEngine
             string id = $"dungeon_{name.ToLower()}";
             for (int level = 1; level <= 8; level++)
             {
-                var dungeon = MapGenerator.GenerateDungeonLevel(_rng, $"{id}_l{level}", name, level);
+                var dungeon = MapGenerator.GenerateDungeonLevel(rng, $"{id}_l{level}", name, level);
                 _maps[$"{id}_l{level}"] = dungeon;
             }
         }
@@ -120,6 +150,23 @@ public class GameEngine
         if (CurrentMap.MapType == MapType.Overworld)
         {
             (newX, newY) = CurrentMap.WrapCoordinates(newX, newY);
+        }
+
+        // Walking off the map edge: only exit towns/dungeons through a doorway
+        if (!CurrentMap.IsInBounds(newX, newY))
+        {
+            if (State == GameState.Town || State == GameState.Dungeon)
+            {
+                // Only allow exit if stepping out from a door tile
+                var currentTile = CurrentMap.GetTile(Party.X, Party.Y);
+                if (currentTile.Type == TileType.Door)
+                {
+                    ExitLocation();
+                    return true;
+                }
+            }
+            AddMessage("Blocked!");
+            return false;
         }
 
         // Check if tile is passable
@@ -565,39 +612,4 @@ public class GameEngine
         }
     }
 
-    // Save/Load
-    public GameSaveData CreateSaveData()
-    {
-        return new GameSaveData
-        {
-            Party = Party,
-            CurrentMapId = Party.CurrentMapId,
-            State = State
-        };
-    }
-
-    public void LoadSaveData(GameSaveData data)
-    {
-        Party = data.Party;
-
-        if (_maps.TryGetValue(data.CurrentMapId, out var map))
-        {
-            CurrentMap = map;
-        }
-
-        State = data.State;
-        UpdateVisibility();
-        OnStateChanged?.Invoke(State);
-        OnMapChanged?.Invoke();
-    }
-}
-
-/// <summary>
-/// Data structure for saving game state.
-/// </summary>
-public class GameSaveData
-{
-    public Party Party { get; set; } = new();
-    public string CurrentMapId { get; set; } = "overworld";
-    public GameState State { get; set; }
 }

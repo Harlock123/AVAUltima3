@@ -67,7 +67,7 @@
                         Command="{Binding ContinueGameCommand}"
                         HorizontalAlignment="Center"
                         Width="200"
-                        IsEnabled="False"/>
+                        IsEnabled="{Binding HasSaveFile}"/>
                 <Button Content="Exit"
                         Command="{Binding ExitCommand}"
                         HorizontalAlignment="Center"

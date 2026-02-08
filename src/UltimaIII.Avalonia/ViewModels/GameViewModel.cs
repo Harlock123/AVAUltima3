@@ -202,6 +202,23 @@ public partial class GameViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void SaveGame()
+    {
+        if (IsCombatMode) return;
+        try
+        {
+            SaveService.SaveGame(_gameEngine);
+            _gameEngine.AddMessage("Game saved.");
+            _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+        }
+        catch (Exception ex)
+        {
+            _gameEngine.AddMessage($"Save failed: {ex.Message}");
+        }
+        RefreshDisplay();
+    }
+
+    [RelayCommand]
     private void OpenDoorNorth() => OpenDoor(Direction.North);
 
     [RelayCommand]
@@ -266,6 +283,9 @@ public partial class GameViewModel : ViewModelBase
                 break;
             case "X":
                 ExitLocation();
+                break;
+            case "F5":
+                SaveGame();
                 break;
         }
     }
