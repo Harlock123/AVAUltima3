@@ -87,10 +87,6 @@ public partial class MainViewModel : ViewModelBase
         {
             case GameState.Combat:
                 _audioService.PlayMusic(MusicTrack.Combat);
-                if (CurrentView is GameViewModel gameVm)
-                {
-                    gameVm.EnterCombat();
-                }
                 break;
 
             case GameState.Overworld:

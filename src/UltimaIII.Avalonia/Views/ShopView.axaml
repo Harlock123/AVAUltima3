@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="UltimaIII.Avalonia.Views.ShopView"
+             x:DataType="vm:ShopViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a3a"/>
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="BorderBrush" Value="#4a3a2a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="MinWidth" Value="70"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a4a"/>
+            <Setter Property="BorderBrush" Value="#ffd700"/>
+        </Style>
+        <Style Selector="Button:disabled">
+            <Setter Property="Opacity" Value="0.4"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0a1a" CornerRadius="8" Padding="0" BorderBrush="#4a3a2a" BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Shop Header -->
+            <Border Grid.Row="0" Background="#1a1510" Padding="15,10">
+                <StackPanel>
+                    <TextBlock Text="{Binding ShopName}"
+                               FontSize="22" FontWeight="Bold" Foreground="#ffd700"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding WelcomeMessage}"
+                               FontSize="13" Foreground="#a09080" FontStyle="Italic"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Tab Buttons -->
+            <Border Grid.Row="1" Background="#15120d" Padding="10,6">
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                    <Button Content="[1] Buy"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Buy"
+                            IsVisible="{Binding HasBuyTab}"/>
+                    <Button Content="[2] Sell"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Sell"
+                            IsVisible="{Binding HasSellTab}"/>
+                    <Button Content="[3] Equip"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Equip"
+                            IsVisible="{Binding HasEquipTab}"/>
+                    <Button Content="Services"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Services"
+                            IsVisible="{Binding HasServicesTab}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Character Selector + Gold -->
+            <Border Grid.Row="2" Background="#0d0a1a" Padding="10,8">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                        <Button Content="&lt;" Command="{Binding PrevCharacterCommand}" Padding="6,3" MinWidth="30"/>
+                        <TextBlock Text="{Binding SelectedCharacterName}"
+                                   FontSize="14" FontWeight="Bold" Foreground="#ffd700"
+                                   VerticalAlignment="Center" MinWidth="120"/>
+                        <Button Content="&gt;" Command="{Binding NextCharacterCommand}" Padding="6,3" MinWidth="30"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Gold: " Foreground="#808060" FontSize="13"/>
+                        <TextBlock Text="{Binding PartyGold}" Foreground="#ffd700" FontSize="13" FontWeight="Bold"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Separator -->
+            <Border Grid.Row="3" Height="1" Background="#3a2a1a" Margin="10,0"/>
+
+            <!-- Item List -->
+            <Border Grid.Row="4" Padding="10,6" MinHeight="150">
+                <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ShopItemViewModel}">
+                                <Border Padding="4,2" Margin="0,1" CornerRadius="2">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding DisplayText}"
+                                                   FontSize="13"
+                                                   Opacity="{Binding ItemOpacity}"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding StatsText}"
+                                                   FontSize="11"
+                                                   Foreground="#808060"
+                                                   Opacity="{Binding ItemOpacity}"
+                                                   Margin="10,0,0,0"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Item Description -->
+            <Border Grid.Row="5" Background="#1a1510" CornerRadius="4" Padding="8,4" Margin="10,4"
+                    MinHeight="24">
+                <TextBlock Text="{Binding SelectedItemDescription}"
+                           FontSize="11" Foreground="#a0b0c0"
+                           TextWrapping="Wrap" HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Status Message -->
+            <Border Grid.Row="6" Padding="10,4" MinHeight="24">
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="12" Foreground="#60c060"
+                           HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Controls Footer -->
+            <Border Grid.Row="7" Background="#15120d" Padding="10,8">
+                <StackPanel>
+                    <TextBlock Text="W/S: Browse   A/D: Character   Tab: Switch Tab   Enter: Confirm   Esc: Leave"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                        <Button Content="[Enter] Confirm" Command="{Binding ConfirmCommand}"/>
+                        <Button Content="[Esc] Leave" Command="{Binding ExitShopCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

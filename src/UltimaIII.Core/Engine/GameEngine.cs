@@ -16,6 +16,7 @@ public class GameEngine
     public GameState State { get; private set; } = GameState.MainMenu;
     public CombatSystem Combat { get; }
     public int MapSeed { get; private set; }
+    public ShopType? CurrentShopType { get; private set; }
 
     // Message log
     public List<string> MessageLog { get; } = new();
@@ -590,6 +591,47 @@ public class GameEngine
         {
             AddMessage("No door there.");
         }
+    }
+
+    public bool TryEnterShop()
+    {
+        if (State != GameState.Town || CurrentMap == null) return false;
+
+        // Scan adjacent tiles for a Counter with EntityId
+        int[] dx = { 0, 0, -1, 1 };
+        int[] dy = { -1, 1, 0, 0 };
+
+        for (int i = 0; i < 4; i++)
+        {
+            int nx = Party.X + dx[i];
+            int ny = Party.Y + dy[i];
+
+            if (!CurrentMap.IsInBounds(nx, ny)) continue;
+
+            var tile = CurrentMap.GetTile(nx, ny);
+            if (tile.Type == TileType.Counter && !string.IsNullOrEmpty(tile.EntityId))
+            {
+                if (ShopDefinition.EntityIdToShopType.TryGetValue(tile.EntityId, out var shopType))
+                {
+                    CurrentShopType = shopType;
+                    State = GameState.Shop;
+                    OnStateChanged?.Invoke(State);
+                    return true;
+                }
+            }
+        }
+
+        AddMessage("No shop here.");
+        return false;
+    }
+
+    public void ExitShop()
+    {
+        if (State != GameState.Shop) return;
+
+        CurrentShopType = null;
+        State = GameState.Town;
+        OnStateChanged?.Invoke(State);
     }
 
     public void Rest()

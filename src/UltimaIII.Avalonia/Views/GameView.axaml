@@ -83,6 +83,15 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
 
+            <!-- Shop Display -->
+            <ContentControl Grid.Row="1" Content="{Binding ShopVm}" IsVisible="{Binding IsShopMode}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:ShopViewModel">
+                        <views:ShopView/>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
             <!-- Bottom Controls / Message Log -->
             <Border Grid.Row="2" Background="#252540" Padding="10" MinHeight="120">
                 <Grid>
@@ -110,6 +119,7 @@
                         <TextBlock Text="Controls:" FontSize="12" Foreground="#808080"/>
                         <TextBlock Text="WASD/Arrows: Move" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="Space: Search" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="B: Shop/Barter" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="R: Rest" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="X: Exit Location" FontSize="11" Foreground="#606060"/>
 

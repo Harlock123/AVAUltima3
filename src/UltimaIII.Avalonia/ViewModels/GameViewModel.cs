@@ -36,6 +36,12 @@ public partial class GameViewModel : ViewModelBase
     public const int TileSize = 32;
 
     [ObservableProperty]
+    private bool _isShopMode = false;
+
+    [ObservableProperty]
+    private ShopViewModel? _shopVm;
+
+    [ObservableProperty]
     private CombatViewModel? _combatVm;
 
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
@@ -130,6 +136,15 @@ public partial class GameViewModel : ViewModelBase
         {
             ExitCombat();
         }
+
+        // Shop state is handled by TryEnterShop/ExitShop directly
+        // so we only need to handle if engine exits shop externally
+        if (IsShopMode && newState != GameState.Shop)
+        {
+            IsShopMode = false;
+            ShopVm = null;
+        }
+
         RefreshDisplay();
     }
 
@@ -152,7 +167,11 @@ public partial class GameViewModel : ViewModelBase
         TimeDisplay = party.IsNight ? "Night" : "Day";
         TimeDisplay += $" - Day {party.DayCount}";
 
-        // Refresh party HP/MP
+        RefreshPartyStats();
+    }
+
+    public void RefreshPartyStats()
+    {
         foreach (var vm in PartyMembers)
         {
             vm.Refresh();
@@ -173,7 +192,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode) return;
+        if (IsCombatMode || IsShopMode) return;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
     }
@@ -181,14 +200,14 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void Search()
     {
-        if (IsCombatMode) return;
+        if (IsCombatMode || IsShopMode) return;
         _gameEngine.Search();
     }
 
     [RelayCommand]
     private void Rest()
     {
-        if (IsCombatMode) return;
+        if (IsCombatMode || IsShopMode) return;
         _gameEngine.Rest();
         RefreshDisplay();
     }
@@ -196,7 +215,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void ExitLocation()
     {
-        if (IsCombatMode) return;
+        if (IsCombatMode || IsShopMode) return;
         _gameEngine.ExitLocation();
         RefreshDisplay();
     }
@@ -204,7 +223,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void SaveGame()
     {
-        if (IsCombatMode) return;
+        if (IsCombatMode || IsShopMode) return;
         try
         {
             SaveService.SaveGame(_gameEngine);
@@ -236,8 +255,25 @@ public partial class GameViewModel : ViewModelBase
         _gameEngine.OpenDoor(direction);
     }
 
+    public void EnterShop(ShopType shopType)
+    {
+        if (IsShopMode || IsCombatMode) return;
+        IsShopMode = true;
+        ShopVm = new ShopViewModel(_gameEngine, this, shopType);
+        _audioService.PlaySoundEffect(SoundEffect.DoorOpen);
+    }
+
+    public void ExitShop()
+    {
+        IsShopMode = false;
+        ShopVm = null;
+        _gameEngine.ExitShop();
+        RefreshDisplay();
+    }
+
     public void EnterCombat()
     {
+        if (IsCombatMode) return;
         IsCombatMode = true;
         CombatVm = new CombatViewModel(_gameEngine.Combat, this);
     }
@@ -254,6 +290,12 @@ public partial class GameViewModel : ViewModelBase
         if (IsCombatMode && CombatVm != null)
         {
             CombatVm.HandleKeyPress(key);
+            return;
+        }
+
+        if (IsShopMode && ShopVm != null)
+        {
+            ShopVm.HandleKeyPress(key);
             return;
         }
 
@@ -284,9 +326,22 @@ public partial class GameViewModel : ViewModelBase
             case "X":
                 ExitLocation();
                 break;
+            case "B":
+                TryEnterShop();
+                break;
             case "F5":
                 SaveGame();
                 break;
+        }
+    }
+
+    private void TryEnterShop()
+    {
+        if (IsCombatMode || IsShopMode) return;
+
+        if (_gameEngine.TryEnterShop() && _gameEngine.CurrentShopType.HasValue)
+        {
+            EnterShop(_gameEngine.CurrentShopType.Value);
         }
     }
 }

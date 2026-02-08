@@ -66,7 +66,7 @@ public class Armor : Item
 
     public static readonly Armor None = new()
     {
-        Id = "none",
+        Id = "armor_none",
         Name = "None",
         Description = "No armor",
         ArmorType = ArmorType.None,
@@ -90,7 +90,7 @@ public class Shield : Item
 
     public static readonly Shield None = new()
     {
-        Id = "none",
+        Id = "shield_none",
         Name = "None",
         Description = "No shield",
         ShieldType = ShieldType.None,

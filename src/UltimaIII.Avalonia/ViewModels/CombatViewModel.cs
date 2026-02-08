@@ -28,14 +28,58 @@ public partial class CombatViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNormalMode))]
+    [NotifyPropertyChangedFor(nameof(SelectedSpellDescription))]
     private bool _isSelectingSpell;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedSpellDescription))]
     private int _selectedSpellIndex;
 
     public ObservableCollection<SpellChoiceViewModel> AvailableSpells { get; } = new();
 
     public bool IsNormalMode => !IsSelectingTarget && !IsSelectingSpell;
+
+    public string SelectedSpellDescription
+    {
+        get
+        {
+            if (!IsSelectingSpell || SelectedSpellIndex < 0 || SelectedSpellIndex >= AvailableSpells.Count)
+                return string.Empty;
+
+            var spell = AvailableSpells[SelectedSpellIndex].Spell;
+            var parts = new System.Collections.Generic.List<string>();
+
+            parts.Add(spell.Description);
+
+            if (spell.MinDamage > 0 || spell.MaxDamage > 0)
+                parts.Add($"Damage: {spell.MinDamage}-{spell.MaxDamage}");
+
+            if (spell.HealAmount > 0)
+                parts.Add($"Heals: {spell.HealAmount} HP");
+
+            if (spell.Range > 1)
+                parts.Add($"Range: {spell.Range}");
+
+            if (spell.AreaOfEffect > 0)
+                parts.Add($"AOE: {spell.AreaOfEffect}");
+
+            if (spell.AppliesStatus != StatusEffect.None)
+                parts.Add($"Inflicts: {spell.AppliesStatus}");
+
+            if (spell.CuresStatus != StatusEffect.None)
+                parts.Add($"Cures: {spell.CuresStatus}");
+
+            // Target type
+            var targets = new System.Collections.Generic.List<string>();
+            if (spell.TargetsSelf) targets.Add("Self");
+            if (spell.TargetsParty) targets.Add("Ally");
+            if (spell.TargetsEnemy) targets.Add("Enemy");
+            if (targets.Count > 0)
+                parts.Add($"Target: {string.Join("/", targets)}");
+
+            return string.Join("  |  ", parts);
+        }
+    }
 
     [ObservableProperty]
     private int _targetX;
@@ -133,6 +177,7 @@ public partial class CombatViewModel : ViewModelBase
         CurrentCombatantName = current?.Name ?? "Unknown";
 
         RefreshCombatants();
+        _parentViewModel.RefreshPartyStats();
     }
 
     private void OnCombatEnd()

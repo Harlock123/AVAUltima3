@@ -234,13 +234,10 @@ public static class MapGenerator
             int doorX = bx + bw / 2;
             map.SetTile(doorX, by + bh - 1, new MapTile { Type = TileType.Door });
 
-            // Add counter in shops
-            if (btype.Contains("shop") || btype == "healer" || btype == "guild")
+            // Add counter with shop type tag
+            for (int x = bx + 2; x < bx + bw - 2; x++)
             {
-                for (int x = bx + 2; x < bx + bw - 2; x++)
-                {
-                    map.SetTile(x, by + 2, new MapTile { Type = TileType.Counter });
-                }
+                map.SetTile(x, by + 2, new MapTile { Type = TileType.Counter, EntityId = btype });
             }
         }
     }

@@ -22,8 +22,9 @@ public class CharacterSaveData
     public int Experience { get; set; }
     public StatusEffect Status { get; set; }
     public string WeaponId { get; set; } = "hands";
-    public string ArmorId { get; set; } = "none";
-    public string ShieldId { get; set; } = "none";
+    public string ArmorId { get; set; } = "armor_none";
+    public string ShieldId { get; set; } = "shield_none";
+    public List<string> InventoryIds { get; set; } = new();
 }
 
 public class PartySaveData
@@ -128,8 +129,9 @@ public static class SaveService
                 Experience = member.Experience,
                 Status = member.Status,
                 WeaponId = member.EquippedWeapon?.Id ?? "hands",
-                ArmorId = member.EquippedArmor?.Id ?? "none",
-                ShieldId = member.EquippedShield?.Id ?? "none"
+                ArmorId = member.EquippedArmor?.Id ?? "armor_none",
+                ShieldId = member.EquippedShield?.Id ?? "shield_none",
+                InventoryIds = member.Inventory.Select(i => i.Id).ToList()
             });
         }
 
@@ -173,9 +175,9 @@ public static class SaveService
                 Level = memberData.Level,
                 Experience = memberData.Experience,
                 Status = memberData.Status,
-                EquippedWeapon = Weapon.Hands,
-                EquippedArmor = Armor.None,
-                EquippedShield = Shield.None
+                EquippedWeapon = ResolveWeapon(memberData.WeaponId),
+                EquippedArmor = ResolveArmor(memberData.ArmorId),
+                EquippedShield = ResolveShield(memberData.ShieldId)
             };
 
             // Set HP/MP (MaxHP first so CurrentHP clamp works)
@@ -183,6 +185,14 @@ public static class SaveService
             character.CurrentHP = memberData.CurrentHP;
             character.MaxMP = memberData.MaxMP;
             character.CurrentMP = memberData.CurrentMP;
+
+            // Restore inventory
+            foreach (var itemId in memberData.InventoryIds)
+            {
+                var item = ItemRegistry.FindById(itemId);
+                if (item != null)
+                    character.Inventory.Add(item);
+            }
 
             party.AddMember(character);
         }
@@ -209,5 +219,26 @@ public static class SaveService
         party.CompletedQuests.Clear();
         foreach (var quest in save.Party.CompletedQuests)
             party.CompletedQuests.Add(quest);
+    }
+
+    private static Weapon ResolveWeapon(string id)
+    {
+        if (string.IsNullOrEmpty(id) || id == "hands") return Weapon.Hands;
+        var item = ItemRegistry.FindById(id);
+        return item as Weapon ?? Weapon.Hands;
+    }
+
+    private static Armor ResolveArmor(string id)
+    {
+        if (string.IsNullOrEmpty(id) || id == "armor_none" || id == "none") return Armor.None;
+        var item = ItemRegistry.FindById(id);
+        return item as Armor ?? Armor.None;
+    }
+
+    private static Shield ResolveShield(string id)
+    {
+        if (string.IsNullOrEmpty(id) || id == "shield_none" || id == "none") return Shield.None;
+        var item = ItemRegistry.FindById(id);
+        return item as Shield ?? Shield.None;
     }
 }
