@@ -24,10 +24,21 @@ public partial class MainWindow : Window
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
-        if (DataContext is MainViewModel mainVm && mainVm.CurrentView is GameViewModel gameVm)
+        if (DataContext is not MainViewModel mainVm) return;
+
+        if (mainVm.CurrentView is GameViewModel gameVm)
         {
+            // Let TextBox controls handle input when save dialog is open
+            if (gameVm.IsSaveMode) return;
+
             string key = e.Key.ToString();
             gameVm.HandleKeyPress(key);
+            e.Handled = true;
+        }
+        else if (mainVm.CurrentView is LoadGameViewModel loadVm)
+        {
+            string key = e.Key.ToString();
+            loadVm.HandleKeyPress(key);
             e.Handled = true;
         }
     }

@@ -13,5 +13,21 @@ public enum MusicTrack
     Dungeon,
     Combat,
     Victory,
-    Defeat
+    Defeat,
+
+    // Per-dungeon exploration themes
+    DungeonDoom,
+    DungeonDoomDeep,
+    DungeonFire,
+    DungeonFireDeep,
+    DungeonTime,
+    DungeonTimeDeep,
+    DungeonSnake,
+    DungeonSnakeDeep,
+
+    // Per-dungeon combat themes
+    CombatDoom,
+    CombatFire,
+    CombatTime,
+    CombatSnake
 }

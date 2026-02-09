@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using UltimaIII.Avalonia.Services.Audio;
 using UltimaIII.Core.Engine;
 using UltimaIII.Core.Enums;
+using UltimaIII.Core.Models;
 
 namespace UltimaIII.Avalonia.ViewModels;
 
@@ -27,7 +28,7 @@ public partial class MainViewModel : ViewModelBase
         _gameEngine.OnStateChanged += OnGameStateChanged;
         _audioService = AudioService.Instance;
 
-        HasSaveFile = SaveService.SaveExists();
+        HasSaveFile = SaveService.HasAnySaves();
 
         // Start main menu music
         _audioService.PlayMusic(MusicTrack.MainMenu);
@@ -54,18 +55,19 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ContinueGame()
+    private void LoadGame()
     {
         _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
-
-        var save = SaveService.LoadSaveFile();
-        if (save == null) return;
-
-        _gameEngine.NewGame();
-        _gameEngine.LoadGame(save);
-
-        CurrentView = new GameViewModel(_gameEngine, this);
+        CurrentView = new LoadGameViewModel(_gameEngine, this);
         IsMainMenuVisible = false;
+    }
+
+    public void ReturnToMainMenu()
+    {
+        HasSaveFile = SaveService.HasAnySaves();
+        CurrentView = null;
+        IsMainMenuVisible = true;
+        _audioService.PlayMusic(MusicTrack.MainMenu);
     }
 
     [RelayCommand]
@@ -86,7 +88,7 @@ public partial class MainViewModel : ViewModelBase
         switch (newState)
         {
             case GameState.Combat:
-                _audioService.PlayMusic(MusicTrack.Combat);
+                _audioService.PlayMusic(ResolveCombatMusic());
                 break;
 
             case GameState.Overworld:
@@ -106,7 +108,7 @@ public partial class MainViewModel : ViewModelBase
                 break;
 
             case GameState.Dungeon:
-                _audioService.PlayMusic(MusicTrack.Dungeon);
+                _audioService.PlayMusic(ResolveDungeonMusic());
                 if (CurrentView is not GameViewModel)
                 {
                     CurrentView = new GameViewModel(_gameEngine, this);
@@ -120,5 +122,45 @@ public partial class MainViewModel : ViewModelBase
                 CurrentView = null;
                 break;
         }
+    }
+
+    private MusicTrack ResolveDungeonMusic()
+    {
+        var mapId = _gameEngine.Party.CurrentMapId;
+        bool isDeep = _gameEngine.Party.DungeonLevel >= 5;
+
+        return GetDungeonName(mapId) switch
+        {
+            "doom" => isDeep ? MusicTrack.DungeonDoomDeep : MusicTrack.DungeonDoom,
+            "fire" => isDeep ? MusicTrack.DungeonFireDeep : MusicTrack.DungeonFire,
+            "time" => isDeep ? MusicTrack.DungeonTimeDeep : MusicTrack.DungeonTime,
+            "snake" => isDeep ? MusicTrack.DungeonSnakeDeep : MusicTrack.DungeonSnake,
+            _ => MusicTrack.Dungeon
+        };
+    }
+
+    private MusicTrack ResolveCombatMusic()
+    {
+        if (_gameEngine.CurrentMap?.MapType != MapType.Dungeon)
+            return MusicTrack.Combat;
+
+        var mapId = _gameEngine.Party.CurrentMapId;
+        return GetDungeonName(mapId) switch
+        {
+            "doom" => MusicTrack.CombatDoom,
+            "fire" => MusicTrack.CombatFire,
+            "time" => MusicTrack.CombatTime,
+            "snake" => MusicTrack.CombatSnake,
+            _ => MusicTrack.Combat
+        };
+    }
+
+    private static string? GetDungeonName(string mapId)
+    {
+        // mapId format: "dungeon_doom_l3"
+        if (!mapId.StartsWith("dungeon_")) return null;
+        var withoutPrefix = mapId["dungeon_".Length..];
+        var underscoreIndex = withoutPrefix.IndexOf('_');
+        return underscoreIndex > 0 ? withoutPrefix[..underscoreIndex] : withoutPrefix;
     }
 }

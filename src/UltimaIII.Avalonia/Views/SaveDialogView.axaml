@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="400"
+             x:Class="UltimaIII.Avalonia.Views.SaveDialogView"
+             x:DataType="vm:SaveDialogViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a3a"/>
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="BorderBrush" Value="#4a3a2a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="MinWidth" Value="70"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a4a"/>
+            <Setter Property="BorderBrush" Value="#ffd700"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#2a2a4a"/>
+            <Setter Property="Foreground" Value="#e0e0e0"/>
+            <Setter Property="BorderBrush" Value="#4a4a6a"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0a1a" CornerRadius="8" Padding="0" BorderBrush="#4a3a2a" BorderThickness="2">
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="450">
+            <Border Background="#1a1510" CornerRadius="8" Padding="30,24">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Save Game"
+                               FontSize="22" FontWeight="Bold" Foreground="#ffd700"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="Enter a name for this save:"
+                               FontSize="13" Foreground="#a09080"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBox x:Name="SaveNameBox"
+                             Text="{Binding SaveName, Mode=TwoWay}"
+                             Watermark="Enter save name..."
+                             MaxLength="50"
+                             HorizontalAlignment="Stretch"/>
+
+                    <!-- Status Message -->
+                    <TextBlock Text="{Binding StatusMessage}"
+                               FontSize="12" Foreground="#c06060"
+                               HorizontalAlignment="Center"
+                               MinHeight="18"/>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                        <Button Content="[Enter] Save" Command="{Binding ConfirmSaveCommand}"/>
+                        <Button Content="[Esc] Cancel" Command="{Binding CancelCommand}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Enter: Save   Esc: Cancel"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

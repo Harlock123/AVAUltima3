@@ -63,8 +63,8 @@
                         Command="{Binding CustomGameCommand}"
                         HorizontalAlignment="Center"
                         Width="200"/>
-                <Button Content="Continue"
-                        Command="{Binding ContinueGameCommand}"
+                <Button Content="Load Game"
+                        Command="{Binding LoadGameCommand}"
                         HorizontalAlignment="Center"
                         Width="200"
                         IsEnabled="{Binding HasSaveFile}"/>
@@ -93,6 +93,9 @@
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type vm:GameViewModel}">
                     <views:GameView/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:LoadGameViewModel}">
+                    <views:LoadGameView/>
                 </DataTemplate>
             </ContentControl.DataTemplates>
         </ContentControl>

@@ -189,14 +189,9 @@ public partial class CombatViewModel : ViewModelBase
 
     private void OnCombatEnd()
     {
-        // Check if combat was won or lost (based on remaining party members)
-        bool partyWon = _combat.PlayerCharacters.Any(pc => pc.IsAlive);
-        if (partyWon)
-        {
-            _audioService.PlayMusic(MusicTrack.Victory);
-        }
-        // Note: If party lost, MainViewModel will switch to Defeat music via GameState.GameOver
-
+        // Music is handled by MainViewModel.OnGameStateChanged when the engine
+        // transitions back to the appropriate state (Dungeon/Overworld/Town).
+        // Playing Victory here would override the location music and loop forever.
         _parentViewModel.ExitCombat();
     }
 
@@ -224,8 +219,12 @@ public partial class CombatViewModel : ViewModelBase
         PendingAction = CombatActionType.Attack;
         IsSelectingTarget = true;
 
-        // Default to nearest enemy
-        var nearestEnemy = _combat.Monsters.Where(m => m.IsAlive).FirstOrDefault();
+        // Default to closest enemy by distance
+        var current = _combat.CurrentCombatant!;
+        var nearestEnemy = _combat.Monsters
+            .Where(m => m.IsAlive)
+            .OrderBy(m => Math.Max(Math.Abs(m.X - current.X), Math.Abs(m.Y - current.Y)))
+            .FirstOrDefault();
         if (nearestEnemy != null)
         {
             TargetX = nearestEnemy.X;
@@ -362,7 +361,11 @@ public partial class CombatViewModel : ViewModelBase
 
             if (spell.TargetsEnemy)
             {
-                var nearestEnemy = _combat.Monsters.Where(m => m.IsAlive).FirstOrDefault();
+                var caster = _combat.CurrentCombatant!;
+                var nearestEnemy = _combat.Monsters
+                    .Where(m => m.IsAlive)
+                    .OrderBy(m => Math.Max(Math.Abs(m.X - caster.X), Math.Abs(m.Y - caster.Y)))
+                    .FirstOrDefault();
                 if (nearestEnemy != null)
                 {
                     TargetX = nearestEnemy.X;

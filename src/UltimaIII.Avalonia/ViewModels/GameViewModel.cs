@@ -50,6 +50,12 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty]
     private InventoryViewModel? _inventoryVm;
 
+    [ObservableProperty]
+    private bool _isSaveMode = false;
+
+    [ObservableProperty]
+    private SaveDialogViewModel? _saveDialogVm;
+
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
     public ObservableCollection<string> MessageLog { get; } = new();
 
@@ -198,7 +204,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
     }
@@ -206,14 +212,14 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void Search()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
         _gameEngine.Search();
     }
 
     [RelayCommand]
     private void Rest()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
         _gameEngine.Rest();
         RefreshDisplay();
     }
@@ -221,7 +227,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void ExitLocation()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
         _gameEngine.ExitLocation();
         RefreshDisplay();
     }
@@ -229,17 +235,15 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void SaveGame()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
-        try
-        {
-            SaveService.SaveGame(_gameEngine);
-            _gameEngine.AddMessage("Game saved.");
-            _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
-        }
-        catch (Exception ex)
-        {
-            _gameEngine.AddMessage($"Save failed: {ex.Message}");
-        }
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
+        IsSaveMode = true;
+        SaveDialogVm = new SaveDialogViewModel(_gameEngine, this);
+    }
+
+    public void CloseSaveDialog()
+    {
+        IsSaveMode = false;
+        SaveDialogVm = null;
         RefreshDisplay();
     }
 
@@ -279,7 +283,7 @@ public partial class GameViewModel : ViewModelBase
 
     public void OpenInventory()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
         IsInventoryMode = true;
         InventoryVm = new InventoryViewModel(_gameEngine, this);
     }
@@ -308,6 +312,9 @@ public partial class GameViewModel : ViewModelBase
 
     public void HandleKeyPress(string key)
     {
+        // Save dialog handles its own input via TextBox KeyDown
+        if (IsSaveMode) return;
+
         if (IsCombatMode && CombatVm != null)
         {
             CombatVm.HandleKeyPress(key);

@@ -66,8 +66,11 @@ public class GameSave
     public GameState State { get; set; }
     public int MapSeed { get; set; }
     public DateTime SavedAt { get; set; }
+    public string SaveName { get; set; } = string.Empty;
     public List<TavernNpcSaveData> TavernNpcs { get; set; } = new();
 }
+
+public record SaveFileInfo(string FilePath, string SaveName, DateTime SavedAt, string Summary);
 
 public static class SaveService
 {
@@ -152,6 +155,16 @@ public static class SaveService
         File.WriteAllText(GetSavePath(slot), json);
     }
 
+    public static void SaveGame(GameEngine engine, string saveName)
+    {
+        var save = CreateSaveData(engine);
+        save.SaveName = saveName;
+        var sanitized = SanitizeSaveName(saveName);
+        var path = Path.Combine(GetSaveDirectory(), $"{sanitized}.json");
+        var json = JsonSerializer.Serialize(save, JsonOptions);
+        File.WriteAllText(path, json);
+    }
+
     public static GameSave? LoadSaveFile(int slot = 0)
     {
         var path = GetSavePath(slot);
@@ -159,6 +172,76 @@ public static class SaveService
 
         var json = File.ReadAllText(path);
         return JsonSerializer.Deserialize<GameSave>(json, JsonOptions);
+    }
+
+    public static GameSave? LoadSaveFile(string path)
+    {
+        if (!File.Exists(path)) return null;
+        var json = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<GameSave>(json, JsonOptions);
+    }
+
+    public static List<SaveFileInfo> GetAllSaves()
+    {
+        var dir = GetSaveDirectory();
+        var results = new List<SaveFileInfo>();
+
+        foreach (var file in Directory.GetFiles(dir, "*.json"))
+        {
+            try
+            {
+                var json = File.ReadAllText(file);
+                var save = JsonSerializer.Deserialize<GameSave>(json, JsonOptions);
+                if (save == null) continue;
+
+                var name = !string.IsNullOrEmpty(save.SaveName)
+                    ? save.SaveName
+                    : Path.GetFileNameWithoutExtension(file);
+
+                var summary = BuildSummary(save);
+                results.Add(new SaveFileInfo(file, name, save.SavedAt, summary));
+            }
+            catch
+            {
+                // Skip corrupted save files
+            }
+        }
+
+        return results.OrderByDescending(s => s.SavedAt).ToList();
+    }
+
+    public static bool HasAnySaves()
+    {
+        var dir = GetSaveDirectory();
+        return Directory.GetFiles(dir, "*.json").Length > 0;
+    }
+
+    public static void DeleteSave(string path)
+    {
+        if (File.Exists(path))
+            File.Delete(path);
+    }
+
+    private static string BuildSummary(GameSave save)
+    {
+        var leader = save.Party.Members.FirstOrDefault();
+        var leaderInfo = leader != null
+            ? $"Lv{leader.Level} {leader.Class}"
+            : "Empty party";
+        var location = save.Party.CurrentMapId.Replace("_", " ");
+        location = string.Concat(location[0].ToString().ToUpper(), location.AsSpan(1));
+        return $"{leaderInfo} - Day {save.Party.DayCount} - {location}";
+    }
+
+    public static string SanitizeSaveName(string name)
+    {
+        // Replace non-alphanumeric/space/dash/underscore with underscore
+        var sanitized = System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"[^a-zA-Z0-9 _\-]", "_");
+        // Collapse multiple underscores
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"_{2,}", "_");
+        // Limit length
+        if (sanitized.Length > 50) sanitized = sanitized[..50];
+        return string.IsNullOrWhiteSpace(sanitized) ? "save" : sanitized;
     }
 
     public static void ApplySaveData(GameEngine engine, GameSave save)
