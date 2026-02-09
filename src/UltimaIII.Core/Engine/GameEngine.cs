@@ -18,6 +18,13 @@ public class GameEngine
     public int MapSeed { get; private set; }
     public ShopType? CurrentShopType { get; private set; }
     public string? CurrentShopName { get; private set; }
+    public TavernRoster TavernRoster { get; private set; } = new();
+
+    public string? CurrentTownId =>
+        (State == GameState.Town || State == GameState.Shop) &&
+        CurrentMap is { MapType: MapType.Town or MapType.Castle }
+            ? Party.CurrentMapId
+            : null;
 
     private string? _lastSignShown;
 
@@ -57,6 +64,7 @@ public class GameEngine
         // Generate a seed for deterministic map generation
         MapSeed = _rng.Next();
         GenerateMaps();
+        InitializeTavernNpcs();
 
         // Set starting position (Lord British's Castle area)
         Party.X = 40;
@@ -516,6 +524,25 @@ public class GameEngine
         {
             // Award rewards
             var (exp, gold, loot) = Combat.GetCombatRewards();
+
+            // Distribute XP evenly among living party members
+            var livingMembers = Party.GetLivingMembers().ToList();
+            if (exp > 0 && livingMembers.Count > 0)
+            {
+                int xpEach = exp / livingMembers.Count;
+                if (xpEach < 1) xpEach = 1;
+                foreach (var member in livingMembers)
+                {
+                    int prevLevel = member.Level;
+                    member.GainExperience(xpEach);
+                    if (member.Level > prevLevel)
+                    {
+                        AddMessage($"{member.Name} has reached level {member.Level}!");
+                    }
+                }
+                AddMessage($"Party gains {exp} experience ({xpEach} each).");
+            }
+
             if (gold > 0)
             {
                 Party.AddGold(gold);
@@ -684,6 +711,53 @@ public class GameEngine
         CurrentShopName = null;
         State = GameState.Town;
         OnStateChanged?.Invoke(State);
+    }
+
+    public void InitializeTavernNpcs()
+    {
+        var townNames = new[] { "Britain", "Yew", "Montor", "Moon", "Grey", "Death Gulch", "Devil Guard", "Fawn" };
+        foreach (var name in townNames)
+        {
+            string id = name.ToLower().Replace(" ", "_");
+            if (!TavernRoster.HasNpc(id))
+            {
+                TavernRoster.SetNpc(id, NpcGenerator.GenerateNpc(_rng));
+            }
+        }
+    }
+
+    public string RecruitTavernNpc(Character? swapOutMember = null)
+    {
+        var townId = CurrentTownId;
+        if (townId == null)
+            return "You must be in a town tavern to recruit.";
+
+        var npc = TavernRoster.TakeNpc(townId);
+        if (npc == null)
+            return "No one here to recruit.";
+
+        if (!Party.IsFull)
+        {
+            Party.AddMember(npc);
+            // Generate a new NPC for this tavern
+            TavernRoster.SetNpc(townId, NpcGenerator.GenerateNpc(_rng));
+            AddMessage($"{npc.Name} has joined the party!");
+            return $"{npc.Name} has joined the party!";
+        }
+
+        if (swapOutMember != null)
+        {
+            Party.RemoveMember(swapOutMember);
+            // The swapped-out member becomes this tavern's NPC
+            TavernRoster.SetNpc(townId, swapOutMember);
+            Party.AddMember(npc);
+            AddMessage($"{swapOutMember.Name} stays at the tavern. {npc.Name} has joined the party!");
+            return $"{swapOutMember.Name} stays at the tavern. {npc.Name} has joined the party!";
+        }
+
+        // Party is full and no swap target — put the NPC back
+        TavernRoster.SetNpc(townId, npc);
+        return "Party is full! Choose a member to swap out.";
     }
 
     public void Rest()

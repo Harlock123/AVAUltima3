@@ -54,12 +54,19 @@ public class PartySaveData
     public List<InventoryEntrySave> SharedInventory { get; set; } = new();
 }
 
+public class TavernNpcSaveData
+{
+    public string TownId { get; set; } = string.Empty;
+    public CharacterSaveData Character { get; set; } = new();
+}
+
 public class GameSave
 {
     public PartySaveData Party { get; set; } = new();
     public GameState State { get; set; }
     public int MapSeed { get; set; }
     public DateTime SavedAt { get; set; }
+    public List<TavernNpcSaveData> TavernNpcs { get; set; } = new();
 }
 
 public static class SaveService
@@ -122,26 +129,16 @@ public static class SaveService
 
         foreach (var member in party.Members)
         {
-            save.Party.Members.Add(new CharacterSaveData
+            save.Party.Members.Add(SerializeCharacter(member));
+        }
+
+        // Save tavern NPCs
+        foreach (var (townId, npc) in engine.TavernRoster.AllNpcs)
+        {
+            save.TavernNpcs.Add(new TavernNpcSaveData
             {
-                Name = member.Name,
-                Race = member.Race,
-                Class = member.Class,
-                Strength = member.Stats.Strength,
-                Dexterity = member.Stats.Dexterity,
-                Intelligence = member.Stats.Intelligence,
-                Wisdom = member.Stats.Wisdom,
-                MaxHP = member.MaxHP,
-                CurrentHP = member.CurrentHP,
-                MaxMP = member.MaxMP,
-                CurrentMP = member.CurrentMP,
-                Level = member.Level,
-                Experience = member.Experience,
-                Status = member.Status,
-                WeaponId = member.EquippedWeapon?.Id ?? "hands",
-                ArmorId = member.EquippedArmor?.Id ?? "armor_none",
-                ShieldId = member.EquippedShield?.Id ?? "shield_none",
-                InventoryIds = member.Inventory.Select(i => i.Id).ToList()
+                TownId = townId,
+                Character = SerializeCharacter(npc)
             });
         }
 
@@ -175,36 +172,7 @@ public static class SaveService
         // Restore members
         foreach (var memberData in save.Party.Members)
         {
-            var character = new Character
-            {
-                Name = memberData.Name,
-                Race = memberData.Race,
-                Class = memberData.Class,
-                Stats = new Stats(memberData.Strength, memberData.Dexterity,
-                    memberData.Intelligence, memberData.Wisdom),
-                Level = memberData.Level,
-                Experience = memberData.Experience,
-                Status = memberData.Status,
-                EquippedWeapon = ResolveWeapon(memberData.WeaponId),
-                EquippedArmor = ResolveArmor(memberData.ArmorId),
-                EquippedShield = ResolveShield(memberData.ShieldId)
-            };
-
-            // Set HP/MP (MaxHP first so CurrentHP clamp works)
-            character.MaxHP = memberData.MaxHP;
-            character.CurrentHP = memberData.CurrentHP;
-            character.MaxMP = memberData.MaxMP;
-            character.CurrentMP = memberData.CurrentMP;
-
-            // Restore inventory
-            foreach (var itemId in memberData.InventoryIds)
-            {
-                var item = ItemRegistry.FindById(itemId);
-                if (item != null)
-                    character.Inventory.Add(item);
-            }
-
-            party.AddMember(character);
+            party.AddMember(DeserializeCharacter(memberData));
         }
 
         // Restore party state
@@ -242,6 +210,71 @@ public static class SaveService
                 party.AddToInventory(item);
             }
         }
+
+        // Restore tavern roster
+        engine.TavernRoster.Clear();
+        foreach (var tavernNpc in save.TavernNpcs)
+        {
+            engine.TavernRoster.SetNpc(tavernNpc.TownId, DeserializeCharacter(tavernNpc.Character));
+        }
+        // Fill any towns missing NPCs (backward compat with old saves)
+        engine.InitializeTavernNpcs();
+    }
+
+    private static CharacterSaveData SerializeCharacter(Character c)
+    {
+        return new CharacterSaveData
+        {
+            Name = c.Name,
+            Race = c.Race,
+            Class = c.Class,
+            Strength = c.Stats.Strength,
+            Dexterity = c.Stats.Dexterity,
+            Intelligence = c.Stats.Intelligence,
+            Wisdom = c.Stats.Wisdom,
+            MaxHP = c.MaxHP,
+            CurrentHP = c.CurrentHP,
+            MaxMP = c.MaxMP,
+            CurrentMP = c.CurrentMP,
+            Level = c.Level,
+            Experience = c.Experience,
+            Status = c.Status,
+            WeaponId = c.EquippedWeapon?.Id ?? "hands",
+            ArmorId = c.EquippedArmor?.Id ?? "armor_none",
+            ShieldId = c.EquippedShield?.Id ?? "shield_none",
+            InventoryIds = c.Inventory.Select(i => i.Id).ToList()
+        };
+    }
+
+    private static Character DeserializeCharacter(CharacterSaveData data)
+    {
+        var character = new Character
+        {
+            Name = data.Name,
+            Race = data.Race,
+            Class = data.Class,
+            Stats = new Stats(data.Strength, data.Dexterity, data.Intelligence, data.Wisdom),
+            Level = data.Level,
+            Experience = data.Experience,
+            Status = data.Status,
+            EquippedWeapon = ResolveWeapon(data.WeaponId),
+            EquippedArmor = ResolveArmor(data.ArmorId),
+            EquippedShield = ResolveShield(data.ShieldId)
+        };
+
+        character.MaxHP = data.MaxHP;
+        character.CurrentHP = data.CurrentHP;
+        character.MaxMP = data.MaxMP;
+        character.CurrentMP = data.CurrentMP;
+
+        foreach (var itemId in data.InventoryIds)
+        {
+            var item = ItemRegistry.FindById(itemId);
+            if (item != null)
+                character.Inventory.Add(item);
+        }
+
+        return character;
     }
 
     private static Weapon ResolveWeapon(string id)

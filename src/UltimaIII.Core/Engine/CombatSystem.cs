@@ -312,11 +312,6 @@ public class CombatSystem
                 ? $"{attacker.Name} strikes {target.Name} for {damage} damage, slaying it!"
                 : $"{attacker.Name} hits {target.Name} for {damage} damage.";
 
-            if (killed && target is MonsterCombatant mc)
-            {
-                attacker.Character.GainExperience(mc.Monster.Definition.ExperienceValue);
-            }
-
             return new CombatResult(true, message, damage, killed);
         }
         else

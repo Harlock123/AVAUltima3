@@ -10,7 +10,7 @@ using UltimaIII.Core.Models;
 
 namespace UltimaIII.Avalonia.ViewModels;
 
-public enum ShopTab { Buy, Sell, Equip, Services }
+public enum ShopTab { Buy, Sell, Equip, Services, Recruit }
 
 public partial class ShopViewModel : ViewModelBase
 {
@@ -30,6 +30,9 @@ public partial class ShopViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsSellTab))]
     [NotifyPropertyChangedFor(nameof(IsEquipTab))]
     [NotifyPropertyChangedFor(nameof(IsServicesTab))]
+    [NotifyPropertyChangedFor(nameof(IsRecruitTab))]
+    [NotifyPropertyChangedFor(nameof(ShowRecruitNormal))]
+    [NotifyPropertyChangedFor(nameof(ShowRecruitSwap))]
     private ShopTab _currentTab;
 
     [ObservableProperty]
@@ -50,13 +53,42 @@ public partial class ShopViewModel : ViewModelBase
     public bool HasSellTab => _shopDef.HasSellTab;
     public bool HasEquipTab => _shopDef.HasEquipTab;
     public bool HasServicesTab => _shopDef.HasServicesTab;
+    public bool HasRecruitTab => _shopDef.HasRecruitTab;
 
     public bool IsBuyTab => CurrentTab == ShopTab.Buy;
     public bool IsSellTab => CurrentTab == ShopTab.Sell;
     public bool IsEquipTab => CurrentTab == ShopTab.Equip;
     public bool IsServicesTab => CurrentTab == ShopTab.Services;
+    public bool IsRecruitTab => CurrentTab == ShopTab.Recruit;
 
     public bool IsTavern => _shopDef.Type == ShopType.Tavern;
+
+    // Recruit tab state
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRecruitNormal))]
+    [NotifyPropertyChangedFor(nameof(ShowRecruitSwap))]
+    private bool _isRecruitMode;
+
+    [ObservableProperty]
+    private int _swapSelectionIndex;
+
+    [ObservableProperty]
+    private string _recruitNpcName = string.Empty;
+
+    [ObservableProperty]
+    private string _recruitNpcRaceClass = string.Empty;
+
+    [ObservableProperty]
+    private string _recruitNpcStats = string.Empty;
+
+    [ObservableProperty]
+    private string _recruitNpcHpMp = string.Empty;
+
+    public bool CanRecruitDirectly => !_gameEngine.Party.IsFull;
+    public bool ShowRecruitNormal => IsRecruitTab && !IsRecruitMode;
+    public bool ShowRecruitSwap => IsRecruitTab && IsRecruitMode;
+
+    public ObservableCollection<SwapCandidateViewModel> SwapCandidates { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SellSourceLabel))]
@@ -199,6 +231,10 @@ public partial class ShopViewModel : ViewModelBase
                         _gameEngine.Party.Gold >= innCost, true, false));
                 }
                 break;
+
+            case ShopTab.Recruit:
+                RefreshRecruitDisplay();
+                return; // Recruit tab doesn't use the Items list
         }
 
         if (Items.Count > 0)
@@ -246,6 +282,13 @@ public partial class ShopViewModel : ViewModelBase
     [RelayCommand]
     private void Confirm()
     {
+        // Recruit tab has its own confirm logic
+        if (CurrentTab == ShopTab.Recruit)
+        {
+            ConfirmRecruit();
+            return;
+        }
+
         if (SelectedItemIndex < 0 || SelectedItemIndex >= Items.Count) return;
 
         var selectedItem = Items[SelectedItemIndex];
@@ -341,7 +384,37 @@ public partial class ShopViewModel : ViewModelBase
 
     public void HandleKeyPress(string key)
     {
-        switch (key.ToUpper())
+        var upper = key.ToUpper();
+
+        // Recruit swap mode intercepts input
+        if (IsRecruitMode)
+        {
+            switch (upper)
+            {
+                case "W":
+                case "UP":
+                    MoveSwapSelection(-1);
+                    break;
+                case "S":
+                case "DOWN":
+                    MoveSwapSelection(1);
+                    break;
+                case "RETURN":
+                case "ENTER":
+                case "SPACE":
+                    ConfirmRecruit();
+                    break;
+                case "ESCAPE":
+                    IsRecruitMode = false;
+                    SwapCandidates.Clear();
+                    StatusMessage = "Swap cancelled.";
+                    _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
+                    break;
+            }
+            return;
+        }
+
+        switch (upper)
         {
             case "W":
             case "UP":
@@ -378,12 +451,14 @@ public partial class ShopViewModel : ViewModelBase
                 break;
             case "D3":
             case "3":
-                if (HasEquipTab) SwitchTab("Equip");
+                if (HasRecruitTab) SwitchTab("Recruit");
+                else if (HasEquipTab) SwitchTab("Equip");
                 else if (HasServicesTab) SwitchTab("Services");
                 break;
             case "D4":
             case "4":
-                if (HasServicesTab) SwitchTab("Services");
+                if (HasEquipTab) SwitchTab("Equip");
+                else if (HasServicesTab) SwitchTab("Services");
                 break;
             case "TAB":
                 CycleTab();
@@ -401,11 +476,12 @@ public partial class ShopViewModel : ViewModelBase
 
     private void CycleTab()
     {
-        var tabs = new[] { ShopTab.Buy, ShopTab.Sell, ShopTab.Equip, ShopTab.Services };
+        var tabs = new[] { ShopTab.Buy, ShopTab.Sell, ShopTab.Recruit, ShopTab.Equip, ShopTab.Services };
         var available = tabs.Where(t => t switch
         {
             ShopTab.Buy => HasBuyTab,
             ShopTab.Sell => HasSellTab,
+            ShopTab.Recruit => HasRecruitTab,
             ShopTab.Equip => HasEquipTab,
             ShopTab.Services => HasServicesTab,
             _ => false
@@ -420,7 +496,117 @@ public partial class ShopViewModel : ViewModelBase
         RefreshItems();
     }
 
+    private void RefreshRecruitDisplay()
+    {
+        var townId = _gameEngine.CurrentTownId;
+        if (townId == null)
+        {
+            RecruitNpcName = "No tavern here.";
+            RecruitNpcRaceClass = string.Empty;
+            RecruitNpcStats = string.Empty;
+            RecruitNpcHpMp = string.Empty;
+            StatusMessage = string.Empty;
+            return;
+        }
+
+        var npc = _gameEngine.TavernRoster.GetNpc(townId);
+        if (npc == null)
+        {
+            RecruitNpcName = "No one here to recruit.";
+            RecruitNpcRaceClass = string.Empty;
+            RecruitNpcStats = string.Empty;
+            RecruitNpcHpMp = string.Empty;
+            StatusMessage = string.Empty;
+            return;
+        }
+
+        RecruitNpcName = npc.Name;
+        RecruitNpcRaceClass = $"Lv{npc.Level} {npc.Race} {npc.Class}";
+        RecruitNpcStats = $"STR:{npc.Stats.Strength}  DEX:{npc.Stats.Dexterity}  INT:{npc.Stats.Intelligence}  WIS:{npc.Stats.Wisdom}";
+        RecruitNpcHpMp = $"HP:{npc.CurrentHP}/{npc.MaxHP}  MP:{npc.CurrentMP}/{npc.MaxMP}";
+
+        OnPropertyChanged(nameof(CanRecruitDirectly));
+        StatusMessage = CanRecruitDirectly
+            ? "Press Enter to recruit this companion."
+            : "Party full. Press Enter to choose who to swap out.";
+    }
+
+    private void ConfirmRecruit()
+    {
+        if (IsRecruitMode)
+        {
+            // Swap mode — confirm the swap
+            if (SwapSelectionIndex < 0 || SwapSelectionIndex >= SwapCandidates.Count) return;
+
+            var swapOut = SwapCandidates[SwapSelectionIndex].Character;
+            var result = _gameEngine.RecruitTavernNpc(swapOut);
+            StatusMessage = result;
+            IsRecruitMode = false;
+            SwapCandidates.Clear();
+            _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+            _parentViewModel.RefreshPartyDisplay();
+            RefreshRecruitDisplay();
+        }
+        else if (CanRecruitDirectly)
+        {
+            var result = _gameEngine.RecruitTavernNpc();
+            StatusMessage = result;
+            _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+            _parentViewModel.RefreshPartyDisplay();
+            RefreshRecruitDisplay();
+        }
+        else
+        {
+            // Enter swap mode
+            IsRecruitMode = true;
+            SwapCandidates.Clear();
+            SwapSelectionIndex = 0;
+            foreach (var member in _gameEngine.Party.Members)
+            {
+                SwapCandidates.Add(new SwapCandidateViewModel(member));
+            }
+            if (SwapCandidates.Count > 0)
+                SwapCandidates[0].IsSelected = true;
+            StatusMessage = "Choose who to leave behind.";
+            _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
+        }
+    }
+
+    private void MoveSwapSelection(int delta)
+    {
+        if (SwapCandidates.Count == 0) return;
+
+        if (SwapSelectionIndex >= 0 && SwapSelectionIndex < SwapCandidates.Count)
+            SwapCandidates[SwapSelectionIndex].IsSelected = false;
+
+        SwapSelectionIndex = Math.Clamp(SwapSelectionIndex + delta, 0, SwapCandidates.Count - 1);
+        SwapCandidates[SwapSelectionIndex].IsSelected = true;
+    }
+
     private static Item CreateItemCopy(Item original) => ItemRegistry.CloneItem(original);
+}
+
+public partial class SwapCandidateViewModel : ObservableObject
+{
+    public Character Character { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    private bool _isSelected;
+
+    public string DisplayText
+    {
+        get
+        {
+            var marker = IsSelected ? "> " : "  ";
+            return $"{marker}{Character.Name} - Lv{Character.Level} {Character.Race} {Character.Class}  HP:{Character.CurrentHP}/{Character.MaxHP}  MP:{Character.CurrentMP}/{Character.MaxMP}";
+        }
+    }
+
+    public SwapCandidateViewModel(Character character)
+    {
+        Character = character;
+    }
 }
 
 public partial class ShopItemViewModel : ObservableObject

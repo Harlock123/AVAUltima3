@@ -159,6 +159,50 @@ public class Character
         MaxMP += classDef.MagicPointsPerLevel;
         CurrentHP = MaxHP;
         CurrentMP = MaxMP;
+
+        // Stat growth based on class archetype (+1 to primary stats every level)
+        switch (Class)
+        {
+            case CharacterClass.Fighter:
+                Stats.Strength += 1;
+                break;
+            case CharacterClass.Barbarian:
+                Stats.Strength += 1;
+                break;
+            case CharacterClass.Wizard:
+                Stats.Intelligence += 1;
+                break;
+            case CharacterClass.Cleric:
+                Stats.Wisdom += 1;
+                break;
+            case CharacterClass.Thief:
+                Stats.Dexterity += 1;
+                break;
+            case CharacterClass.Paladin:
+                Stats.Strength += 1;
+                if (Level % 2 == 0) Stats.Wisdom += 1;
+                break;
+            case CharacterClass.Ranger:
+                Stats.Dexterity += 1;
+                if (Level % 2 == 0) Stats.Strength += 1;
+                break;
+            case CharacterClass.Lark:
+                Stats.Dexterity += 1;
+                if (Level % 2 == 0) Stats.Intelligence += 1;
+                break;
+            case CharacterClass.Illusionist:
+                Stats.Intelligence += 1;
+                if (Level % 2 == 0) Stats.Dexterity += 1;
+                break;
+            case CharacterClass.Druid:
+                Stats.Wisdom += 1;
+                if (Level % 2 == 0) Stats.Intelligence += 1;
+                break;
+            case CharacterClass.Alchemist:
+                Stats.Intelligence += 1;
+                if (Level % 2 == 0) Stats.Wisdom += 1;
+                break;
+        }
     }
 
     public void GainExperience(int exp)

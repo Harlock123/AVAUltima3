@@ -64,7 +64,10 @@
                     <Button Content="[2] Sell"
                             Command="{Binding SwitchTabCommand}" CommandParameter="Sell"
                             IsVisible="{Binding HasSellTab}"/>
-                    <Button Content="[3] Equip"
+                    <Button Content="[3] Recruit"
+                            Command="{Binding SwitchTabCommand}" CommandParameter="Recruit"
+                            IsVisible="{Binding HasRecruitTab}"/>
+                    <Button Content="[4] Equip"
                             Command="{Binding SwitchTabCommand}" CommandParameter="Equip"
                             IsVisible="{Binding HasEquipTab}"/>
                     <Button Content="Services"
@@ -73,8 +76,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- Character Selector + Gold -->
-            <Border Grid.Row="2" Background="#0d0a1a" Padding="10,8">
+            <!-- Character Selector + Gold (hidden on recruit tab) -->
+            <Border Grid.Row="2" Background="#0d0a1a" Padding="10,8"
+                    IsVisible="{Binding !IsRecruitTab}">
                 <Grid>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
                         <Button Content="&lt;" Command="{Binding PrevCharacterCommand}" Padding="6,3" MinWidth="30"/>
@@ -90,6 +94,15 @@
                 </Grid>
             </Border>
 
+            <!-- Recruit tab header (shown instead of character selector) -->
+            <Border Grid.Row="2" Background="#0d0a1a" Padding="10,8"
+                    IsVisible="{Binding IsRecruitTab}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Gold: " Foreground="#808060" FontSize="13"/>
+                    <TextBlock Text="{Binding PartyGold}" Foreground="#ffd700" FontSize="13" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+
             <!-- Sell Source Toggle (visible only on Sell tab) -->
             <Border Grid.Row="3" Background="#1a1510" Padding="10,4"
                     IsVisible="{Binding IsSellTab}">
@@ -100,12 +113,13 @@
                 </TextBlock>
             </Border>
 
-            <!-- Separator (when not sell tab) -->
+            <!-- Separator (when not sell tab and not recruit tab) -->
             <Border Grid.Row="3" Height="1" Background="#3a2a1a" Margin="10,0"
                     IsVisible="{Binding !IsSellTab}"/>
 
-            <!-- Item List -->
-            <Border Grid.Row="4" Padding="10,6" MinHeight="150">
+            <!-- Standard Item List (hidden on Recruit tab) -->
+            <Border Grid.Row="4" Padding="10,6" MinHeight="150"
+                    IsVisible="{Binding !IsRecruitTab}">
                 <ScrollViewer>
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
@@ -131,9 +145,62 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Item Description -->
+            <!-- Recruit Normal View: NPC Info Card -->
+            <Border Grid.Row="4" Padding="10,6" MinHeight="150"
+                    IsVisible="{Binding ShowRecruitNormal}">
+                <StackPanel VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="A companion awaits..."
+                               FontSize="13" Foreground="#a09080" FontStyle="Italic"
+                               HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    <Border Background="#1a1510" BorderBrush="#4a3a2a" BorderThickness="1"
+                            CornerRadius="4" Padding="16,12" HorizontalAlignment="Center"
+                            MinWidth="350">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{Binding RecruitNpcName}"
+                                       FontSize="18" FontWeight="Bold" Foreground="#ffd700"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding RecruitNpcRaceClass}"
+                                       FontSize="14" Foreground="#c0b0a0"
+                                       HorizontalAlignment="Center"/>
+                            <Border Height="1" Background="#3a2a1a" Margin="0,4"/>
+                            <TextBlock Text="{Binding RecruitNpcStats}"
+                                       FontSize="13" Foreground="#a0c0e0"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding RecruitNpcHpMp}"
+                                       FontSize="13" Foreground="#60c060"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Recruit Swap View: Party Member Selection -->
+            <Border Grid.Row="4" Padding="10,6" MinHeight="150"
+                    IsVisible="{Binding ShowRecruitSwap}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Choose who to leave behind:"
+                               FontSize="14" FontWeight="Bold" Foreground="#e0a040"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                    <ItemsControl ItemsSource="{Binding SwapCandidates}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:SwapCandidateViewModel}">
+                                <Border Padding="4,3" Margin="0,1" CornerRadius="2">
+                                    <TextBlock Text="{Binding DisplayText}"
+                                               FontSize="13"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="W/S: Select   Enter: Confirm   Esc: Cancel"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Item Description (hidden on Recruit tab) -->
             <Border Grid.Row="5" Background="#1a1510" CornerRadius="4" Padding="8,4" Margin="10,4"
-                    MinHeight="24">
+                    MinHeight="24"
+                    IsVisible="{Binding !IsRecruitTab}">
                 <TextBlock Text="{Binding SelectedItemDescription}"
                            FontSize="11" Foreground="#a0b0c0"
                            TextWrapping="Wrap" HorizontalAlignment="Center"/>
@@ -151,7 +218,12 @@
                 <StackPanel>
                     <TextBlock Text="W/S: Browse   A/D: Character   Tab: Switch Tab   Enter: Confirm   Esc: Leave"
                                FontSize="10" Foreground="#605040"
-                               HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                               HorizontalAlignment="Center" Margin="0,0,0,6"
+                               IsVisible="{Binding !IsRecruitTab}"/>
+                    <TextBlock Text="Tab: Switch Tab   Enter: Recruit   Esc: Leave"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"
+                               IsVisible="{Binding ShowRecruitNormal}"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
                         <Button Content="[Enter] Confirm" Command="{Binding ConfirmCommand}"/>
                         <Button Content="[Esc] Leave" Command="{Binding ExitShopCommand}"/>

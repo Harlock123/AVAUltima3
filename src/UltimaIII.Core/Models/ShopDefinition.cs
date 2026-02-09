@@ -19,6 +19,7 @@ public class ShopDefinition
     public bool HasSellTab { get; init; }
     public bool HasEquipTab { get; init; }
     public bool HasServicesTab { get; init; }
+    public bool HasRecruitTab { get; init; }
 
     public List<Item> GetBuyInventory()
     {
@@ -75,7 +76,8 @@ public class ShopDefinition
             Name = "Tavern",
             WelcomeMessage = "Welcome, weary traveler! Food and drink await.",
             HasBuyTab = true,
-            HasSellTab = true
+            HasSellTab = true,
+            HasRecruitTab = true
         },
         [ShopType.Healer] = new ShopDefinition
         {

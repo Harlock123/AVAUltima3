@@ -154,7 +154,7 @@ public partial class GameViewModel : ViewModelBase
         RefreshDisplay();
     }
 
-    private void RefreshPartyDisplay()
+    public void RefreshPartyDisplay()
     {
         PartyMembers.Clear();
         foreach (var member in _gameEngine.Party.Members)
@@ -414,7 +414,7 @@ public partial class PartyMemberViewModel : ObservableObject
         MaxHp = _character.MaxHP;
         CurrentMp = _character.CurrentMP;
         MaxMp = _character.MaxMP;
-        ClassRace = $"{_character.Race} {_character.Class}";
+        ClassRace = $"Lv{_character.Level} {_character.Race} {_character.Class}";
 
         if (_character.Status == StatusEffect.None)
             Status = "OK";
