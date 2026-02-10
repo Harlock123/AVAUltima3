@@ -174,6 +174,98 @@ dotnet run --project src/UltimaIII.Avalonia
 | Q | Toggle sell source (Character/Party inventory) |
 | Esc | Leave shop |
 
+## Custom Tile Sprites
+
+The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `src/UltimaIII.Avalonia/Assets/sprites/` named after the tile type (lowercased). Any tile without a matching sprite falls back to code-drawn rendering.
+
+### Sprite Checklist
+
+**Overworld / Town Terrain:**
+- [ ] `grass.png`
+- [ ] `forest.png`
+- [ ] `mountain.png`
+- [ ] `water.png`
+- [ ] `deepwater.png`
+- [ ] `swamp.png`
+- [ ] `desert.png`
+- [ ] `lava.png`
+- [ ] `bridge.png`
+- [ ] `path.png`
+- [ ] `flowers.png`
+- [ ] `lamppost.png`
+
+**Structures:**
+- [ ] `wall.png`
+- [ ] `floor.png`
+- [ ] `door.png`
+- [ ] `lockeddoor.png`
+- [ ] `secretdoor.png`
+- [ ] `castlewall.png`
+- [ ] `castlefloor.png`
+- [ ] `counter.png`
+- [ ] `sign.png`
+
+**Dungeon Features:**
+- [ ] `stairsup.png`
+- [ ] `stairsdown.png`
+- [ ] `ladder.png`
+- [ ] `pit.png`
+- [ ] `ceilinghole.png`
+- [ ] `trap.png`
+- [ ] `void.png`
+
+**Special:**
+- [ ] `altar.png`
+- [ ] `fountain.png`
+- [ ] `chest.png`
+- [ ] `portal.png`
+- [x] `party.png`
+
+### Combat Sprites
+
+Combat sprites also go in `Assets/sprites/`. Player characters use their class name, monsters use their definition ID. Combat terrain checks for `combat_<terrain>.png` first, then falls back to the shared terrain sprite above.
+
+**Player Classes (by class):**
+- [ ] `fighter.png`
+- [ ] `cleric.png`
+- [ ] `wizard.png`
+- [ ] `thief.png`
+- [ ] `paladin.png`
+- [ ] `barbarian.png`
+- [ ] `lark.png`
+- [ ] `illusionist.png`
+- [ ] `druid.png`
+- [ ] `alchemist.png`
+- [ ] `ranger.png`
+
+**Monsters (by ID):**
+- [ ] `orc.png`
+- [ ] `goblin.png`
+- [ ] `skeleton.png`
+- [ ] `zombie.png`
+- [ ] `ghoul.png`
+- [ ] `giant_rat.png`
+- [ ] `giant_spider.png`
+- [ ] `gelatinous_cube.png`
+- [ ] `troll.png`
+- [ ] `ogre.png`
+- [ ] `wraith.png`
+- [ ] `vampire.png`
+- [ ] `lich.png`
+- [ ] `imp.png`
+- [ ] `daemon.png`
+- [ ] `balron.png`
+- [ ] `dragon.png`
+- [ ] `pirate.png`
+- [ ] `sea_serpent.png`
+- [ ] `guard.png`
+
+**Combat Terrain (optional overrides):**
+- [ ] `combat_grass.png`
+- [ ] `combat_forest.png`
+- [ ] `combat_mountain.png`
+- [ ] `combat_floor.png`
+
 ## Technical Details
 
 - **Framework**: .NET 8

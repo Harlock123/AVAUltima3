@@ -53,7 +53,7 @@
         <Border Grid.Row="1" Background="#0a0a0a" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
             <controls:CombatMapControl x:Name="CombatMap"
                                        CombatSystem="{Binding Combat}"
-                                       TileSize="28"
+                                       TileSize="32"
                                        TargetX="{Binding TargetX}"
                                        TargetY="{Binding TargetY}"
                                        ShowTarget="{Binding IsSelectingTarget}"/>

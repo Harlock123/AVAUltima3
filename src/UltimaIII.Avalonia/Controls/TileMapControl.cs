@@ -135,19 +135,27 @@ public class TileMapControl : Control
                 var tile = map.GetTile(worldX, worldY);
                 var rect = new Rect(vx * TileSize, vy * TileSize, TileSize, TileSize);
 
-                // Draw tile
-                var brush = GetTileBrush(tile.Type);
-                context.FillRectangle(brush, rect);
-
-                // Draw tile border for dungeon floors
-                if (engine.State == GameState.Dungeon && tile.Type == TileType.Floor)
+                // Try sprite first, fall back to code drawing
+                var tileSprite = TileSpriteCache.Get(tile.Type.ToString().ToLowerInvariant());
+                if (tileSprite != null)
                 {
-                    var pen = new Pen(Brushes.DarkGray, 1);
-                    context.DrawRectangle(pen, rect);
+                    context.DrawImage(tileSprite, rect);
                 }
+                else
+                {
+                    var brush = GetTileBrush(tile.Type);
+                    context.FillRectangle(brush, rect);
 
-                // Draw special symbols
-                DrawTileSymbol(context, tile.Type, rect);
+                    // Draw tile border for dungeon floors
+                    if (engine.State == GameState.Dungeon && tile.Type == TileType.Floor)
+                    {
+                        var pen = new Pen(Brushes.DarkGray, 1);
+                        context.DrawRectangle(pen, rect);
+                    }
+
+                    // Draw special symbols
+                    DrawTileSymbol(context, tile.Type, rect);
+                }
 
                 // Draw fog of war
                 if (!tile.IsVisible && tile.IsExplored)
@@ -279,10 +287,19 @@ public class TileMapControl : Control
 
     private void DrawPlayer(DrawingContext context, int x, int y, Direction facing)
     {
+        // Try sprite first
+        var sprite = TileSpriteCache.Get("party");
+        if (sprite != null)
+        {
+            var destRect = new Rect(x, y, TileSize, TileSize);
+            context.DrawImage(sprite, destRect);
+            return;
+        }
+
+        // Fall back to code-drawn triangle
         var center = new Point(x + TileSize / 2, y + TileSize / 2);
         int size = TileSize - 8;
 
-        // Draw player as a simple arrow/triangle indicating facing direction
         var points = new Point[3];
         switch (facing)
         {

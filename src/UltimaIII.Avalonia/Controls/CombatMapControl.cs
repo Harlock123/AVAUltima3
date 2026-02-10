@@ -144,8 +144,14 @@ public class CombatMapControl : Control
                     var terrain = combat.GetTerrain(x, y);
                     brush = TerrainBrushes.TryGetValue(terrain, out var b) ? b : DefaultTerrainBrush;
 
-                    // Draw terrain features
-                    if (terrain == TileType.Forest)
+                    // Try sprite first, fall back to code drawing
+                    var terrainSprite = TileSpriteCache.Get("combat_" + terrain.ToString().ToLowerInvariant())
+                                    ?? TileSpriteCache.Get(terrain.ToString().ToLowerInvariant());
+                    if (terrainSprite != null)
+                    {
+                        context.DrawImage(terrainSprite, rect);
+                    }
+                    else if (terrain == TileType.Forest)
                     {
                         context.FillRectangle(brush, rect);
                         var center = rect.Center;
@@ -192,22 +198,42 @@ public class CombatMapControl : Control
         // Draw combatants
         foreach (var pc in combat.PlayerCharacters)
         {
+            var spriteKey = pc.Character.Class.ToString().ToLowerInvariant();
             DrawCombatant(context, pc.X, pc.Y, pc.Name, pc.IsAlive, true,
-                pc == combat.CurrentCombatant);
+                pc == combat.CurrentCombatant, spriteKey);
         }
 
         foreach (var monster in combat.Monsters)
         {
+            var spriteKey = monster.Monster.Definition.Id;
             DrawCombatant(context, monster.X, monster.Y, monster.Name, monster.IsAlive, false,
-                monster == combat.CurrentCombatant);
+                monster == combat.CurrentCombatant, spriteKey);
         }
     }
 
     private void DrawCombatant(DrawingContext context, int gridX, int gridY, string name,
-        bool isAlive, bool isPlayer, bool isCurrentTurn)
+        bool isAlive, bool isPlayer, bool isCurrentTurn, string spriteKey)
     {
         int x = gridX * TileSize;
         int y = gridY * TileSize;
+        var fullRect = new Rect(x, y, TileSize, TileSize);
+
+        // Try sprite first
+        var sprite = isAlive ? TileSpriteCache.Get(spriteKey) : null;
+        if (sprite != null)
+        {
+            context.DrawImage(sprite, fullRect);
+
+            // Draw current turn indicator around sprite
+            if (isCurrentTurn)
+            {
+                var indicatorPen = new Pen(CurrentTurnBrush, 3);
+                context.DrawRectangle(indicatorPen, fullRect);
+            }
+            return;
+        }
+
+        // Fall back to code-drawn circle
         var rect = new Rect(x + 4, y + 4, TileSize - 8, TileSize - 8);
 
         IBrush brush;
@@ -218,7 +244,6 @@ public class CombatMapControl : Control
         else
             brush = MonsterBrush;
 
-        // Draw as circle
         var geometry = new EllipseGeometry(rect);
         context.DrawGeometry(brush, new Pen(Brushes.Black, 2), geometry);
 
