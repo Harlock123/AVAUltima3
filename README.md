@@ -181,14 +181,14 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 ### Sprite Checklist
 
 **Overworld / Town Terrain:**
-- [ ] `grass.png`
-- [ ] `forest.png`
-- [ ] `mountain.png`
-- [ ] `water.png`
-- [ ] `deepwater.png`
+- [x] `grass.png`
+- [x] `forest.png`
+- [x] `mountain.png`
+- [x] `water.png`
+- [x] `deepwater.png`
 - [ ] `swamp.png`
-- [ ] `desert.png`
-- [ ] `lava.png`
+- [x] `desert.png`
+- [x] `lava.png`
 - [ ] `bridge.png`
 - [ ] `path.png`
 - [ ] `flowers.png`
