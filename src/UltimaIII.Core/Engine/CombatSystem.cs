@@ -438,28 +438,17 @@ public class CombatSystem
             return;
         }
 
-        // Simple AI: find nearest player and attack or move toward them
-        CharacterCombatant? nearestTarget = null;
-        int nearestDistance = int.MaxValue;
+        // Pick a target — spread monsters across players instead of all piling on one
+        var target = PickTarget(monster);
 
-        foreach (var pc in PlayerCharacters)
-        {
-            if (!pc.IsAlive) continue;
-            int dist = Math.Max(Math.Abs(monster.X - pc.X), Math.Abs(monster.Y - pc.Y));
-            if (dist < nearestDistance)
-            {
-                nearestDistance = dist;
-                nearestTarget = pc;
-            }
-        }
-
-        if (nearestTarget == null)
+        if (target == null)
         {
             AdvanceTurn();
             return;
         }
 
         int range = monster.Monster.Definition.Range;
+        int distToTarget = Math.Max(Math.Abs(monster.X - target.X), Math.Abs(monster.Y - target.Y));
 
         // Check if monster should cast its special ability
         if (monster.Monster.Definition.SpecialAbility.HasValue && _rng.Next(100) < 40)
@@ -488,52 +477,169 @@ public class CombatSystem
             }
         }
 
-        if (nearestDistance <= range)
+        if (distToTarget <= range)
         {
             // Attack!
             int attackRoll = _rng.Next(1, 21) + monster.Monster.Definition.Speed / 2;
-            int defense = nearestTarget.GetDefense();
+            int defense = target.GetDefense();
 
             if (attackRoll >= 10 + defense)
             {
                 int damage = monster.Monster.RollDamage(_rng);
-                nearestTarget.TakeDamage(damage);
+                target.TakeDamage(damage);
 
-                string message = nearestTarget.IsAlive
-                    ? $"{monster.Name} hits {nearestTarget.Name} for {damage} damage!"
-                    : $"{monster.Name} strikes down {nearestTarget.Name}!";
+                string message = target.IsAlive
+                    ? $"{monster.Name} hits {target.Name} for {damage} damage!"
+                    : $"{monster.Name} strikes down {target.Name}!";
                 LogMessage(message);
 
                 // Apply status effects
                 if (monster.Monster.Definition.InflictsStatus != StatusEffect.None && _rng.Next(100) < 25)
                 {
-                    nearestTarget.Status |= monster.Monster.Definition.InflictsStatus;
-                    LogMessage($"{nearestTarget.Name} is affected by {monster.Monster.Definition.InflictsStatus}!");
+                    target.Status |= monster.Monster.Definition.InflictsStatus;
+                    LogMessage($"{target.Name} is affected by {monster.Monster.Definition.InflictsStatus}!");
                 }
             }
             else
             {
-                LogMessage($"{monster.Name} misses {nearestTarget.Name}.");
+                LogMessage($"{monster.Name} misses {target.Name}.");
             }
         }
         else
         {
-            // Move toward target
-            int dx = Math.Sign(nearestTarget.X - monster.X);
-            int dy = Math.Sign(nearestTarget.Y - monster.Y);
-
-            int newX = monster.X + dx;
-            int newY = monster.Y + dy;
-
-            if (IsValidMove(newX, newY))
-            {
-                monster.X = newX;
-                monster.Y = newY;
-                LogMessage($"{monster.Name} moves.");
-            }
+            // Move toward target with spread-out behavior
+            MoveToward(monster, target);
         }
 
         AdvanceTurn();
+    }
+
+    /// <summary>
+    /// Picks a target player for a monster, distributing attackers across players
+    /// so they don't all pile onto one character.
+    /// </summary>
+    private CharacterCombatant? PickTarget(MonsterCombatant monster)
+    {
+        var alivePlayers = PlayerCharacters.Where(pc => pc.IsAlive).ToList();
+        if (alivePlayers.Count == 0) return null;
+
+        // Count how many other alive monsters are already targeting each player
+        // (approximated by which player each monster is closest to)
+        var threatCount = new Dictionary<CharacterCombatant, int>();
+        foreach (var pc in alivePlayers)
+            threatCount[pc] = 0;
+
+        foreach (var other in Monsters)
+        {
+            if (other == monster || !other.IsAlive) continue;
+            CharacterCombatant? closestTo = null;
+            int closestDist = int.MaxValue;
+            foreach (var pc in alivePlayers)
+            {
+                int d = Math.Max(Math.Abs(other.X - pc.X), Math.Abs(other.Y - pc.Y));
+                if (d < closestDist) { closestDist = d; closestTo = pc; }
+            }
+            if (closestTo != null) threatCount[closestTo]++;
+        }
+
+        // Score each player: prefer close + less-crowded targets
+        CharacterCombatant? best = null;
+        double bestScore = double.MaxValue;
+
+        foreach (var pc in alivePlayers)
+        {
+            int dist = Math.Max(Math.Abs(monster.X - pc.X), Math.Abs(monster.Y - pc.Y));
+            // Score = distance + crowding penalty (2 tiles per existing attacker)
+            double score = dist + threatCount[pc] * 2.0;
+            if (score < bestScore)
+            {
+                bestScore = score;
+                best = pc;
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// Moves a monster toward a target, trying multiple directions if the direct
+    /// path is blocked, and preferring tiles that aren't adjacent to other monsters
+    /// (to encourage spreading out / flanking).
+    /// </summary>
+    private void MoveToward(MonsterCombatant monster, CharacterCombatant target)
+    {
+        int dx = Math.Sign(target.X - monster.X);
+        int dy = Math.Sign(target.Y - monster.Y);
+
+        // Build candidate moves: direct diagonal first, then axis-aligned, then sidesteps
+        var candidates = new List<(int x, int y)>();
+
+        // Primary: direct toward target
+        if (dx != 0 && dy != 0) candidates.Add((monster.X + dx, monster.Y + dy));
+        if (dx != 0) candidates.Add((monster.X + dx, monster.Y));
+        if (dy != 0) candidates.Add((monster.X, monster.Y + dy));
+
+        // Sidesteps: move perpendicular to get around obstacles
+        if (dx != 0)
+        {
+            candidates.Add((monster.X + dx, monster.Y + 1));
+            candidates.Add((monster.X + dx, monster.Y - 1));
+        }
+        if (dy != 0)
+        {
+            candidates.Add((monster.X + 1, monster.Y + dy));
+            candidates.Add((monster.X - 1, monster.Y + dy));
+        }
+
+        // Pure lateral moves as last resort
+        candidates.Add((monster.X, monster.Y + 1));
+        candidates.Add((monster.X, monster.Y - 1));
+        candidates.Add((monster.X + 1, monster.Y));
+        candidates.Add((monster.X - 1, monster.Y));
+
+        // Remove duplicates
+        var seen = new HashSet<(int, int)>();
+        var unique = new List<(int x, int y)>();
+        foreach (var c in candidates)
+        {
+            if (seen.Add(c)) unique.Add(c);
+        }
+
+        // Score each valid candidate: closer to target is better, being near
+        // other monsters is worse (encourages spreading / flanking)
+        (int x, int y)? bestMove = null;
+        double bestScore = double.MaxValue;
+
+        foreach (var (cx, cy) in unique)
+        {
+            if (!IsValidMove(cx, cy)) continue;
+
+            int distToTarget = Math.Max(Math.Abs(cx - target.X), Math.Abs(cy - target.Y));
+
+            // Count adjacent friendly monsters (penalize crowding)
+            int adjacentMonsters = 0;
+            foreach (var other in Monsters)
+            {
+                if (other == monster || !other.IsAlive) continue;
+                if (Math.Max(Math.Abs(cx - other.X), Math.Abs(cy - other.Y)) <= 1)
+                    adjacentMonsters++;
+            }
+
+            double score = distToTarget + adjacentMonsters * 1.5;
+
+            if (score < bestScore)
+            {
+                bestScore = score;
+                bestMove = (cx, cy);
+            }
+        }
+
+        if (bestMove.HasValue)
+        {
+            monster.X = bestMove.Value.x;
+            monster.Y = bestMove.Value.y;
+            LogMessage($"{monster.Name} moves.");
+        }
     }
 
     private void ExecuteMonsterSpell(MonsterCombatant monster, Spell spell, CharacterCombatant target)

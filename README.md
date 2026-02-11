@@ -1,6 +1,6 @@
-# Ultima III: Exodus - .NET 8 Avalonia Recreation
+# Ultima III: Exodus - .NET 9 Avalonia Recreation
 
-A faithful recreation of the classic 1983 RPG "Ultima III: Exodus" using .NET 8 and Avalonia UI for cross-platform compatibility.
+A faithful recreation of the classic 1983 RPG "Ultima III: Exodus" using .NET 9 and Avalonia UI for cross-platform compatibility.
 
 ## Author
 
@@ -104,7 +104,7 @@ UltimaIII.sln
 ## Building and Running
 
 ### Prerequisites
-- .NET 8 SDK
+- .NET 9 SDK
 
 ### Build
 ```bash
@@ -226,17 +226,17 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 Combat sprites also go in `Assets/sprites/`. Player characters use their class name, monsters use their definition ID. Combat terrain checks for `combat_<terrain>.png` first, then falls back to the shared terrain sprite above.
 
 **Player Classes (by class):**
-- [ ] `fighter.png`
-- [ ] `cleric.png`
-- [ ] `wizard.png`
-- [ ] `thief.png`
-- [ ] `paladin.png`
-- [ ] `barbarian.png`
-- [ ] `lark.png`
-- [ ] `illusionist.png`
-- [ ] `druid.png`
-- [ ] `alchemist.png`
-- [ ] `ranger.png`
+- [x] `fighter.png`
+- [x] `cleric.png`
+- [x] `wizard.png`
+- [x] `thief.png`
+- [x] `paladin.png`
+- [x] `barbarian.png`
+- [x] `lark.png`
+- [x] `illusionist.png`
+- [x] `druid.png`
+- [x] `alchemist.png`
+- [x] `ranger.png`
 
 **Monsters (by ID):**
 - [ ] `orc.png`
@@ -268,7 +268,7 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 
 ## Technical Details
 
-- **Framework**: .NET 8
+- **Framework**: .NET 9
 - **UI**: Avalonia UI 11.2
 - **Pattern**: MVVM with CommunityToolkit.Mvvm
 - **Graphics**: Custom tile rendering with retro CGA/EGA color palette

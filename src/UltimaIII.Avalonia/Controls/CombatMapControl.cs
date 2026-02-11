@@ -205,6 +205,7 @@ public class CombatMapControl : Control
 
         foreach (var monster in combat.Monsters)
         {
+            if (!monster.IsAlive) continue;
             var spriteKey = monster.Monster.Definition.Id;
             DrawCombatant(context, monster.X, monster.Y, monster.Name, monster.IsAlive, false,
                 monster == combat.CurrentCombatant, spriteKey);
