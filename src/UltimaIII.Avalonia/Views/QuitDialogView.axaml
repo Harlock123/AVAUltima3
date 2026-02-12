@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="400"
+             x:Class="UltimaIII.Avalonia.Views.QuitDialogView"
+             x:DataType="vm:QuitDialogViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a3a"/>
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="BorderBrush" Value="#4a3a2a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="MinWidth" Value="70"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a4a"/>
+            <Setter Property="BorderBrush" Value="#ffd700"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0a1a" CornerRadius="8" Padding="0" BorderBrush="#4a3a2a" BorderThickness="2">
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="450">
+            <Border Background="#1a1510" CornerRadius="8" Padding="30,24">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Quit Game"
+                               FontSize="22" FontWeight="Bold" Foreground="#ffd700"
+                               HorizontalAlignment="Center"/>
+
+                    <!-- Farewell message -->
+                    <TextBlock Text="{Binding FarewellMessage}"
+                               FontSize="15" Foreground="#c0b0a0" FontStyle="Italic"
+                               HorizontalAlignment="Center"/>
+
+                    <!-- Save prompt (shown when not recently saved) -->
+                    <StackPanel Spacing="12" IsVisible="{Binding ShowSavePrompt}">
+                        <TextBlock Text="You have unsaved progress. Save before quitting?"
+                                   FontSize="13" Foreground="#e0a040"
+                                   HorizontalAlignment="Center"/>
+
+                        <!-- Status Message -->
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="12" Foreground="#c06060"
+                                   HorizontalAlignment="Center"
+                                   MinHeight="18"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <Button Content="Save &amp; Quit" Command="{Binding SaveAndQuitCommand}"/>
+                            <Button Content="Quit" Command="{Binding QuitWithoutSavingCommand}"/>
+                            <Button Content="[Esc] Cancel" Command="{Binding CancelCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Already saved (just confirm quit) -->
+                    <StackPanel Spacing="12" IsVisible="{Binding !ShowSavePrompt}">
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <Button Content="[Enter] Farewell" Command="{Binding ConfirmQuitCommand}"/>
+                            <Button Content="[Esc] Cancel" Command="{Binding CancelCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Text="F12: Quit Game"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

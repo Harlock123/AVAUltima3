@@ -458,8 +458,8 @@ public class GameEngine
         // Base encounter chance varies by location
         int encounterChance = State switch
         {
-            GameState.Dungeon => 15 + Party.DungeonLevel * 2,
-            GameState.Overworld => Party.IsNight ? 8 : 5,
+            GameState.Dungeon => 8 + Party.DungeonLevel,
+            GameState.Overworld => Party.IsNight ? 4 : 3,
             _ => 0 // No encounters in other states
         };
 

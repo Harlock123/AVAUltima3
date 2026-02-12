@@ -43,7 +43,7 @@ public partial class SaveDialogViewModel : ViewModelBase
             SaveService.SaveGame(_gameEngine, SaveName.Trim());
             _gameEngine.AddMessage("Game saved.");
             _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
-            _parentViewModel.CloseSaveDialog();
+            _parentViewModel.CloseSaveDialog(saved: true);
         }
         catch (Exception ex)
         {

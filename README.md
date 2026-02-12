@@ -131,6 +131,7 @@ dotnet run --project src/UltimaIII.Avalonia
 | I | Open Party Inventory |
 | X | Exit current location |
 | F5 | Save game |
+| F12 | Quit game |
 
 ### Combat Mode
 | Key | Action |

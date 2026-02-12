@@ -56,6 +56,14 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty]
     private SaveDialogViewModel? _saveDialogVm;
 
+    [ObservableProperty]
+    private bool _isQuitMode = false;
+
+    [ObservableProperty]
+    private QuitDialogViewModel? _quitDialogVm;
+
+    private bool _recentlySaved;
+
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
     public ObservableCollection<string> MessageLog { get; } = new();
 
@@ -204,7 +212,8 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode) return;
+        _recentlySaved = false;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
     }
@@ -240,11 +249,26 @@ public partial class GameViewModel : ViewModelBase
         SaveDialogVm = new SaveDialogViewModel(_gameEngine, this);
     }
 
-    public void CloseSaveDialog()
+    public void CloseSaveDialog(bool saved = false)
     {
+        if (saved) _recentlySaved = true;
         IsSaveMode = false;
         SaveDialogVm = null;
         RefreshDisplay();
+    }
+
+    [RelayCommand]
+    private void QuitGame()
+    {
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode) return;
+        IsQuitMode = true;
+        QuitDialogVm = new QuitDialogViewModel(_gameEngine, this, _recentlySaved);
+    }
+
+    public void CloseQuitDialog()
+    {
+        IsQuitMode = false;
+        QuitDialogVm = null;
     }
 
     [RelayCommand]
@@ -315,6 +339,25 @@ public partial class GameViewModel : ViewModelBase
         // Save dialog handles its own input via TextBox KeyDown
         if (IsSaveMode) return;
 
+        // Quit dialog input
+        if (IsQuitMode && QuitDialogVm != null)
+        {
+            switch (key.ToUpper())
+            {
+                case "RETURN":
+                case "ENTER":
+                    if (!QuitDialogVm.ShowSavePrompt)
+                        QuitDialogVm.ConfirmQuitCommand.Execute(null);
+                    else
+                        QuitDialogVm.SaveAndQuitCommand.Execute(null);
+                    break;
+                case "ESCAPE":
+                    QuitDialogVm.CancelCommand.Execute(null);
+                    break;
+            }
+            return;
+        }
+
         if (IsCombatMode && CombatVm != null)
         {
             CombatVm.HandleKeyPress(key);
@@ -368,6 +411,9 @@ public partial class GameViewModel : ViewModelBase
                 break;
             case "F5":
                 SaveGame();
+                break;
+            case "F12":
+                QuitGame();
                 break;
         }
     }
