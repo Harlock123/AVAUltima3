@@ -47,6 +47,9 @@ public partial class ShopViewModel : ViewModelBase
     private int _partyGold;
 
     [ObservableProperty]
+    private int _partyFood;
+
+    [ObservableProperty]
     private string _statusMessage = string.Empty;
 
     public bool HasBuyTab => _shopDef.HasBuyTab;
@@ -131,6 +134,7 @@ public partial class ShopViewModel : ViewModelBase
         ShopName = displayName ?? _shopDef.Name;
         WelcomeMessage = _shopDef.WelcomeMessage;
         PartyGold = gameEngine.Party.Gold;
+        PartyFood = gameEngine.Party.Food;
 
         // Default to first available tab
         if (_shopDef.HasBuyTab) CurrentTab = ShopTab.Buy;
@@ -369,6 +373,7 @@ public partial class ShopViewModel : ViewModelBase
     private void RefreshGold()
     {
         PartyGold = _gameEngine.Party.Gold;
+        PartyFood = _gameEngine.Party.Food;
     }
 
     private void MoveSelection(int delta)

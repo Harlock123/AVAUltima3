@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace UltimaIII.Avalonia.Services.Audio;
 
@@ -40,63 +41,157 @@ public static class MusicPatterns
 
     private static MusicPatternData GetMainMenuPattern()
     {
-        // Epic/mysterious - slow arpeggios, minor key
+        // Epic/mysterious - E minor, A-B-A arrangement
         return new MusicPatternData
         {
             Tempo = 80,
-            MelodyNotes = new[]
+            Sections = new List<MusicSection>
             {
-                NoteFrequencies.E4, NoteFrequencies.Rest, NoteFrequencies.G4, NoteFrequencies.Rest,
-                NoteFrequencies.B4, NoteFrequencies.Rest, NoteFrequencies.E5, NoteFrequencies.Rest,
-                NoteFrequencies.D5, NoteFrequencies.Rest, NoteFrequencies.B4, NoteFrequencies.Rest,
-                NoteFrequencies.G4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest,
-                NoteFrequencies.A4, NoteFrequencies.Rest, NoteFrequencies.C5, NoteFrequencies.Rest,
-                NoteFrequencies.E5, NoteFrequencies.Rest, NoteFrequencies.A5, NoteFrequencies.Rest,
-                NoteFrequencies.G5, NoteFrequencies.Rest, NoteFrequencies.E5, NoteFrequencies.Rest,
-                NoteFrequencies.C5, NoteFrequencies.Rest, NoteFrequencies.A4, NoteFrequencies.Rest
+                // Section A (Verse): Slow mysterious arpeggios
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.E4, NoteFrequencies.Rest, NoteFrequencies.G4, NoteFrequencies.Rest,
+                        NoteFrequencies.B4, NoteFrequencies.Rest, NoteFrequencies.E5, NoteFrequencies.Rest,
+                        NoteFrequencies.D5, NoteFrequencies.Rest, NoteFrequencies.B4, NoteFrequencies.Rest,
+                        NoteFrequencies.G4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest,
+                        NoteFrequencies.A4, NoteFrequencies.Rest, NoteFrequencies.C5, NoteFrequencies.Rest,
+                        NoteFrequencies.E5, NoteFrequencies.Rest, NoteFrequencies.A5, NoteFrequencies.Rest,
+                        NoteFrequencies.G5, NoteFrequencies.Rest, NoteFrequencies.E5, NoteFrequencies.Rest,
+                        NoteFrequencies.C5, NoteFrequencies.Rest, NoteFrequencies.A4, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2,
+                        NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2,
+                        NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2,
+                        NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2
+                    },
+                    MelodyWaveform = WaveformType.Square,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.25f,
+                    BassVolume = 0.3f
+                },
+                // Section B (Chorus): Dramatic, wider range, ascending power
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.B4, NoteFrequencies.E5,
+                        NoteFrequencies.G5, NoteFrequencies.Rest, NoteFrequencies.Fs5, NoteFrequencies.E5,
+                        NoteFrequencies.D5, NoteFrequencies.E5, NoteFrequencies.G5, NoteFrequencies.Rest,
+                        NoteFrequencies.Fs5, NoteFrequencies.Rest, NoteFrequencies.E5, NoteFrequencies.Rest,
+                        NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.E5, NoteFrequencies.A5,
+                        NoteFrequencies.G5, NoteFrequencies.Rest, NoteFrequencies.Fs5, NoteFrequencies.E5,
+                        NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4, NoteFrequencies.Rest,
+                        NoteFrequencies.A4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.E2, NoteFrequencies.B2, NoteFrequencies.E2, NoteFrequencies.B2,
+                        NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2, NoteFrequencies.D3,
+                        NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
+                        NoteFrequencies.B2, NoteFrequencies.Fs2, NoteFrequencies.E2, NoteFrequencies.E2
+                    },
+                    MelodyWaveform = WaveformType.Sawtooth,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.28f,
+                    BassVolume = 0.32f
+                }
             },
-            BassNotes = new[]
-            {
-                NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2,
-                NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.E2,
-                NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2,
-                NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.A2
-            },
-            MelodyWaveform = WaveformType.Square,
-            BassWaveform = WaveformType.Triangle,
-            MelodyVolume = 0.25f,
-            BassVolume = 0.3f
+            SectionOrder = new[] { 0, 1, 0 } // A-B-A
         };
     }
 
     private static MusicPatternData GetOverworldPattern()
     {
-        // Adventurous march - bright, major key, steady rhythm
+        // Adventurous march - C major, A-B-A-C-B arrangement
         return new MusicPatternData
         {
             Tempo = 120,
-            MelodyNotes = new[]
+            Sections = new List<MusicSection>
             {
-                NoteFrequencies.C4, NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.C5,
-                NoteFrequencies.B4, NoteFrequencies.G4, NoteFrequencies.E4, NoteFrequencies.D4,
-                NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.C5, NoteFrequencies.E5,
-                NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4, NoteFrequencies.G4,
-                NoteFrequencies.F4, NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.F5,
-                NoteFrequencies.E5, NoteFrequencies.C5, NoteFrequencies.A4, NoteFrequencies.G4,
-                NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.E5, NoteFrequencies.G5,
-                NoteFrequencies.F5, NoteFrequencies.E5, NoteFrequencies.D5, NoteFrequencies.C5
+                // Section A (Verse): Steady marching melody
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.C4, NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.C5,
+                        NoteFrequencies.B4, NoteFrequencies.G4, NoteFrequencies.E4, NoteFrequencies.D4,
+                        NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.C5, NoteFrequencies.E5,
+                        NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4, NoteFrequencies.G4,
+                        NoteFrequencies.F4, NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.F5,
+                        NoteFrequencies.E5, NoteFrequencies.C5, NoteFrequencies.A4, NoteFrequencies.G4,
+                        NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.E5, NoteFrequencies.G5,
+                        NoteFrequencies.F5, NoteFrequencies.E5, NoteFrequencies.D5, NoteFrequencies.C5
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.C2, NoteFrequencies.G2, NoteFrequencies.C2, NoteFrequencies.G2,
+                        NoteFrequencies.C2, NoteFrequencies.G2, NoteFrequencies.C2, NoteFrequencies.G2,
+                        NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
+                        NoteFrequencies.F2, NoteFrequencies.C3, NoteFrequencies.G2, NoteFrequencies.D3
+                    },
+                    MelodyWaveform = WaveformType.Square,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.25f,
+                    BassVolume = 0.35f
+                },
+                // Section B (Chorus): Soaring, higher register, triumphant
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.G5, NoteFrequencies.Rest, NoteFrequencies.E5, NoteFrequencies.G5,
+                        NoteFrequencies.A5, NoteFrequencies.Rest, NoteFrequencies.G5, NoteFrequencies.F5,
+                        NoteFrequencies.E5, NoteFrequencies.D5, NoteFrequencies.E5, NoteFrequencies.G5,
+                        NoteFrequencies.C6, NoteFrequencies.Rest, NoteFrequencies.B5, NoteFrequencies.A5,
+                        NoteFrequencies.G5, NoteFrequencies.A5, NoteFrequencies.B5, NoteFrequencies.C6,
+                        NoteFrequencies.D6, NoteFrequencies.Rest, NoteFrequencies.C6, NoteFrequencies.B5,
+                        NoteFrequencies.A5, NoteFrequencies.G5, NoteFrequencies.F5, NoteFrequencies.E5,
+                        NoteFrequencies.D5, NoteFrequencies.E5, NoteFrequencies.C5, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.C3, NoteFrequencies.E3, NoteFrequencies.G3, NoteFrequencies.E3,
+                        NoteFrequencies.F2, NoteFrequencies.A2, NoteFrequencies.C3, NoteFrequencies.A2,
+                        NoteFrequencies.G2, NoteFrequencies.B2, NoteFrequencies.D3, NoteFrequencies.B2,
+                        NoteFrequencies.C3, NoteFrequencies.G2, NoteFrequencies.C3, NoteFrequencies.G2
+                    },
+                    MelodyWaveform = WaveformType.Square,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.28f,
+                    BassVolume = 0.35f
+                },
+                // Section C (Bridge): Subdominant F area, calmer, reflective
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.F4, NoteFrequencies.Rest, NoteFrequencies.A4, NoteFrequencies.Rest,
+                        NoteFrequencies.C5, NoteFrequencies.Rest, NoteFrequencies.A4, NoteFrequencies.F4,
+                        NoteFrequencies.G4, NoteFrequencies.Rest, NoteFrequencies.B4, NoteFrequencies.Rest,
+                        NoteFrequencies.D5, NoteFrequencies.Rest, NoteFrequencies.B4, NoteFrequencies.G4,
+                        NoteFrequencies.A4, NoteFrequencies.Rest, NoteFrequencies.C5, NoteFrequencies.Rest,
+                        NoteFrequencies.E5, NoteFrequencies.Rest, NoteFrequencies.D5, NoteFrequencies.C5,
+                        NoteFrequencies.B4, NoteFrequencies.A4, NoteFrequencies.G4, NoteFrequencies.Rest,
+                        NoteFrequencies.F4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.F2, NoteFrequencies.C3, NoteFrequencies.F2, NoteFrequencies.C3,
+                        NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2, NoteFrequencies.D3,
+                        NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
+                        NoteFrequencies.F2, NoteFrequencies.G2, NoteFrequencies.C3, NoteFrequencies.G2
+                    },
+                    MelodyWaveform = WaveformType.Triangle,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.22f,
+                    BassVolume = 0.3f
+                }
             },
-            BassNotes = new[]
-            {
-                NoteFrequencies.C2, NoteFrequencies.G2, NoteFrequencies.C2, NoteFrequencies.G2,
-                NoteFrequencies.C2, NoteFrequencies.G2, NoteFrequencies.C2, NoteFrequencies.G2,
-                NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
-                NoteFrequencies.F2, NoteFrequencies.C3, NoteFrequencies.G2, NoteFrequencies.D3
-            },
-            MelodyWaveform = WaveformType.Square,
-            BassWaveform = WaveformType.Triangle,
-            MelodyVolume = 0.25f,
-            BassVolume = 0.35f
+            SectionOrder = new[] { 0, 1, 0, 2, 1 } // A-B-A-C-B
         };
     }
 
@@ -133,32 +228,92 @@ public static class MusicPatterns
 
     private static MusicPatternData GetTownPattern()
     {
-        // Peaceful medieval - simple folk melody
+        // Peaceful medieval - G major, A-B-A-C-B arrangement
         return new MusicPatternData
         {
             Tempo = 100,
-            MelodyNotes = new[]
+            Sections = new List<MusicSection>
             {
-                NoteFrequencies.G4, NoteFrequencies.A4, NoteFrequencies.B4, NoteFrequencies.C5,
-                NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4, NoteFrequencies.A4,
-                NoteFrequencies.G4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest,
-                NoteFrequencies.D4, NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.Rest,
-                NoteFrequencies.A4, NoteFrequencies.B4, NoteFrequencies.C5, NoteFrequencies.D5,
-                NoteFrequencies.E5, NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4,
-                NoteFrequencies.A4, NoteFrequencies.Rest, NoteFrequencies.G4, NoteFrequencies.Rest,
-                NoteFrequencies.E4, NoteFrequencies.D4, NoteFrequencies.G4, NoteFrequencies.Rest
+                // Section A (Verse): Gentle folk melody
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.G4, NoteFrequencies.A4, NoteFrequencies.B4, NoteFrequencies.C5,
+                        NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4, NoteFrequencies.A4,
+                        NoteFrequencies.G4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest,
+                        NoteFrequencies.D4, NoteFrequencies.E4, NoteFrequencies.G4, NoteFrequencies.Rest,
+                        NoteFrequencies.A4, NoteFrequencies.B4, NoteFrequencies.C5, NoteFrequencies.D5,
+                        NoteFrequencies.E5, NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4,
+                        NoteFrequencies.A4, NoteFrequencies.Rest, NoteFrequencies.G4, NoteFrequencies.Rest,
+                        NoteFrequencies.E4, NoteFrequencies.D4, NoteFrequencies.G4, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2, NoteFrequencies.D3,
+                        NoteFrequencies.C3, NoteFrequencies.G3, NoteFrequencies.C3, NoteFrequencies.G3,
+                        NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
+                        NoteFrequencies.D3, NoteFrequencies.A3, NoteFrequencies.G2, NoteFrequencies.D3
+                    },
+                    MelodyWaveform = WaveformType.Triangle,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.25f,
+                    BassVolume = 0.25f
+                },
+                // Section B (Chorus): Brighter, more animated, dancing feel
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.D5, NoteFrequencies.E5, NoteFrequencies.Fs5, NoteFrequencies.G5,
+                        NoteFrequencies.A5, NoteFrequencies.G5, NoteFrequencies.Fs5, NoteFrequencies.E5,
+                        NoteFrequencies.D5, NoteFrequencies.B4, NoteFrequencies.G4, NoteFrequencies.B4,
+                        NoteFrequencies.D5, NoteFrequencies.Rest, NoteFrequencies.C5, NoteFrequencies.B4,
+                        NoteFrequencies.C5, NoteFrequencies.D5, NoteFrequencies.E5, NoteFrequencies.Fs5,
+                        NoteFrequencies.G5, NoteFrequencies.Rest, NoteFrequencies.Fs5, NoteFrequencies.E5,
+                        NoteFrequencies.D5, NoteFrequencies.C5, NoteFrequencies.B4, NoteFrequencies.A4,
+                        NoteFrequencies.G4, NoteFrequencies.A4, NoteFrequencies.B4, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.G2, NoteFrequencies.B2, NoteFrequencies.D3, NoteFrequencies.B2,
+                        NoteFrequencies.C3, NoteFrequencies.E3, NoteFrequencies.G3, NoteFrequencies.E3,
+                        NoteFrequencies.D3, NoteFrequencies.Fs3, NoteFrequencies.A3, NoteFrequencies.Fs3,
+                        NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2, NoteFrequencies.B2
+                    },
+                    MelodyWaveform = WaveformType.Square,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.27f,
+                    BassVolume = 0.27f
+                },
+                // Section C (Bridge): E minor inflection, wistful and tender
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.E4, NoteFrequencies.Rest, NoteFrequencies.G4, NoteFrequencies.Rest,
+                        NoteFrequencies.B4, NoteFrequencies.Rest, NoteFrequencies.A4, NoteFrequencies.G4,
+                        NoteFrequencies.Fs4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest,
+                        NoteFrequencies.D4, NoteFrequencies.Rest, NoteFrequencies.E4, NoteFrequencies.Rest,
+                        NoteFrequencies.G4, NoteFrequencies.Rest, NoteFrequencies.A4, NoteFrequencies.B4,
+                        NoteFrequencies.C5, NoteFrequencies.Rest, NoteFrequencies.B4, NoteFrequencies.A4,
+                        NoteFrequencies.G4, NoteFrequencies.Fs4, NoteFrequencies.E4, NoteFrequencies.Rest,
+                        NoteFrequencies.D4, NoteFrequencies.Rest, NoteFrequencies.G4, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.E2, NoteFrequencies.B2, NoteFrequencies.E2, NoteFrequencies.B2,
+                        NoteFrequencies.D2, NoteFrequencies.A2, NoteFrequencies.D2, NoteFrequencies.A2,
+                        NoteFrequencies.C3, NoteFrequencies.G3, NoteFrequencies.C3, NoteFrequencies.G3,
+                        NoteFrequencies.D3, NoteFrequencies.A2, NoteFrequencies.G2, NoteFrequencies.D3
+                    },
+                    MelodyWaveform = WaveformType.Triangle,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.22f,
+                    BassVolume = 0.22f
+                }
             },
-            BassNotes = new[]
-            {
-                NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2, NoteFrequencies.D3,
-                NoteFrequencies.C3, NoteFrequencies.G3, NoteFrequencies.C3, NoteFrequencies.G3,
-                NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
-                NoteFrequencies.D3, NoteFrequencies.A3, NoteFrequencies.G2, NoteFrequencies.D3
-            },
-            MelodyWaveform = WaveformType.Triangle,
-            BassWaveform = WaveformType.Triangle,
-            MelodyVolume = 0.25f,
-            BassVolume = 0.25f
+            SectionOrder = new[] { 0, 1, 0, 2, 1 } // A-B-A-C-B
         };
     }
 
@@ -195,33 +350,89 @@ public static class MusicPatterns
 
     private static MusicPatternData GetCombatPattern()
     {
-        // Fast/urgent - rapid arpeggios, driving bass
+        // Fast/urgent - A minor, A-B-A-C-B arrangement
         return new MusicPatternData
         {
             Tempo = 160,
-            MelodyNotes = new[]
+            Sections = new List<MusicSection>
             {
-                NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.E5, NoteFrequencies.A5,
-                NoteFrequencies.E5, NoteFrequencies.C5, NoteFrequencies.A4, NoteFrequencies.E4,
-                NoteFrequencies.G4, NoteFrequencies.B4, NoteFrequencies.D5, NoteFrequencies.G5,
-                NoteFrequencies.D5, NoteFrequencies.B4, NoteFrequencies.G4, NoteFrequencies.D4,
-                NoteFrequencies.F4, NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.F5,
-                NoteFrequencies.C5, NoteFrequencies.A4, NoteFrequencies.F4, NoteFrequencies.C4,
-                NoteFrequencies.E4, NoteFrequencies.Gs4, NoteFrequencies.B4, NoteFrequencies.E5,
-                NoteFrequencies.B4, NoteFrequencies.Gs4, NoteFrequencies.E4, NoteFrequencies.B3
+                // Section A (Verse): Driving arpeggios
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.E5, NoteFrequencies.A5,
+                        NoteFrequencies.E5, NoteFrequencies.C5, NoteFrequencies.A4, NoteFrequencies.E4,
+                        NoteFrequencies.G4, NoteFrequencies.B4, NoteFrequencies.D5, NoteFrequencies.G5,
+                        NoteFrequencies.D5, NoteFrequencies.B4, NoteFrequencies.G4, NoteFrequencies.D4,
+                        NoteFrequencies.F4, NoteFrequencies.A4, NoteFrequencies.C5, NoteFrequencies.F5,
+                        NoteFrequencies.C5, NoteFrequencies.A4, NoteFrequencies.F4, NoteFrequencies.C4,
+                        NoteFrequencies.E4, NoteFrequencies.Gs4, NoteFrequencies.B4, NoteFrequencies.E5,
+                        NoteFrequencies.B4, NoteFrequencies.Gs4, NoteFrequencies.E4, NoteFrequencies.B3
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2,
+                        NoteFrequencies.G2, NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2,
+                        NoteFrequencies.F2, NoteFrequencies.F2, NoteFrequencies.C3, NoteFrequencies.F2,
+                        NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.B2, NoteFrequencies.E2
+                    },
+                    MelodyWaveform = WaveformType.Square,
+                    BassWaveform = WaveformType.Sawtooth,
+                    MelodyVolume = 0.25f,
+                    BassVolume = 0.3f,
+                    HasPercussion = true
+                },
+                // Section B (Chorus): Aggressive, higher register, pounding
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.A5, NoteFrequencies.Rest, NoteFrequencies.G5, NoteFrequencies.A5,
+                        NoteFrequencies.E5, NoteFrequencies.Rest, NoteFrequencies.C5, NoteFrequencies.E5,
+                        NoteFrequencies.A5, NoteFrequencies.B5, NoteFrequencies.C6, NoteFrequencies.Rest,
+                        NoteFrequencies.B5, NoteFrequencies.A5, NoteFrequencies.G5, NoteFrequencies.E5,
+                        NoteFrequencies.F5, NoteFrequencies.G5, NoteFrequencies.A5, NoteFrequencies.Rest,
+                        NoteFrequencies.G5, NoteFrequencies.F5, NoteFrequencies.E5, NoteFrequencies.D5,
+                        NoteFrequencies.E5, NoteFrequencies.Rest, NoteFrequencies.Gs5, NoteFrequencies.A5,
+                        NoteFrequencies.B5, NoteFrequencies.A5, NoteFrequencies.E5, NoteFrequencies.Rest
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2, NoteFrequencies.E3,
+                        NoteFrequencies.A2, NoteFrequencies.C3, NoteFrequencies.E3, NoteFrequencies.A2,
+                        NoteFrequencies.F2, NoteFrequencies.C3, NoteFrequencies.F2, NoteFrequencies.C3,
+                        NoteFrequencies.E2, NoteFrequencies.B2, NoteFrequencies.E2, NoteFrequencies.Gs2
+                    },
+                    MelodyWaveform = WaveformType.Sawtooth,
+                    BassWaveform = WaveformType.Sawtooth,
+                    MelodyVolume = 0.28f,
+                    BassVolume = 0.32f,
+                    HasPercussion = true
+                },
+                // Section C (Breakdown): Sparser, tension-building, lower
+                new MusicSection
+                {
+                    MelodyNotes = new[]
+                    {
+                        NoteFrequencies.A3, NoteFrequencies.Rest, NoteFrequencies.Rest, NoteFrequencies.E4,
+                        NoteFrequencies.Rest, NoteFrequencies.Rest, NoteFrequencies.A3, NoteFrequencies.B3,
+                        NoteFrequencies.C4, NoteFrequencies.Rest, NoteFrequencies.Rest, NoteFrequencies.E4,
+                        NoteFrequencies.Rest, NoteFrequencies.Rest, NoteFrequencies.Gs3, NoteFrequencies.A3
+                    },
+                    BassNotes = new[]
+                    {
+                        NoteFrequencies.A2, NoteFrequencies.Rest, NoteFrequencies.E2, NoteFrequencies.Rest,
+                        NoteFrequencies.A2, NoteFrequencies.Rest, NoteFrequencies.E2, NoteFrequencies.A2
+                    },
+                    MelodyWaveform = WaveformType.Square,
+                    BassWaveform = WaveformType.Triangle,
+                    MelodyVolume = 0.22f,
+                    BassVolume = 0.35f,
+                    HasPercussion = true
+                }
             },
-            BassNotes = new[]
-            {
-                NoteFrequencies.A2, NoteFrequencies.A2, NoteFrequencies.E3, NoteFrequencies.A2,
-                NoteFrequencies.G2, NoteFrequencies.G2, NoteFrequencies.D3, NoteFrequencies.G2,
-                NoteFrequencies.F2, NoteFrequencies.F2, NoteFrequencies.C3, NoteFrequencies.F2,
-                NoteFrequencies.E2, NoteFrequencies.E2, NoteFrequencies.B2, NoteFrequencies.E2
-            },
-            MelodyWaveform = WaveformType.Square,
-            BassWaveform = WaveformType.Sawtooth,
-            MelodyVolume = 0.25f,
-            BassVolume = 0.3f,
-            HasPercussion = true
+            SectionOrder = new[] { 0, 1, 0, 2, 1 } // A-B-A-C-B
         };
     }
 
@@ -562,11 +773,11 @@ public static class MusicPatterns
 }
 
 /// <summary>
-/// Data container for a music pattern.
+/// A single section of a song (verse, chorus, bridge, etc.).
+/// Each section can have its own melody, bass, waveform, and volume.
 /// </summary>
-public class MusicPatternData
+public class MusicSection
 {
-    public int Tempo { get; set; } = 120;
     public float[] MelodyNotes { get; set; } = Array.Empty<float>();
     public float[] BassNotes { get; set; } = Array.Empty<float>();
     public WaveformType MelodyWaveform { get; set; } = WaveformType.Square;
@@ -574,4 +785,27 @@ public class MusicPatternData
     public float MelodyVolume { get; set; } = 0.25f;
     public float BassVolume { get; set; } = 0.3f;
     public bool HasPercussion { get; set; } = false;
+}
+
+/// <summary>
+/// Data container for a music pattern.
+/// Supports either a single-section legacy format (MelodyNotes/BassNotes)
+/// or a multi-section arrangement (Sections + SectionOrder).
+/// </summary>
+public class MusicPatternData
+{
+    public int Tempo { get; set; } = 120;
+
+    // Legacy single-section properties (used when Sections is null)
+    public float[] MelodyNotes { get; set; } = Array.Empty<float>();
+    public float[] BassNotes { get; set; } = Array.Empty<float>();
+    public WaveformType MelodyWaveform { get; set; } = WaveformType.Square;
+    public WaveformType BassWaveform { get; set; } = WaveformType.Triangle;
+    public float MelodyVolume { get; set; } = 0.25f;
+    public float BassVolume { get; set; } = 0.3f;
+    public bool HasPercussion { get; set; } = false;
+
+    // Multi-section arrangement (takes precedence when set)
+    public List<MusicSection>? Sections { get; set; }
+    public int[]? SectionOrder { get; set; } // e.g. [0,1,0,2,1] = A-B-A-C-B
 }

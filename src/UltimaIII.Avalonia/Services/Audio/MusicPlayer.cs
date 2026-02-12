@@ -28,18 +28,81 @@ public class MusicPlayer
 
     private float[] GeneratePatternSamples(MusicPatternData pattern)
     {
+        // Multi-section arrangement: concatenate sections per SectionOrder
+        if (pattern.Sections != null && pattern.SectionOrder != null)
+        {
+            return GenerateMultiSectionSamples(pattern);
+        }
+
+        // Legacy single-section path
+        return GenerateSingleSectionSamples(
+            pattern.MelodyNotes, pattern.BassNotes,
+            pattern.MelodyWaveform, pattern.BassWaveform,
+            pattern.MelodyVolume, pattern.BassVolume,
+            pattern.HasPercussion, pattern.Tempo);
+    }
+
+    private float[] GenerateMultiSectionSamples(MusicPatternData pattern)
+    {
+        var allSamples = new System.Collections.Generic.List<float[]>();
+        float melodyPhase = 0f;
+        float bassPhase = 0f;
+
+        foreach (int sectionIndex in pattern.SectionOrder!)
+        {
+            var section = pattern.Sections![sectionIndex];
+            var sectionSamples = GenerateSingleSectionSamples(
+                section.MelodyNotes, section.BassNotes,
+                section.MelodyWaveform, section.BassWaveform,
+                section.MelodyVolume, section.BassVolume,
+                section.HasPercussion, pattern.Tempo,
+                ref melodyPhase, ref bassPhase);
+            allSamples.Add(sectionSamples);
+        }
+
+        // Concatenate all section samples
+        int totalLength = 0;
+        foreach (var s in allSamples) totalLength += s.Length;
+
+        var result = new float[totalLength];
+        int offset = 0;
+        foreach (var s in allSamples)
+        {
+            Array.Copy(s, 0, result, offset, s.Length);
+            offset += s.Length;
+        }
+
+        return result;
+    }
+
+    private float[] GenerateSingleSectionSamples(
+        float[] melodyNotes, float[] bassNotes,
+        WaveformType melodyWaveform, WaveformType bassWaveform,
+        float melodyVolume, float bassVolume,
+        bool hasPercussion, int tempo)
+    {
+        float mp = 0f, bp = 0f;
+        return GenerateSingleSectionSamples(melodyNotes, bassNotes,
+            melodyWaveform, bassWaveform, melodyVolume, bassVolume,
+            hasPercussion, tempo, ref mp, ref bp);
+    }
+
+    private float[] GenerateSingleSectionSamples(
+        float[] melodyNotes, float[] bassNotes,
+        WaveformType melodyWaveform, WaveformType bassWaveform,
+        float melodyVolume, float bassVolume,
+        bool hasPercussion, int tempo,
+        ref float melodyPhase, ref float bassPhase)
+    {
         // Calculate samples per note based on tempo
-        float beatsPerSecond = pattern.Tempo / 60f;
+        float beatsPerSecond = tempo / 60f;
         float secondsPerSixteenth = 1f / (beatsPerSecond * 4f);
         int samplesPerNote = (int)(ChiptuneGenerator.SampleRate * secondsPerSixteenth);
 
         // Total pattern length
-        int patternLengthSamples = samplesPerNote * pattern.MelodyNotes.Length;
+        int patternLengthSamples = samplesPerNote * melodyNotes.Length;
         var result = new float[patternLengthSamples];
         var random = new Random();
-
-        float melodyPhase = 0f;
-        float bassPhase = 0f;
 
         for (int i = 0; i < patternLengthSamples; i++)
         {
@@ -50,31 +113,31 @@ public class MusicPlayer
             float sample = 0f;
 
             // Melody
-            if (noteIndex < pattern.MelodyNotes.Length)
+            if (noteIndex < melodyNotes.Length)
             {
-                float freq = pattern.MelodyNotes[noteIndex];
+                float freq = melodyNotes[noteIndex];
                 if (freq > 0)
                 {
-                    float melodySample = GenerateWaveformSample(freq, pattern.MelodyWaveform, ref melodyPhase);
+                    float melodySample = GenerateWaveformSample(freq, melodyWaveform, ref melodyPhase);
                     float envelope = GetNoteEnvelope(noteProgress);
-                    sample += melodySample * pattern.MelodyVolume * envelope;
+                    sample += melodySample * melodyVolume * envelope;
                 }
             }
 
             // Bass (bass notes repeat at a different rate if shorter)
-            int bassNoteIndex = noteIndex % pattern.BassNotes.Length;
-            if (bassNoteIndex < pattern.BassNotes.Length)
+            int bassNoteIndex = noteIndex % bassNotes.Length;
+            if (bassNoteIndex < bassNotes.Length)
             {
-                float bassFreq = pattern.BassNotes[bassNoteIndex];
+                float bassFreq = bassNotes[bassNoteIndex];
                 if (bassFreq > 0)
                 {
-                    float bassSample = GenerateWaveformSample(bassFreq, pattern.BassWaveform, ref bassPhase);
-                    sample += bassSample * pattern.BassVolume;
+                    float bassSample = GenerateWaveformSample(bassFreq, bassWaveform, ref bassPhase);
+                    sample += bassSample * bassVolume;
                 }
             }
 
             // Percussion (if enabled)
-            if (pattern.HasPercussion)
+            if (hasPercussion)
             {
                 // Add kick on beats 1 and 3 (every 4 notes in 4/4)
                 if (noteIndex % 4 == 0 && sampleInNote < samplesPerNote / 4)

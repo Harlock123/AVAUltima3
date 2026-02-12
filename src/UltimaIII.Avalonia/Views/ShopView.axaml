@@ -87,9 +87,15 @@
                                    VerticalAlignment="Center" MinWidth="120"/>
                         <Button Content="&gt;" Command="{Binding NextCharacterCommand}" Padding="6,3" MinWidth="30"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="Gold: " Foreground="#808060" FontSize="13"/>
-                        <TextBlock Text="{Binding PartyGold}" Foreground="#ffd700" FontSize="13" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Gold: " Foreground="#808060" FontSize="13"/>
+                            <TextBlock Text="{Binding PartyGold}" Foreground="#ffd700" FontSize="13" FontWeight="Bold"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Food: " Foreground="#808060" FontSize="13"/>
+                            <TextBlock Text="{Binding PartyFood}" Foreground="#90ee90" FontSize="13" FontWeight="Bold"/>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -97,9 +103,15 @@
             <!-- Recruit tab header (shown instead of character selector) -->
             <Border Grid.Row="2" Background="#0d0a1a" Padding="10,8"
                     IsVisible="{Binding IsRecruitTab}">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Gold: " Foreground="#808060" FontSize="13"/>
-                    <TextBlock Text="{Binding PartyGold}" Foreground="#ffd700" FontSize="13" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Gold: " Foreground="#808060" FontSize="13"/>
+                        <TextBlock Text="{Binding PartyGold}" Foreground="#ffd700" FontSize="13" FontWeight="Bold"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Food: " Foreground="#808060" FontSize="13"/>
+                        <TextBlock Text="{Binding PartyFood}" Foreground="#90ee90" FontSize="13" FontWeight="Bold"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
