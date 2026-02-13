@@ -125,8 +125,8 @@ public static class MapGenerator
 
         foreach (var (id, name, x, y) in dungeons)
         {
-            // Clear area and add mountain entrance
-            map.SetTile(x, y, new MapTile { Type = TileType.StairsDown });
+            // Clear area and add dungeon entrance
+            map.SetTile(x, y, new MapTile { Type = TileType.DungeonEntrance });
             map.SetTile(x - 1, y, new MapTile { Type = TileType.Mountain });
             map.SetTile(x + 1, y, new MapTile { Type = TileType.Mountain });
 

@@ -82,6 +82,7 @@ public class TileMapControl : Control
         [TileType.Flowers] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Lamppost] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Town] = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+        [TileType.DungeonEntrance] = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
         [TileType.Void] = new SolidColorBrush(Color.FromRgb(0, 0, 0))
     };
 
@@ -282,6 +283,39 @@ public class TileMapControl : Control
                 context.DrawLine(stonePen, new Point(rect.X + 24, rect.Y), new Point(rect.X + 24, rect.Y + TileSize));
                 context.DrawLine(stonePen, new Point(rect.X, rect.Y + 10), new Point(rect.X + TileSize, rect.Y + 10));
                 context.DrawLine(stonePen, new Point(rect.X, rect.Y + 22), new Point(rect.X + TileSize, rect.Y + 22));
+                break;
+
+            case TileType.DungeonEntrance:
+                // Draw a dark cave mouth
+                var caveBrush = new SolidColorBrush(Color.FromRgb(40, 40, 40));
+                var caveFrameBrush = new SolidColorBrush(Color.FromRgb(100, 90, 80));
+                var cavePen = new Pen(Brushes.Black, 1);
+                // Stone arch
+                var archPoints = new Point[]
+                {
+                    new(center.X - 10, center.Y + 12),
+                    new(center.X - 10, center.Y - 4),
+                    new(center.X - 6, center.Y - 10),
+                    new(center.X, center.Y - 12),
+                    new(center.X + 6, center.Y - 10),
+                    new(center.X + 10, center.Y - 4),
+                    new(center.X + 10, center.Y + 12)
+                };
+                var archGeom = new PolylineGeometry(archPoints, true);
+                context.DrawGeometry(caveFrameBrush, cavePen, archGeom);
+                // Dark interior
+                var innerPoints = new Point[]
+                {
+                    new(center.X - 7, center.Y + 12),
+                    new(center.X - 7, center.Y - 2),
+                    new(center.X - 4, center.Y - 7),
+                    new(center.X, center.Y - 9),
+                    new(center.X + 4, center.Y - 7),
+                    new(center.X + 7, center.Y - 2),
+                    new(center.X + 7, center.Y + 12)
+                };
+                var innerGeom = new PolylineGeometry(innerPoints, true);
+                context.DrawGeometry(caveBrush, null, innerGeom);
                 break;
 
             case TileType.Town:

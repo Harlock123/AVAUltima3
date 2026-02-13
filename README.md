@@ -195,6 +195,7 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 - [ ] `flowers.png`
 - [ ] `lamppost.png`
 - [ ] `town.png`
+- [ ] `dungeonentrance.png`
 
 **Structures:**
 - [ ] `wall.png`

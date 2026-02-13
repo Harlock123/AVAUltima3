@@ -437,16 +437,28 @@ public partial class PartyMemberViewModel : ObservableObject
     private string _name = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HpPercentage))]
     private int _currentHp;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HpPercentage))]
     private int _maxHp;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MpPercentage))]
     private int _currentMp;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MpPercentage))]
     private int _maxMp;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(XpPercentage))]
+    private int _currentXp;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(XpPercentage))]
+    private int _xpForNextLevel;
 
     [ObservableProperty]
     private string _status = string.Empty;
@@ -467,6 +479,8 @@ public partial class PartyMemberViewModel : ObservableObject
         MaxHp = _character.MaxHP;
         CurrentMp = _character.CurrentMP;
         MaxMp = _character.MaxMP;
+        CurrentXp = _character.Experience;
+        XpForNextLevel = _character.ExperienceForNextLevel;
         ClassRace = $"Lv{_character.Level} {_character.Race} {_character.Class}";
 
         if (_character.Status == StatusEffect.None)
@@ -477,4 +491,5 @@ public partial class PartyMemberViewModel : ObservableObject
 
     public double HpPercentage => MaxHp > 0 ? (double)CurrentHp / MaxHp : 0;
     public double MpPercentage => MaxMp > 0 ? (double)CurrentMp / MaxMp : 0;
+    public double XpPercentage => XpForNextLevel > 0 ? (double)CurrentXp / XpForNextLevel : 0;
 }

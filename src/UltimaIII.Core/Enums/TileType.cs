@@ -48,6 +48,7 @@ public enum TileType
 
     // Overworld locations
     Town,
+    DungeonEntrance,
 
     // Impassable
     Void
@@ -75,6 +76,7 @@ public static class TileTypeExtensions
         TileType.Ladder => true,
         TileType.Portal => true,
         TileType.Town => true,
+        TileType.DungeonEntrance => true,
         _ => false
     };
 

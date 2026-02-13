@@ -184,8 +184,13 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="HP" FontSize="10" VerticalAlignment="Center"/>
                                         <Border Grid.Column="1" Background="#3a3a3a" Height="12" CornerRadius="2">
-                                            <Border Background="#aa3030" CornerRadius="2" HorizontalAlignment="Left"
-                                                    Width="{Binding HpPercentage, StringFormat={}{0:P0}}"/>
+                                            <Border Background="#aa3030" CornerRadius="2"
+                                                    HorizontalAlignment="Stretch"
+                                                    RenderTransformOrigin="0,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="{Binding HpPercentage}"/>
+                                                </Border.RenderTransform>
+                                            </Border>
                                         </Border>
                                         <TextBlock Grid.Column="2" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Run Text="{Binding CurrentHp}"/>/<Run Text="{Binding MaxHp}"/>
@@ -201,11 +206,38 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="MP" FontSize="10" VerticalAlignment="Center"/>
                                         <Border Grid.Column="1" Background="#3a3a3a" Height="12" CornerRadius="2">
-                                            <Border Background="#3030aa" CornerRadius="2" HorizontalAlignment="Left"
-                                                    Width="{Binding MpPercentage, StringFormat={}{0:P0}}"/>
+                                            <Border Background="#3030aa" CornerRadius="2"
+                                                    HorizontalAlignment="Stretch"
+                                                    RenderTransformOrigin="0,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="{Binding MpPercentage}"/>
+                                                </Border.RenderTransform>
+                                            </Border>
                                         </Border>
                                         <TextBlock Grid.Column="2" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Run Text="{Binding CurrentMp}"/>/<Run Text="{Binding MaxMp}"/>
+                                        </TextBlock>
+                                    </Grid>
+
+                                    <!-- XP Bar -->
+                                    <Grid Margin="0,3,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="50"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="XP" FontSize="10" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="#3a3a3a" Height="12" CornerRadius="2">
+                                            <Border Background="#aa8830" CornerRadius="2"
+                                                    HorizontalAlignment="Stretch"
+                                                    RenderTransformOrigin="0,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="{Binding XpPercentage}"/>
+                                                </Border.RenderTransform>
+                                            </Border>
+                                        </Border>
+                                        <TextBlock Grid.Column="2" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Run Text="{Binding CurrentXp}"/>/<Run Text="{Binding XpForNextLevel}"/>
                                         </TextBlock>
                                     </Grid>
 
