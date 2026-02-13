@@ -81,6 +81,7 @@ public class TileMapControl : Control
         [TileType.Path] = new SolidColorBrush(Color.FromRgb(160, 140, 120)),
         [TileType.Flowers] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Lamppost] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
+        [TileType.Town] = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
         [TileType.Void] = new SolidColorBrush(Color.FromRgb(0, 0, 0))
     };
 
@@ -281,6 +282,29 @@ public class TileMapControl : Control
                 context.DrawLine(stonePen, new Point(rect.X + 24, rect.Y), new Point(rect.X + 24, rect.Y + TileSize));
                 context.DrawLine(stonePen, new Point(rect.X, rect.Y + 10), new Point(rect.X + TileSize, rect.Y + 10));
                 context.DrawLine(stonePen, new Point(rect.X, rect.Y + 22), new Point(rect.X + TileSize, rect.Y + 22));
+                break;
+
+            case TileType.Town:
+                // Draw a small castle/town icon
+                var wallBrush = new SolidColorBrush(Color.FromRgb(160, 140, 120));
+                var roofBrush = new SolidColorBrush(Color.FromRgb(180, 60, 60));
+                var townPen = new Pen(Brushes.Black, 1);
+                // Main building
+                var buildingRect = new Rect(center.X - 8, center.Y - 2, 16, 14);
+                context.FillRectangle(wallBrush, buildingRect);
+                context.DrawRectangle(townPen, buildingRect);
+                // Roof (triangle)
+                var roofPoints = new Point[]
+                {
+                    new(center.X - 10, center.Y - 2),
+                    new(center.X, center.Y - 12),
+                    new(center.X + 10, center.Y - 2)
+                };
+                var roofGeom = new PolylineGeometry(roofPoints, true);
+                context.DrawGeometry(roofBrush, townPen, roofGeom);
+                // Door
+                var townDoorRect = new Rect(center.X - 3, center.Y + 5, 6, 7);
+                context.FillRectangle(new SolidColorBrush(Color.FromRgb(80, 50, 30)), townDoorRect);
                 break;
         }
     }

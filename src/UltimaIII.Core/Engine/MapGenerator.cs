@@ -100,7 +100,7 @@ public static class MapGenerator
                     map.SetTile(x + dx, y + dy, new MapTile { Type = TileType.Grass });
                 }
             }
-            map.SetTile(x, y, new MapTile { Type = TileType.CastleFloor });
+            map.SetTile(x, y, new MapTile { Type = TileType.Town });
 
             map.Locations.Add(new MapLocation
             {

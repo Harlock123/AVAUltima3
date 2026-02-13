@@ -46,6 +46,9 @@ public enum TileType
     CeilingHole,
     Trap,
 
+    // Overworld locations
+    Town,
+
     // Impassable
     Void
 }
@@ -71,6 +74,7 @@ public static class TileTypeExtensions
         TileType.Bridge => true,
         TileType.Ladder => true,
         TileType.Portal => true,
+        TileType.Town => true,
         _ => false
     };
 
