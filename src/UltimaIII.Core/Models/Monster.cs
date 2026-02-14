@@ -391,8 +391,8 @@ public class Monster
             MaxDamage = 30,
             Defense = 8,
             Speed = 5,
-            ExperienceValue = 0, // No XP for guards
-            GoldDrop = 0,
+            ExperienceValue = 50,
+            GoldDrop = 25,
             TileIndex = 19,
             DungeonLevel = 1
         }

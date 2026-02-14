@@ -274,9 +274,10 @@ public class CombatSystem
             _ => new CombatResult(false, "Invalid action")
         };
 
+        LogMessage(result.Message);
+
         if (result.Success)
         {
-            LogMessage(result.Message);
             AdvanceTurn();
         }
 

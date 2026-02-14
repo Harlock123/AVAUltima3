@@ -478,6 +478,7 @@ public class GameEngine
         var monsters = new List<Monster>();
         var availableMonsters = Monster.AllMonsters.Values
             .Where(m => m.DungeonLevel <= Math.Max(1, Party.DungeonLevel + 2))
+            .Where(m => m.Id != "guard")
             .ToList();
 
         if (availableMonsters.Count == 0) return monsters;

@@ -312,12 +312,19 @@ public partial class CombatViewModel : ViewModelBase
     {
         if (!IsSelectingTarget || !IsPlayerTurn) return;
 
-        _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
         var action = new CombatAction(PendingAction, TargetX, TargetY, PendingSpell);
-        _combat.ExecutePlayerAction(action);
+        var result = _combat.ExecutePlayerAction(action);
 
-        IsSelectingTarget = false;
-        PendingSpell = null;
+        if (result.Success)
+        {
+            _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+            IsSelectingTarget = false;
+            PendingSpell = null;
+        }
+        else
+        {
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+        }
     }
 
     [RelayCommand]

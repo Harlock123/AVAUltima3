@@ -192,9 +192,15 @@ public partial class GameViewModel : ViewModelBase
 
     public void RefreshPartyStats()
     {
+        // Determine active combatant during combat
+        Character? activeCombatant = null;
+        if (IsCombatMode && _gameEngine.Combat?.CurrentCombatant is CharacterCombatant cc)
+            activeCombatant = cc.Character;
+
         foreach (var vm in PartyMembers)
         {
             vm.Refresh();
+            vm.IsActiveTurn = activeCombatant != null && vm.Character == activeCombatant;
         }
     }
 
@@ -465,6 +471,14 @@ public partial class PartyMemberViewModel : ObservableObject
 
     [ObservableProperty]
     private string _classRace = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BorderBrush))]
+    private bool _isActiveTurn;
+
+    public string BorderBrush => IsActiveTurn ? "#ffd700" : "#1a1a3a";
+
+    public Character Character => _character;
 
     public PartyMemberViewModel(Character character)
     {
