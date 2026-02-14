@@ -99,6 +99,8 @@ public partial class CombatViewModel : ViewModelBase
 
     public CombatSystem Combat => _combat;
 
+    public event Action<int, int, bool>? OnSpellEffect;
+
     public CombatViewModel(CombatSystem combat, GameViewModel parentViewModel)
     {
         _combat = combat;
@@ -108,6 +110,7 @@ public partial class CombatViewModel : ViewModelBase
         _combat.OnCombatMessage += OnCombatMessage;
         _combat.OnTurnChanged += OnTurnChanged;
         _combat.OnCombatEnd += OnCombatEnd;
+        _combat.OnSpellEffect += HandleSpellEffect;
 
         RefreshCombatants();
         OnTurnChanged();
@@ -118,6 +121,13 @@ public partial class CombatViewModel : ViewModelBase
         _combat.OnCombatMessage -= OnCombatMessage;
         _combat.OnTurnChanged -= OnTurnChanged;
         _combat.OnCombatEnd -= OnCombatEnd;
+        _combat.OnSpellEffect -= HandleSpellEffect;
+    }
+
+    private void HandleSpellEffect(int x, int y, bool isBeneficial)
+    {
+        _audioService.PlaySoundEffect(isBeneficial ? SoundEffect.SpellHeal : SoundEffect.SpellDamage);
+        OnSpellEffect?.Invoke(x, y, isBeneficial);
     }
 
     private void OnCombatMessage(string message)

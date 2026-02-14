@@ -124,6 +124,7 @@ public class CombatSystem
     public event Action<string>? OnCombatMessage;
     public event Action? OnCombatEnd;
     public event Action? OnTurnChanged;
+    public event Action<int, int, bool>? OnSpellEffect; // (targetX, targetY, isBeneficial)
 
     public CombatSystem(Random? rng = null)
     {
@@ -374,6 +375,8 @@ public class CombatSystem
             return new CombatResult(false, $"Not enough mana for {spell.Name}!");
 
         // Execute spell effect
+        bool isBeneficial = spell.HealAmount > 0 || spell.CuresStatus != StatusEffect.None;
+
         if (spell.HealAmount > 0)
         {
             // Healing spell
@@ -381,6 +384,7 @@ public class CombatSystem
             if (target != null)
             {
                 target.Character.Heal(spell.HealAmount);
+                OnSpellEffect?.Invoke(targetX, targetY, true);
                 return new CombatResult(true, $"{character.Name} casts {spell.Name}, healing {target.Name} for {spell.HealAmount}!");
             }
         }
@@ -394,6 +398,7 @@ public class CombatSystem
 
             int damage = spell.RollDamage(_rng);
             target.TakeDamage(damage);
+            OnSpellEffect?.Invoke(targetX, targetY, false);
 
             bool killed = !target.IsAlive;
             return new CombatResult(true,
@@ -410,6 +415,7 @@ public class CombatSystem
                 if (cured != StatusEffect.None)
                 {
                     target.Status &= ~spell.CuresStatus;
+                    OnSpellEffect?.Invoke(targetX, targetY, true);
                     return new CombatResult(true, $"{character.Name} casts {spell.Name}, curing {target.Name} of {cured}!");
                 }
                 return new CombatResult(true, $"{character.Name} casts {spell.Name} on {target.Name}, but there is nothing to cure.");
@@ -422,6 +428,7 @@ public class CombatSystem
             if (target != null)
             {
                 target.Status |= spell.AppliesStatus;
+                OnSpellEffect?.Invoke(targetX, targetY, false);
                 return new CombatResult(true, $"{character.Name} casts {spell.Name} on {target.Name}!");
             }
         }
@@ -664,6 +671,7 @@ public class CombatSystem
         {
             int damage = spell.RollDamage(_rng);
             target.TakeDamage(damage);
+            OnSpellEffect?.Invoke(target.X, target.Y, false);
 
             bool killed = !target.IsAlive;
             string msg = killed
@@ -688,6 +696,7 @@ public class CombatSystem
                     {
                         int aoeDamage = spell.RollDamage(_rng);
                         pc.TakeDamage(aoeDamage);
+                        OnSpellEffect?.Invoke(pc.X, pc.Y, false);
                         if (spell.AppliesStatus != StatusEffect.None)
                             pc.Status |= spell.AppliesStatus;
                         LogMessage($"{pc.Name} is caught in the {spell.Name} for {aoeDamage} damage!");
@@ -698,6 +707,7 @@ public class CombatSystem
         else if (spell.AppliesStatus != StatusEffect.None)
         {
             target.Status |= spell.AppliesStatus;
+            OnSpellEffect?.Invoke(target.X, target.Y, false);
             LogMessage($"{monster.Name} casts {spell.Name} on {target.Name}!");
             LogMessage($"{target.Name} is {spell.AppliesStatus}!");
         }

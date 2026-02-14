@@ -10,6 +10,7 @@ namespace UltimaIII.Avalonia.Views;
 public partial class CombatView : UserControl
 {
     private DispatcherTimer? _renderTimer;
+    private CombatViewModel? _subscribedVm;
 
     public CombatView()
     {
@@ -25,6 +26,31 @@ public partial class CombatView : UserControl
 
         // Wire up mouse target selection
         CombatMap.TargetSelected += OnTargetSelected;
+
+        // Subscribe to spell effects when DataContext is set
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        // Unsubscribe from old VM
+        if (_subscribedVm != null)
+        {
+            _subscribedVm.OnSpellEffect -= OnSpellEffect;
+            _subscribedVm = null;
+        }
+
+        // Subscribe to new VM
+        if (DataContext is CombatViewModel vm)
+        {
+            vm.OnSpellEffect += OnSpellEffect;
+            _subscribedVm = vm;
+        }
+    }
+
+    private void OnSpellEffect(int x, int y, bool isBeneficial)
+    {
+        Dispatcher.UIThread.Post(() => CombatMap?.ShowSpellEffect(x, y, isBeneficial));
     }
 
     private void OnTargetSelected(object? sender, TargetSelectedEventArgs e)
@@ -49,5 +75,11 @@ public partial class CombatView : UserControl
         _renderTimer?.Stop();
         _renderTimer = null;
         CombatMap.TargetSelected -= OnTargetSelected;
+
+        if (_subscribedVm != null)
+        {
+            _subscribedVm.OnSpellEffect -= OnSpellEffect;
+            _subscribedVm = null;
+        }
     }
 }

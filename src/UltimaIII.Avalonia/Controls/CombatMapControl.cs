@@ -72,6 +72,12 @@ public class CombatMapControl : Control
     private static readonly IBrush CurrentTurnBrush = new SolidColorBrush(Color.FromRgb(255, 255, 0));
     private static readonly IBrush DefaultTerrainBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60));
 
+    // Spell effect animation
+    private record SpellEffect(int X, int Y, bool IsBeneficial, DateTime StartTime, int Seed);
+    private readonly List<SpellEffect> _activeEffects = new();
+    private DispatcherTimer? _effectTimer;
+    private const double EffectDurationMs = 600;
+
     static CombatMapControl()
     {
         AffectsRender<CombatMapControl>(CombatSystemProperty, TileSizeProperty, TargetXProperty, TargetYProperty, ShowTargetProperty);
@@ -87,6 +93,28 @@ public class CombatMapControl : Control
     public CombatMapControl()
     {
         ClipToBounds = true;
+    }
+
+    public void ShowSpellEffect(int x, int y, bool isBeneficial)
+    {
+        _activeEffects.Add(new SpellEffect(x, y, isBeneficial, DateTime.UtcNow, (x * 31 + y * 17) ^ Environment.TickCount));
+
+        if (_effectTimer == null)
+        {
+            _effectTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            _effectTimer.Tick += (_, _) =>
+            {
+                _activeEffects.RemoveAll(e => (DateTime.UtcNow - e.StartTime).TotalMilliseconds > EffectDurationMs);
+                if (_activeEffects.Count == 0)
+                {
+                    _effectTimer.Stop();
+                }
+                InvalidateVisual();
+            };
+        }
+
+        _effectTimer.Start();
+        InvalidateVisual();
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -209,6 +237,83 @@ public class CombatMapControl : Control
             var spriteKey = monster.Monster.Definition.Id;
             DrawCombatant(context, monster.X, monster.Y, monster.Name, monster.IsAlive, false,
                 monster == combat.CurrentCombatant, spriteKey);
+        }
+
+        // Draw spell effects on top of everything
+        DrawSpellEffects(context);
+    }
+
+    private void DrawSpellEffects(DrawingContext context)
+    {
+        if (_activeEffects.Count == 0) return;
+
+        var now = DateTime.UtcNow;
+
+        foreach (var effect in _activeEffects)
+        {
+            double elapsed = (now - effect.StartTime).TotalMilliseconds;
+            double progress = Math.Clamp(elapsed / EffectDurationMs, 0, 1);
+
+            // Alpha fades out over the duration
+            byte alpha = (byte)(255 * (1.0 - progress));
+
+            // Base tile position
+            int baseX = effect.X * TileSize;
+            int baseY = effect.Y * TileSize;
+
+            // Draw a semi-transparent glow over the tile
+            byte glowAlpha = (byte)(80 * (1.0 - progress));
+            var glowColor = effect.IsBeneficial
+                ? Color.FromArgb(glowAlpha, 80, 160, 255)
+                : Color.FromArgb(glowAlpha, 255, 60, 40);
+            var glowBrush = new SolidColorBrush(glowColor);
+            context.FillRectangle(glowBrush, new Rect(baseX, baseY, TileSize, TileSize));
+
+            // Draw 8 sparkle particles
+            var rng = new Random(effect.Seed);
+            int sparkleCount = 8;
+            for (int i = 0; i < sparkleCount; i++)
+            {
+                // Base position within tile (randomized per-sparkle)
+                double fx = rng.NextDouble() * (TileSize - 4) + 2;
+                double fy = rng.NextDouble() * (TileSize - 4) + 2;
+
+                // Sparkles drift upward for beneficial, outward for detrimental
+                if (effect.IsBeneficial)
+                {
+                    fy -= progress * 12;
+                }
+                else
+                {
+                    double angle = rng.NextDouble() * Math.PI * 2;
+                    fx += Math.Cos(angle) * progress * 6;
+                    fy += Math.Sin(angle) * progress * 6;
+                }
+
+                // Stagger sparkle visibility — each sparkle fades at different rate
+                double sparklePhase = (double)i / sparkleCount;
+                double sparkleAlpha = Math.Clamp(1.0 - (progress - sparklePhase * 0.3) / 0.7, 0, 1);
+                byte sa = (byte)(alpha * sparkleAlpha);
+                if (sa < 10) continue;
+
+                // Sparkle size pulses
+                double size = 2 + Math.Sin(progress * Math.PI * 3 + i) * 1.5;
+
+                var sparkleColor = effect.IsBeneficial
+                    ? Color.FromArgb(sa, 140, 200, 255)
+                    : Color.FromArgb(sa, 255, 100, 60);
+                var sparkleBrush = new SolidColorBrush(sparkleColor);
+
+                var sparkleRect = new Rect(baseX + fx - size / 2, baseY + fy - size / 2, size, size);
+                context.FillRectangle(sparkleBrush, sparkleRect);
+
+                // Bright center dot
+                var brightColor = effect.IsBeneficial
+                    ? Color.FromArgb(sa, 220, 240, 255)
+                    : Color.FromArgb(sa, 255, 220, 180);
+                var brightBrush = new SolidColorBrush(brightColor);
+                context.FillRectangle(brightBrush, new Rect(baseX + fx - 0.5, baseY + fy - 0.5, 1, 1));
+            }
         }
     }
 
