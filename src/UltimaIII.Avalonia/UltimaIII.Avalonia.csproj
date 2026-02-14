@@ -7,6 +7,9 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Suppress IDE errors for Avalonia-generated InitializeComponent and compiled bindings -->
+    <!-- Suppress IDE errors for Avalonia/MVVM source-generated code (InitializeComponent, partial methods, etc.) -->
+    <NoWarn>$(NoWarn);CS0103;CS8795;AVLN2001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
