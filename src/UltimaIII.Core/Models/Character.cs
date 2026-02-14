@@ -88,7 +88,36 @@ public class Character
         int bonus = Stats.Strength / 3;
         if (EquippedWeapon != null)
             bonus += EquippedWeapon.HitBonus;
+
+        // Class-specific attack bonus
+        bonus += Class switch
+        {
+            CharacterClass.Fighter => 2 + Level / 4,
+            CharacterClass.Thief => 3 + Level / 3,
+            CharacterClass.Paladin => 1 + Level / 5,
+            CharacterClass.Lark => 1 + Level / 5,
+            CharacterClass.Ranger => 1 + Level / 5,
+            CharacterClass.Barbarian => 1,
+            CharacterClass.Wizard => -2,
+            CharacterClass.Illusionist => -1,
+            CharacterClass.Alchemist => -1,
+            _ => 0
+        };
+
         return bonus;
+    }
+
+    public int GetAttackBonusVsTarget(MonsterDefinition? target)
+    {
+        if (target == null) return 0;
+
+        return Class switch
+        {
+            CharacterClass.Cleric when target.IsUndead => 2,
+            CharacterClass.Paladin when target.IsUndead || target.IsDemon => 3,
+            CharacterClass.Druid when target.IsDemon => 2,
+            _ => 0
+        };
     }
 
     public int GetDefense()
@@ -98,20 +127,83 @@ public class Character
             defense += EquippedArmor.Defense;
         if (EquippedShield != null)
             defense += EquippedShield.Defense;
+
+        // Class-specific defense bonus
+        defense += Class switch
+        {
+            CharacterClass.Thief => 2,
+            CharacterClass.Paladin => 2,
+            CharacterClass.Fighter => 1,
+            CharacterClass.Lark => 1,
+            CharacterClass.Illusionist => 1,
+            CharacterClass.Druid => 1,
+            CharacterClass.Ranger => 1,
+            CharacterClass.Cleric => 1 + Level / 5,
+            _ => 0
+        };
+
         return defense;
     }
 
-    public int RollDamage(Random rng)
+    public int RollDamage(Random rng, MonsterDefinition? target = null)
     {
         var weapon = EquippedWeapon ?? Weapon.Hands;
         int baseDamage = weapon.RollDamage(rng);
         int strBonus = Stats.Strength / 4;
-        return Math.Max(1, baseDamage + strBonus);
+        int total = baseDamage + strBonus;
+
+        // Class-specific damage bonus
+        total += Class switch
+        {
+            CharacterClass.Fighter => 2 + Level / 5,
+            CharacterClass.Barbarian => 3 + Level / 4,
+            CharacterClass.Paladin => 1,
+            CharacterClass.Ranger => 1,
+            CharacterClass.Wizard => -1,
+            CharacterClass.Illusionist => -1,
+            _ => 0
+        };
+
+        // Barbarian Rage: +1 damage per 25% HP missing
+        if (Class == CharacterClass.Barbarian && MaxHP > 0)
+        {
+            int missingPercent = ((MaxHP - CurrentHP) * 100) / MaxHP;
+            total += missingPercent / 25;
+        }
+
+        // Creature-type damage bonuses
+        if (target != null)
+        {
+            if (Class == CharacterClass.Cleric && target.IsUndead)
+                total += 2;
+            if (Class == CharacterClass.Paladin && (target.IsUndead || target.IsDemon))
+                total += 3;
+            if (Class == CharacterClass.Druid && target.IsDemon)
+                total += 2;
+        }
+
+        return Math.Max(1, total);
+    }
+
+    public int GetCriticalHitChance()
+    {
+        return Class switch
+        {
+            CharacterClass.Thief => 15 + Level,
+            CharacterClass.Lark => 10 + Level / 2,
+            _ => 0
+        };
     }
 
     public int GetWeaponRange()
     {
-        return EquippedWeapon?.Range ?? 1;
+        int range = EquippedWeapon?.Range ?? 1;
+
+        // Ranger bonus: +1 range
+        if (Class == CharacterClass.Ranger)
+            range += 1;
+
+        return range;
     }
 
     public void TakeDamage(int damage)

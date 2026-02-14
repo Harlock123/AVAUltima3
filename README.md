@@ -29,7 +29,22 @@ UltimaIII.sln
 
 ### Character Creation System
 - **Races**: Human, Elf, Dwarf, Bobbit, Fuzzy (each with stat modifiers)
-- **Classes**: Fighter, Cleric, Wizard, Thief, Paladin, Barbarian, Lark, Illusionist, Druid, Alchemist, Ranger
+- **Classes**: Each class has unique combat bonuses and special abilities:
+
+| Class | Combat Role | Attack | Defense | Damage | Special |
+|-------|------------|--------|---------|--------|---------|
+| Fighter | Pure warrior | +2, +1/4 lvls | +1 | +2, +1/5 lvls | Best consistent melee |
+| Cleric | Healer | — | +1, +1/5 lvls | — | +2 atk/dmg vs Undead |
+| Wizard | Offensive caster | -2 | — | -1 | Relies on spells |
+| Thief | Agile rogue | +3, +1/3 lvls | +2 | — | Critical hits (15+Level %) |
+| Paladin | Holy knight | +1, +1/5 lvls | +2 | +1 | +3 atk/dmg vs Undead/Demon |
+| Barbarian | Brute | +1 | — | +3, +1/4 lvls | Rage: +1 dmg per 25% HP missing |
+| Lark | Thief-mage | +1, +1/5 lvls | +1 | — | Critical hits (10+Level/2 %) |
+| Illusionist | Wizard-thief | -1 | +1 | -1 | Spell-focused |
+| Druid | Nature priest | — | +1 | — | +2 atk/dmg vs Demon |
+| Alchemist | Scholar | -1 | — | — | Jack-of-all-trades caster |
+| Ranger | Wilderness warrior | +1, +1/5 lvls | +1 | +1 | +1 weapon range |
+
 - **Stats**: Strength, Dexterity, Intelligence, Wisdom (range: 3-25)
 - **Party System**: Create up to 4 characters
 

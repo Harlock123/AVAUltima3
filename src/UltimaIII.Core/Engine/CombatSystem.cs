@@ -296,21 +296,36 @@ public class CombatSystem
         if (distance > range)
             return new CombatResult(false, "Target out of range");
 
-        // Attack roll
-        int attackBonus = attacker.Character.GetAttackBonus();
+        // Get monster definition for creature-type bonuses
+        var monsterDef = (target as MonsterCombatant)?.Monster.Definition;
+
+        // Attack roll (with creature-type attack bonus)
+        int attackBonus = attacker.Character.GetAttackBonus()
+                        + attacker.Character.GetAttackBonusVsTarget(monsterDef);
         int defenseValue = target.GetDefense();
         int roll = _rng.Next(1, 21) + attackBonus;
 
         if (roll >= 10 + defenseValue)
         {
-            // Hit!
-            int damage = attacker.Character.RollDamage(_rng);
+            // Hit! Roll damage with creature-type bonus
+            int damage = attacker.Character.RollDamage(_rng, monsterDef);
+
+            // Check for critical hit
+            bool isCritical = false;
+            int critChance = attacker.Character.GetCriticalHitChance();
+            if (critChance > 0 && _rng.Next(100) < critChance)
+            {
+                damage *= 2;
+                isCritical = true;
+            }
+
             target.TakeDamage(damage);
 
             bool killed = !target.IsAlive;
+            string critText = isCritical ? "CRITICAL! " : "";
             string message = killed
-                ? $"{attacker.Name} strikes {target.Name} for {damage} damage, slaying it!"
-                : $"{attacker.Name} hits {target.Name} for {damage} damage.";
+                ? $"{critText}{attacker.Name} strikes {target.Name} for {damage} damage, slaying it!"
+                : $"{critText}{attacker.Name} hits {target.Name} for {damage} damage.";
 
             return new CombatResult(true, message, damage, killed);
         }
