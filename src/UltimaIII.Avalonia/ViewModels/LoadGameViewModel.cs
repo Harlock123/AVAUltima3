@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using UltimaIII.Avalonia.Services.Audio;
 using UltimaIII.Core.Engine;
 
@@ -92,6 +93,25 @@ public partial class LoadGameViewModel : ViewModelBase
                 _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
                 _mainViewModel.ReturnToMainMenu();
                 break;
+        }
+    }
+
+    public void SelectAndLoad(SaveEntryViewModel entry)
+    {
+        var index = Saves.IndexOf(entry);
+        if (index < 0) return;
+
+        if (index == SelectedIndex)
+        {
+            // Already selected — double-click behavior: load it
+            LoadSelected();
+        }
+        else
+        {
+            // First click: select it
+            SelectedIndex = index;
+            UpdateSelection();
+            _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
         }
     }
 

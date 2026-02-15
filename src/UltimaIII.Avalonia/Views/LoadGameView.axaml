@@ -29,7 +29,10 @@
                     <ItemsControl ItemsSource="{Binding Saves}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:SaveEntryViewModel">
-                                <Border Padding="8,6" Margin="0,2" CornerRadius="4">
+                                <Border Padding="8,6" Margin="0,2" CornerRadius="4"
+                                        PointerPressed="SaveEntry_PointerPressed"
+                                        Background="Transparent"
+                                        Cursor="Hand">
                                     <Grid ColumnDefinitions="24,*,Auto">
                                         <!-- Selection marker -->
                                         <TextBlock Grid.Column="0"
