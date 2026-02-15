@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="UltimaIII.Avalonia.Views.FieldSpellView"
+             x:DataType="vm:FieldSpellViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0a1a" CornerRadius="8" Padding="0" BorderBrush="#4a3a2a" BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#1a1510" Padding="15,10">
+                <TextBlock Text="{Binding ModeTitle}"
+                           FontSize="22" FontWeight="Bold" Foreground="#ffd700"
+                           HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Content Area -->
+            <Border Grid.Row="1" Padding="10,6" MinHeight="200">
+                <Grid>
+                    <!-- No casters message -->
+                    <TextBlock Text="No one can cast spells right now."
+                               FontSize="14" Foreground="#a09080"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding NoCasters}"/>
+
+                    <!-- Caster Selection -->
+                    <ScrollViewer IsVisible="{Binding IsCasterMode}">
+                        <ItemsControl ItemsSource="{Binding Casters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:FieldCasterVm}">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="14"
+                                               Margin="0,3"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Spell Selection -->
+                    <ScrollViewer IsVisible="{Binding IsSpellMode}">
+                        <ItemsControl ItemsSource="{Binding Spells}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:FieldSpellItemVm}">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="13"
+                                               Opacity="{Binding ItemOpacity}"
+                                               Margin="0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Target Selection -->
+                    <ScrollViewer IsVisible="{Binding IsTargetMode}">
+                        <ItemsControl ItemsSource="{Binding Targets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:FieldTargetVm}">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="14"
+                                               Margin="0,3"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Status Message -->
+            <Border Grid.Row="2" Padding="10,4" MinHeight="24">
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="12" Foreground="#c0a060"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Controls Footer -->
+            <Border Grid.Row="3" Background="#15120d" Padding="10,8">
+                <TextBlock Text="{Binding ControlsHint}"
+                           FontSize="10" Foreground="#605040"
+                           HorizontalAlignment="Center"/>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

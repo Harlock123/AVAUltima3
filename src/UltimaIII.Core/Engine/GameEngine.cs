@@ -27,6 +27,7 @@ public class GameEngine
             : null;
 
     private string? _lastSignShown;
+    private string? _lastNpcGreeted;
 
     // Message log
     public List<string> MessageLog { get; } = new();
@@ -282,6 +283,9 @@ public class GameEngine
 
         // Check for nearby signs
         CheckAdjacentSigns();
+
+        // Check for nearby quest NPCs
+        CheckNearbyQuestNpcs();
     }
 
     private void CheckAdjacentSigns()
@@ -311,6 +315,36 @@ public class GameEngine
 
         // No sign adjacent — clear last shown
         _lastSignShown = null;
+    }
+
+    private void CheckNearbyQuestNpcs()
+    {
+        if (CurrentMap == null || State != GameState.Town) return;
+
+        // Scan within 3 tiles for quest NPCs
+        for (int dy = -3; dy <= 3; dy++)
+        {
+            for (int dx = -3; dx <= 3; dx++)
+            {
+                int nx = Party.X + dx;
+                int ny = Party.Y + dy;
+                if (!CurrentMap.IsInBounds(nx, ny)) continue;
+
+                var tile = CurrentMap.GetTile(nx, ny);
+                if (tile.Type == TileType.QuestNpc && !string.IsNullOrEmpty(tile.EntityId))
+                {
+                    if (_lastNpcGreeted != tile.EntityId)
+                    {
+                        _lastNpcGreeted = tile.EntityId;
+                        AddMessage($"\"{tile.EntityId}\" calls out: \"Greetings! Might I have a word? (T to Talk)\"");
+                    }
+                    return;
+                }
+            }
+        }
+
+        // No NPC nearby — clear last greeted
+        _lastNpcGreeted = null;
     }
 
     private void HandleLocationEntry(MapLocation location)

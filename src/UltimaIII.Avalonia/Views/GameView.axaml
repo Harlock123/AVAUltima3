@@ -128,6 +128,15 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
 
+            <!-- Field Spell Casting -->
+            <ContentControl Grid.Row="1" Content="{Binding FieldSpellVm}" IsVisible="{Binding IsFieldSpellMode}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:FieldSpellViewModel">
+                        <views:FieldSpellView/>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
             <!-- Quit Dialog -->
             <ContentControl Grid.Row="1" Content="{Binding QuitDialogVm}" IsVisible="{Binding IsQuitMode}">
                 <ContentControl.ContentTemplate>
@@ -168,6 +177,7 @@
                         <TextBlock Text="T: Talk to NPC" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="I: Inventory" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="J: Quest Log" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="C: Cast Spell" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="R: Rest" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="X: Exit Location" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="F5: Save Game" FontSize="11" Foreground="#606060"/>

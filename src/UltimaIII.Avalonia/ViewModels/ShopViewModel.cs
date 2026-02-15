@@ -142,6 +142,21 @@ public partial class ShopViewModel : ViewModelBase
         else if (_shopDef.HasEquipTab) CurrentTab = ShopTab.Equip;
         else if (_shopDef.HasServicesTab) CurrentTab = ShopTab.Services;
 
+        // For Healer, auto-select the first character who needs services
+        if (_shopDef.Type == ShopType.Healer)
+        {
+            var members = gameEngine.Party.Members;
+            for (int i = 0; i < members.Count; i++)
+            {
+                var m = members[i];
+                if (!m.IsAlive || m.Status != StatusEffect.None || m.CurrentHP < m.MaxHP)
+                {
+                    SelectedCharacterIndex = i;
+                    break;
+                }
+            }
+        }
+
         RefreshItems();
     }
 

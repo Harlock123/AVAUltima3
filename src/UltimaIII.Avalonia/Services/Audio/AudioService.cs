@@ -152,8 +152,8 @@ public unsafe class AudioService : IAudioService
     {
         if (!IsAvailable || _al == null) return;
 
-        float volume = _isMuted ? 0f : _masterVolume * _musicVolumeLevel;
-        _al.SetSourceProperty(_musicSource, SourceFloat.Gain, volume);
+        // Volume is applied directly in FillMusicBuffer, so source gain stays at 1.0
+        _al.SetSourceProperty(_musicSource, SourceFloat.Gain, 1.0f);
     }
 
     public void PlaySoundEffect(SoundEffect effect)
@@ -305,9 +305,12 @@ public unsafe class AudioService : IAudioService
     {
         if (_al == null || _currentMusicPattern == null) return;
 
+        // Apply music volume directly to samples for reliable volume control
+        float volume = _isMuted ? 0f : _masterVolume * _musicVolumeLevel;
+
         for (int i = 0; i < pcmBuffer.Length; i++)
         {
-            float sample = _currentMusicPattern[_musicPatternPosition];
+            float sample = _currentMusicPattern[_musicPatternPosition] * volume;
             pcmBuffer[i] = (short)(sample * 32767f);
 
             _musicPatternPosition++;

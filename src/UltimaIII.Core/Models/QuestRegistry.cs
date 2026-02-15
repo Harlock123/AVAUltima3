@@ -271,13 +271,16 @@ public static class QuestRegistry
 
     private static void RegisterFetchDrops()
     {
-        FetchDrops.Add(new FetchDropInfo("fetch_old_ring", "quest_old_ring", new[] { "skeleton", "zombie" }, 10));
-        FetchDrops.Add(new FetchDropInfo("fetch_moonstone", "quest_moonstone", new[] { "wraith" }, 15));
-        FetchDrops.Add(new FetchDropInfo("fetch_serpent_fang", "quest_serpent_fang", new[] { "giant_spider" }, 12));
-        FetchDrops.Add(new FetchDropInfo("fetch_ancient_amulet", "quest_ancient_amulet", new[] { "ghoul" }, 10));
-        FetchDrops.Add(new FetchDropInfo("fetch_lich_phylactery", "quest_lich_phylactery", new[] { "lich" }, 20));
-        FetchDrops.Add(new FetchDropInfo("fetch_fire_crystal", "quest_fire_crystal", new[] { "dragon" }, 15));
-        FetchDrops.Add(new FetchDropInfo("fetch_time_shard", "quest_time_shard", new[] { "balron" }, 12));
+        // Early game: common monsters, high drop chance
+        FetchDrops.Add(new FetchDropInfo("fetch_old_ring", "quest_old_ring", new[] { "skeleton", "zombie" }, 50));
+        // Mid game: moderate monsters, good drop chance
+        FetchDrops.Add(new FetchDropInfo("fetch_moonstone", "quest_moonstone", new[] { "wraith" }, 60));
+        FetchDrops.Add(new FetchDropInfo("fetch_serpent_fang", "quest_serpent_fang", new[] { "giant_spider" }, 50));
+        FetchDrops.Add(new FetchDropInfo("fetch_ancient_amulet", "quest_ancient_amulet", new[] { "ghoul" }, 60));
+        // Late game: rare monsters are hard to find, so high drop chance when you do
+        FetchDrops.Add(new FetchDropInfo("fetch_lich_phylactery", "quest_lich_phylactery", new[] { "lich" }, 80));
+        FetchDrops.Add(new FetchDropInfo("fetch_fire_crystal", "quest_fire_crystal", new[] { "dragon" }, 75));
+        FetchDrops.Add(new FetchDropInfo("fetch_time_shard", "quest_time_shard", new[] { "balron" }, 75));
     }
 
     private static void Register(QuestDefinition quest) => AllQuests[quest.Id] = quest;

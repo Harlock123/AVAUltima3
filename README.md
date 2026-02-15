@@ -72,6 +72,7 @@ UltimaIII.sln
 - **Cleric Spells**: 16 spells (healing, protection, cure, resurrection)
 - **Status Cures**: Sanctu cures poison; Lib Rec removes all ailments (poison, confusion, sleep, paralysis)
 - **Combat Casting**: CuresStatus spells work in combat to heal afflicted party members
+- **Field Casting**: Press C outside of combat to cast support spells — heal injured allies, cure poison or paralysis, resurrect fallen party members, and more without needing a Healer shop
 - **Class Restrictions**: Each class has access to different spell levels
 
 ### Shop System
@@ -97,6 +98,21 @@ UltimaIII.sln
 - **Shop Signs**: Readable signs next to each shop door displaying the shop name
 - **Decorations**: Flower beds, lampposts along roads, and scattered trees
 - **Door Clearance**: Automatic validation ensures decorations never block shop entrances
+
+### Quest System
+- **18 Quests**: Spanning all 8 towns with early, mid, and late game progression
+- **3 Quest Types**:
+  - **Kill Quests**: Slay a target number of specific monsters (e.g. 5 Giant Rats, 12 Undead)
+  - **Fetch Quests**: Recover quest items dropped by specific monsters in combat (e.g. Lich Phylactery from Liches)
+  - **Explore Quests**: Visit a specific dungeon level to scout and report back
+- **Quest NPCs**: Green-robed NPCs with "!" markers placed in each town — they greet you as you approach
+- **Tavern Quests**: Some quests are offered by tavern barkeeps (accessible via the Tavern shop)
+- **Quest Chains**: Late-game quests require completing prerequisites (e.g. "Destroy the Lich" unlocks after "Vampire Hunt")
+- **Quest Log**: Press J to view active quests with progress tracking (kill counts, exploration status)
+- **Talk to NPCs**: Press T when adjacent to a quest NPC to view available quests, accept new ones, or turn in completed quests
+- **Quest Item Drops**: Fetch quest items drop from specific monsters at high rates (50-80%) when the quest is active
+- **Rewards**: Gold and experience for each completed quest
+- **Persistent**: Quest progress saves and loads with the game
 
 ### Map System
 - **Overworld**: 64x64 procedurally generated world with 8 towns and 4 dungeons
@@ -143,7 +159,10 @@ dotnet run --project src/UltimaIII.Avalonia
 | Space | Search |
 | R | Rest |
 | B | Enter Shop (when adjacent to counter) |
+| T | Talk to quest NPC (when adjacent) |
+| C | Cast spell (field magic — heal, cure, resurrect) |
 | I | Open Party Inventory |
+| J | Open Quest Log |
 | X | Exit current location |
 | F5 | Save game |
 | F12 | Quit game |
@@ -189,6 +208,26 @@ dotnet run --project src/UltimaIII.Avalonia
 | Tab | Cycle tabs |
 | Q | Toggle sell source (Character/Party inventory) |
 | Esc | Leave shop |
+
+### Field Spell Casting (C key)
+| Key | Action |
+|-----|--------|
+| W/S / Up/Down | Browse casters, spells, or targets |
+| Enter / Space | Select caster / cast spell / confirm target |
+| Esc / C | Go back / close |
+
+### Quest Log (J key)
+| Key | Action |
+|-----|--------|
+| W/S / Up/Down | Browse quests |
+| Esc / J | Close quest log |
+
+### Quest Dialog (T key, when adjacent to NPC)
+| Key | Action |
+|-----|--------|
+| W/S / Up/Down | Browse quests |
+| Enter / Space | View details / accept / turn in |
+| Esc | Go back / close |
 
 ## Custom Tile Sprites
 

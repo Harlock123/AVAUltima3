@@ -74,6 +74,12 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty]
     private QuestLogViewModel? _questLogVm;
 
+    [ObservableProperty]
+    private bool _isFieldSpellMode = false;
+
+    [ObservableProperty]
+    private FieldSpellViewModel? _fieldSpellVm;
+
     private bool _recentlySaved;
 
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
@@ -230,7 +236,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode) return;
         _recentlySaved = false;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
@@ -278,7 +284,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void QuitGame()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode) return;
         IsQuitMode = true;
         QuitDialogVm = new QuitDialogViewModel(_gameEngine, this, _recentlySaved);
     }
@@ -380,6 +386,21 @@ public partial class GameViewModel : ViewModelBase
         RefreshDisplay();
     }
 
+    public void OpenFieldSpellCasting()
+    {
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode) return;
+        IsFieldSpellMode = true;
+        FieldSpellVm = new FieldSpellViewModel(_gameEngine, this);
+    }
+
+    public void CloseFieldSpellCasting()
+    {
+        IsFieldSpellMode = false;
+        FieldSpellVm = null;
+        RefreshPartyStats();
+        RefreshDisplay();
+    }
+
     private void TryTalkToNpc()
     {
         if (IsCombatMode || IsShopMode || IsQuestDialogMode || IsQuestLogMode) return;
@@ -449,6 +470,12 @@ public partial class GameViewModel : ViewModelBase
             return;
         }
 
+        if (IsFieldSpellMode && FieldSpellVm != null)
+        {
+            FieldSpellVm.HandleKeyPress(key);
+            return;
+        }
+
         switch (key.ToUpper())
         {
             case "W":
@@ -487,6 +514,9 @@ public partial class GameViewModel : ViewModelBase
                 break;
             case "J":
                 OpenQuestLog();
+                break;
+            case "C":
+                OpenFieldSpellCasting();
                 break;
             case "F5":
                 SaveGame();
