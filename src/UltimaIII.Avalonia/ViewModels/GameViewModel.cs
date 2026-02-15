@@ -62,6 +62,18 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty]
     private QuitDialogViewModel? _quitDialogVm;
 
+    [ObservableProperty]
+    private bool _isQuestDialogMode = false;
+
+    [ObservableProperty]
+    private QuestDialogViewModel? _questDialogVm;
+
+    [ObservableProperty]
+    private bool _isQuestLogMode = false;
+
+    [ObservableProperty]
+    private QuestLogViewModel? _questLogVm;
+
     private bool _recentlySaved;
 
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
@@ -218,7 +230,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode) return;
         _recentlySaved = false;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
@@ -227,14 +239,14 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void Search()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
         _gameEngine.Search();
     }
 
     [RelayCommand]
     private void Rest()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
         _gameEngine.Rest();
         RefreshDisplay();
     }
@@ -242,7 +254,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void ExitLocation()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
         _gameEngine.ExitLocation();
         RefreshDisplay();
     }
@@ -250,7 +262,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void SaveGame()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
         IsSaveMode = true;
         SaveDialogVm = new SaveDialogViewModel(_gameEngine, this);
     }
@@ -266,7 +278,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void QuitGame()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode) return;
         IsQuitMode = true;
         QuitDialogVm = new QuitDialogViewModel(_gameEngine, this, _recentlySaved);
     }
@@ -340,6 +352,49 @@ public partial class GameViewModel : ViewModelBase
         RefreshDisplay();
     }
 
+    public void OpenQuestDialog(string townId, string npcName)
+    {
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        IsQuestDialogMode = true;
+        QuestDialogVm = new QuestDialogViewModel(_gameEngine, this, townId, npcName);
+    }
+
+    public void CloseQuestDialog()
+    {
+        IsQuestDialogMode = false;
+        QuestDialogVm = null;
+        RefreshDisplay();
+    }
+
+    public void OpenQuestLog()
+    {
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        IsQuestLogMode = true;
+        QuestLogVm = new QuestLogViewModel(_gameEngine, this);
+    }
+
+    public void CloseQuestLog()
+    {
+        IsQuestLogMode = false;
+        QuestLogVm = null;
+        RefreshDisplay();
+    }
+
+    private void TryTalkToNpc()
+    {
+        if (IsCombatMode || IsShopMode || IsQuestDialogMode || IsQuestLogMode) return;
+
+        var (townId, npcName) = _gameEngine.TryTalkToNpc();
+        if (townId != null && npcName != null)
+        {
+            OpenQuestDialog(townId, npcName);
+        }
+        else
+        {
+            _gameEngine.AddMessage("No one to talk to here.");
+        }
+    }
+
     public void HandleKeyPress(string key)
     {
         // Save dialog handles its own input via TextBox KeyDown
@@ -382,6 +437,18 @@ public partial class GameViewModel : ViewModelBase
             return;
         }
 
+        if (IsQuestDialogMode && QuestDialogVm != null)
+        {
+            QuestDialogVm.HandleKeyPress(key);
+            return;
+        }
+
+        if (IsQuestLogMode && QuestLogVm != null)
+        {
+            QuestLogVm.HandleKeyPress(key);
+            return;
+        }
+
         switch (key.ToUpper())
         {
             case "W":
@@ -414,6 +481,12 @@ public partial class GameViewModel : ViewModelBase
                 break;
             case "I":
                 OpenInventory();
+                break;
+            case "T":
+                TryTalkToNpc();
+                break;
+            case "J":
+                OpenQuestLog();
                 break;
             case "F5":
                 SaveGame();

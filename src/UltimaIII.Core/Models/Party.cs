@@ -42,6 +42,7 @@ public class Party
     // Quest flags
     public HashSet<string> Marks { get; } = new();
     public HashSet<string> CompletedQuests { get; } = new();
+    public QuestLog QuestLog { get; } = new();
 
     public bool IsFull => _members.Count >= MaxPartySize;
     public bool IsEmpty => _members.Count == 0;

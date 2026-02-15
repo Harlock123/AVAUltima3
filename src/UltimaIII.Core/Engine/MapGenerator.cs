@@ -193,6 +193,23 @@ public static class MapGenerator
             }
         }
 
+        // Place quest NPC for this town
+        var townNpcs = QuestRegistry.GetNpcsForTown(id);
+        var townNpc = townNpcs.FirstOrDefault(n => n.Type == QuestGiverType.TownNpc);
+        if (townNpc.NpcName != null)
+        {
+            int npcX = 13;
+            int npcY = 17;
+            if (map.IsInBounds(npcX, npcY))
+            {
+                map.SetTile(npcX, npcY, new MapTile
+                {
+                    Type = TileType.QuestNpc,
+                    EntityId = townNpc.NpcName
+                });
+            }
+        }
+
         // Final safety pass: ensure no decoration blocks a door approach
         ClearDoorApproaches(map);
 

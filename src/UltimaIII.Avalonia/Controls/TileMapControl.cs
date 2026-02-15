@@ -81,6 +81,7 @@ public class TileMapControl : Control
         [TileType.Path] = new SolidColorBrush(Color.FromRgb(160, 140, 120)),
         [TileType.Flowers] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Lamppost] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
+        [TileType.QuestNpc] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Town] = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
         [TileType.DungeonEntrance] = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
         [TileType.Void] = new SolidColorBrush(Color.FromRgb(0, 0, 0))
@@ -283,6 +284,22 @@ public class TileMapControl : Control
                 context.DrawLine(stonePen, new Point(rect.X + 24, rect.Y), new Point(rect.X + 24, rect.Y + TileSize));
                 context.DrawLine(stonePen, new Point(rect.X, rect.Y + 10), new Point(rect.X + TileSize, rect.Y + 10));
                 context.DrawLine(stonePen, new Point(rect.X, rect.Y + 22), new Point(rect.X + TileSize, rect.Y + 22));
+                break;
+
+            case TileType.QuestNpc:
+                // Draw NPC figure: circle head + rectangle body in green/gold
+                var npcHeadBrush = new SolidColorBrush(Color.FromRgb(255, 220, 180));
+                var npcBodyBrush = new SolidColorBrush(Color.FromRgb(60, 160, 60));
+                var npcHead = new EllipseGeometry(new Rect(center.X - 5, center.Y - 12, 10, 10));
+                context.DrawGeometry(npcHeadBrush, new Pen(Brushes.Black, 1), npcHead);
+                var npcBody = new Rect(center.X - 6, center.Y - 2, 12, 14);
+                context.FillRectangle(npcBodyBrush, npcBody);
+                context.DrawRectangle(new Pen(Brushes.Black, 1), npcBody);
+                // Exclamation mark above head for quest availability
+                var questMark = new FormattedText("!", System.Globalization.CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight, new Typeface("Consolas", FontStyle.Normal, FontWeight.Bold),
+                    10, new SolidColorBrush(Color.FromRgb(255, 255, 0)));
+                context.DrawText(questMark, new Point(center.X - questMark.Width / 2, center.Y - 22));
                 break;
 
             case TileType.DungeonEntrance:

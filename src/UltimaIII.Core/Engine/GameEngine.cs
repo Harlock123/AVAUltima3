@@ -357,6 +357,11 @@ public class GameEngine
 
         Party.DungeonLevel = targetMap.DungeonLevel;
 
+        // Track explore quests
+        var exploreMessages = QuestEngine.OnMapEntered(Party, location.TargetMapId);
+        foreach (var msg in exploreMessages)
+            AddMessage(msg);
+
         UpdateVisibility();
         OnStateChanged?.Invoke(State);
         OnMapChanged?.Invoke();
@@ -411,6 +416,11 @@ public class GameEngine
                 Party.X = entry.x;
                 Party.Y = entry.y;
             }
+
+            // Track explore quests
+            var exploreMessages = QuestEngine.OnMapEntered(Party, nextMapId);
+            foreach (var msg in exploreMessages)
+                AddMessage(msg);
 
             UpdateVisibility();
             OnMapChanged?.Invoke();
@@ -553,6 +563,27 @@ public class GameEngine
             {
                 Party.AddToInventory(item);
                 AddMessage($"Found {item.Name}!");
+            }
+
+            // Track kills for quests
+            foreach (var monster in Combat.Monsters.Where(m => !m.IsAlive))
+            {
+                var questMessages = QuestEngine.OnMonsterKilled(Party, monster.Monster.Definition.Id);
+                foreach (var msg in questMessages)
+                    AddMessage(msg);
+
+                // Roll for quest item drops
+                var questDrops = QuestEngine.GetQuestItemDrops(Party, monster.Monster.Definition.Id, _rng);
+                foreach (var (itemId, questName) in questDrops)
+                {
+                    var template = ItemRegistry.FindById(itemId);
+                    if (template != null)
+                    {
+                        var questItem = ItemRegistry.CloneItem(template);
+                        Party.AddToInventory(questItem);
+                        AddMessage($"Found {questItem.Name}!");
+                    }
+                }
             }
 
             // Return to previous state
@@ -712,6 +743,29 @@ public class GameEngine
         CurrentShopName = null;
         State = GameState.Town;
         OnStateChanged?.Invoke(State);
+    }
+
+    public (string? townId, string? npcName) TryTalkToNpc()
+    {
+        if (State != GameState.Town || CurrentMap == null) return (null, null);
+
+        int[] dx = { 0, 0, -1, 1 };
+        int[] dy = { -1, 1, 0, 0 };
+
+        for (int i = 0; i < 4; i++)
+        {
+            int nx = Party.X + dx[i];
+            int ny = Party.Y + dy[i];
+            if (!CurrentMap.IsInBounds(nx, ny)) continue;
+
+            var tile = CurrentMap.GetTile(nx, ny);
+            if (tile.Type == TileType.QuestNpc && !string.IsNullOrEmpty(tile.EntityId))
+            {
+                return (Party.CurrentMapId, tile.EntityId);
+            }
+        }
+
+        return (null, null);
     }
 
     public void InitializeTavernNpcs()

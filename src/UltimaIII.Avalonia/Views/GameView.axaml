@@ -110,6 +110,24 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
 
+            <!-- Quest Dialog -->
+            <ContentControl Grid.Row="1" Content="{Binding QuestDialogVm}" IsVisible="{Binding IsQuestDialogMode}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:QuestDialogViewModel">
+                        <views:QuestDialogView/>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
+            <!-- Quest Log -->
+            <ContentControl Grid.Row="1" Content="{Binding QuestLogVm}" IsVisible="{Binding IsQuestLogMode}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:QuestLogViewModel">
+                        <views:QuestLogView/>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
             <!-- Quit Dialog -->
             <ContentControl Grid.Row="1" Content="{Binding QuitDialogVm}" IsVisible="{Binding IsQuitMode}">
                 <ContentControl.ContentTemplate>
@@ -147,7 +165,9 @@
                         <TextBlock Text="WASD/Arrows: Move" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="Space: Search" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="B: Shop/Barter" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="T: Talk to NPC" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="I: Inventory" FontSize="11" Foreground="#606060"/>
+                        <TextBlock Text="J: Quest Log" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="R: Rest" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="X: Exit Location" FontSize="11" Foreground="#606060"/>
                         <TextBlock Text="F5: Save Game" FontSize="11" Foreground="#606060"/>

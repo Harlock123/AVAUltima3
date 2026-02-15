@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="UltimaIII.Avalonia.Views.QuestDialogView"
+             x:DataType="vm:QuestDialogViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#2a2a3a"/>
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="BorderBrush" Value="#4a3a2a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="MinWidth" Value="70"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#3a3a4a"/>
+            <Setter Property="BorderBrush" Value="#ffd700"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0a1a" CornerRadius="8" Padding="0" BorderBrush="#4a3a2a" BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- NPC Header -->
+            <Border Grid.Row="0" Background="#1a1510" Padding="15,10">
+                <TextBlock Text="{Binding NpcDisplayName}"
+                           FontSize="22" FontWeight="Bold" Foreground="#ffd700"
+                           HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Quest List Mode -->
+            <Border Grid.Row="1" Padding="10,6" MinHeight="200"
+                    IsVisible="{Binding IsQuestList}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Available Quests:" FontSize="14" FontWeight="Bold"
+                               Foreground="#a09080" Margin="0,0,0,8"
+                               IsVisible="{Binding QuestItems.Count}"/>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="14"
+                               Foreground="#a09080" HorizontalAlignment="Center"
+                               Margin="0,20,0,0"/>
+                    <ItemsControl ItemsSource="{Binding QuestItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:QuestListItemViewModel}">
+                                <TextBlock Text="{Binding DisplayText}" FontSize="13"
+                                           Margin="0,2"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Quest Detail / Turn-In Mode -->
+            <Border Grid.Row="1" Padding="16,10" MinHeight="200"
+                    IsVisible="{Binding !IsQuestList}">
+                <StackPanel Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding QuestName}"
+                               FontSize="18" FontWeight="Bold" Foreground="#ffd700"
+                               HorizontalAlignment="Center"/>
+
+                    <Border Background="#1a1510" CornerRadius="4" Padding="12,8">
+                        <TextBlock Text="{Binding QuestOfferText}"
+                                   FontSize="13" Foreground="#c0b0a0" FontStyle="Italic"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <TextBlock Text="{Binding QuestDescription}"
+                               FontSize="12" Foreground="#a09080"
+                               TextWrapping="Wrap" Margin="0,4"/>
+
+                    <Border Height="1" Background="#3a2a1a" Margin="0,4"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="13">
+                            <Run Text="Objective: " Foreground="#808060"/>
+                            <Run Text="{Binding QuestObjectiveText}" Foreground="#e0c080"/>
+                        </TextBlock>
+                        <TextBlock FontSize="13">
+                            <Run Text="Reward: " Foreground="#808060"/>
+                            <Run Text="{Binding QuestRewardText}" Foreground="#60c060"/>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Status Message -->
+            <Border Grid.Row="2" Padding="10,4" MinHeight="24">
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="12" Foreground="#60c060"
+                           HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Controls Footer -->
+            <Border Grid.Row="3" Background="#15120d" Padding="10,8">
+                <StackPanel>
+                    <TextBlock Text="W/S: Browse   Enter: Select   Esc: Leave"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"
+                               IsVisible="{Binding IsQuestList}"/>
+                    <TextBlock Text="Enter: Accept   Esc: Back"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"
+                               IsVisible="{Binding IsQuestDetail}"/>
+                    <TextBlock Text="Enter: Turn In   Esc: Back"
+                               FontSize="10" Foreground="#605040"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"
+                               IsVisible="{Binding IsTurnIn}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                        <Button Content="[Enter] Confirm" Command="{Binding AcceptCommand}"
+                                IsVisible="{Binding !IsQuestList}"/>
+                        <Button Content="[Esc] Close" Command="{Binding CloseCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

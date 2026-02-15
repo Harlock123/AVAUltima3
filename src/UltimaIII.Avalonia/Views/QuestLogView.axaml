@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="UltimaIII.Avalonia.Views.QuestLogView"
+             x:DataType="vm:QuestLogViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#e0d0c0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0d0a1a" CornerRadius="8" Padding="0" BorderBrush="#4a3a2a" BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#1a1510" Padding="15,10">
+                <TextBlock Text="QUEST LOG"
+                           FontSize="22" FontWeight="Bold" Foreground="#ffd700"
+                           HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Quest List -->
+            <Border Grid.Row="1" Padding="10,6" MinHeight="200">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- No quests message -->
+                    <TextBlock Grid.Row="0" Text="No active quests."
+                               FontSize="14" Foreground="#a09080"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding NoQuests}"/>
+
+                    <!-- Quest entries -->
+                    <ScrollViewer Grid.Row="0" IsVisible="{Binding HasQuests}">
+                        <ItemsControl ItemsSource="{Binding Entries}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:QuestLogEntryViewModel}">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="13"
+                                               Margin="0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Selected quest detail -->
+                    <Border Grid.Row="1" Background="#1a1510" CornerRadius="4" Padding="10,6"
+                            Margin="0,8,0,0" MinHeight="40"
+                            IsVisible="{Binding HasQuests}">
+                        <TextBlock Text="{Binding SelectedQuestDetail}"
+                                   FontSize="11" Foreground="#a0b0c0"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Controls Footer -->
+            <Border Grid.Row="3" Background="#15120d" Padding="10,8">
+                <TextBlock Text="W/S: Browse   Esc/J: Close"
+                           FontSize="10" Foreground="#605040"
+                           HorizontalAlignment="Center"/>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

@@ -33,6 +33,13 @@ public class InventoryEntrySave
     public int Quantity { get; set; } = 1;
 }
 
+public class QuestProgressSave
+{
+    public string QuestId { get; set; } = string.Empty;
+    public int KillCount { get; set; }
+    public bool LocationVisited { get; set; }
+}
+
 public class PartySaveData
 {
     public List<CharacterSaveData> Members { get; set; } = new();
@@ -52,6 +59,7 @@ public class PartySaveData
     public List<string> Marks { get; set; } = new();
     public List<string> CompletedQuests { get; set; } = new();
     public List<InventoryEntrySave> SharedInventory { get; set; } = new();
+    public List<QuestProgressSave> ActiveQuests { get; set; } = new();
 }
 
 public class TavernNpcSaveData
@@ -126,6 +134,14 @@ public static class SaveService
                 CompletedQuests = party.CompletedQuests.ToList(),
                 SharedInventory = party.SharedInventory
                     .Select(i => new InventoryEntrySave { ItemId = i.Id, Quantity = i.Quantity })
+                    .ToList(),
+                ActiveQuests = party.QuestLog.GetAllProgress()
+                    .Select(p => new QuestProgressSave
+                    {
+                        QuestId = p.QuestId,
+                        KillCount = p.KillCount,
+                        LocationVisited = p.LocationVisited
+                    })
                     .ToList()
             }
         };
@@ -291,6 +307,19 @@ public static class SaveService
                 var item = ItemRegistry.CloneItem(template);
                 item.Quantity = entry.Quantity;
                 party.AddToInventory(item);
+            }
+        }
+
+        // Restore quest log
+        party.QuestLog.Clear();
+        foreach (var questSave in save.Party.ActiveQuests)
+        {
+            party.QuestLog.AcceptQuest(questSave.QuestId);
+            var progress = party.QuestLog.GetProgress(questSave.QuestId);
+            if (progress != null)
+            {
+                progress.KillCount = questSave.KillCount;
+                progress.LocationVisited = questSave.LocationVisited;
             }
         }
 

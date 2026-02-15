@@ -43,6 +43,18 @@ public static class ItemRegistry
         new Consumable { Id = "keys", Name = "Keys", Description = "Opens locked doors", Effect = "unlock", EffectStrength = 1, Value = 30 },
     };
 
+    private static readonly List<QuestItem> QuestItems = new()
+    {
+        new QuestItem { Id = "quest_old_ring", Name = "Old Ring", Description = "A tarnished ring found on the undead", QuestId = "fetch_old_ring", Value = 0 },
+        new QuestItem { Id = "quest_moonstone", Name = "Moonstone", Description = "A glowing stone pulsing with lunar energy", QuestId = "fetch_moonstone", Value = 0 },
+        new QuestItem { Id = "quest_serpent_fang", Name = "Serpent Fang", Description = "A venomous fang from a giant beast", QuestId = "fetch_serpent_fang", Value = 0 },
+        new QuestItem { Id = "quest_ancient_amulet", Name = "Ancient Amulet", Description = "An amulet of forgotten power", QuestId = "fetch_ancient_amulet", Value = 0 },
+        new QuestItem { Id = "quest_lich_phylactery", Name = "Lich Phylactery", Description = "The vessel binding a lich to unlife", QuestId = "fetch_lich_phylactery", Value = 0 },
+        new QuestItem { Id = "quest_dragon_scale", Name = "Dragon Scale", Description = "A shimmering scale from a great wyrm", QuestId = "fetch_dragon_scale", Value = 0 },
+        new QuestItem { Id = "quest_fire_crystal", Name = "Fire Crystal", Description = "A crystal blazing with elemental fire", QuestId = "fetch_fire_crystal", Value = 0 },
+        new QuestItem { Id = "quest_time_shard", Name = "Time Shard", Description = "A fragment of crystallized time", QuestId = "fetch_time_shard", Value = 0 },
+    };
+
     private static readonly Dictionary<string, Item> AllItems;
 
     static ItemRegistry()
@@ -57,6 +69,7 @@ public static class ItemRegistry
         foreach (var a in Armors) AllItems[a.Id] = a;
         foreach (var s in Shields) AllItems[s.Id] = s;
         foreach (var c in Consumables) AllItems[c.Id] = c;
+        foreach (var q in QuestItems) AllItems[q.Id] = q;
     }
 
     public static Item? FindById(string id)

@@ -33,6 +33,7 @@ public enum TileType
     Path,
     Flowers,
     Lamppost,
+    QuestNpc,
 
     // Special
     CastleWall,
