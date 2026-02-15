@@ -35,7 +35,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Combat Header -->
@@ -59,21 +58,8 @@
                                        ShowTarget="{Binding IsSelectingTarget}"/>
         </Border>
 
-        <!-- Combat Log -->
-        <Border Grid.Row="2" Background="#1a1a2a" Padding="10" MaxHeight="100">
-            <ScrollViewer>
-                <ItemsControl ItemsSource="{Binding CombatMessages}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#c0c0c0"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
-
         <!-- Combat Actions -->
-        <Border Grid.Row="3" Background="#252540" Padding="10">
+        <Border Grid.Row="2" Background="#252540" Padding="10">
             <Grid>
                 <!-- Normal Actions -->
                 <StackPanel IsVisible="{Binding IsNormalMode}" HorizontalAlignment="Center">
