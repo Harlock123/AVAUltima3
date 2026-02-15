@@ -37,8 +37,8 @@ public unsafe class AudioService : IAudioService
     private MusicTrack _currentTrack = MusicTrack.None;
 
     private float _masterVolume = 0.7f;
-    private float _musicVolumeLevel = 0.5f;
-    private float _sfxVolumeLevel = 0.8f;
+    private float _musicVolumeLevel = 0.3f;
+    private float _sfxVolumeLevel = 1.0f;
     private bool _isMuted;
 
     public static AudioService Instance
