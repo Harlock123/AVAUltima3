@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Silk.NET.OpenAL;
 
@@ -233,7 +234,18 @@ public unsafe class AudioService : IAudioService
 
         try
         {
-            _currentMusicPattern = _musicPlayerService.GenerateMusicPattern(track);
+            _currentMusicPattern = null;
+
+            // Try file-based music first, fall back to synthesized
+            var filePath = FindMusicFile(track);
+            if (filePath != null)
+            {
+                var decoded = OggMusicDecoder.TryLoadOgg(filePath);
+                if (decoded != null && decoded.Length > 0)
+                    _currentMusicPattern = decoded;
+            }
+
+            _currentMusicPattern ??= _musicPlayerService.GenerateMusicPattern(track);
             if (_currentMusicPattern == null || _currentMusicPattern.Length == 0) return;
 
             _musicPatternPosition = 0;
@@ -374,6 +386,26 @@ public unsafe class AudioService : IAudioService
             pcm[i] = (short)(Math.Clamp(samples[i], -1f, 1f) * 32767f);
         }
         return pcm;
+    }
+
+    private static string? FindMusicFile(MusicTrack track)
+    {
+        var dir = Path.Combine(AppContext.BaseDirectory, "Assets", "Music");
+        var path = Path.Combine(dir, $"{track}.ogg");
+        if (File.Exists(path)) return path;
+
+        // Fall back to base track (e.g. CombatDoom → Combat, DungeonFireDeep → Dungeon)
+        var name = track.ToString();
+        foreach (var baseTrack in new[] { "Combat", "Dungeon" })
+        {
+            if (name.StartsWith(baseTrack) && name != baseTrack)
+            {
+                var fallback = Path.Combine(dir, $"{baseTrack}.ogg");
+                if (File.Exists(fallback)) return fallback;
+            }
+        }
+
+        return null;
     }
 
     public void Dispose()
