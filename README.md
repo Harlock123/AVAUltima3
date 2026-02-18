@@ -312,9 +312,9 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - [x] `skeleton.png`
 - [x] `zombie.png`
 - [ ] `ghoul.png`
-- [ ] `giant_rat.png`
-- [ ] `giant_spider.png`
-- [ ] `gelatinous_cube.png`
+- [x] `giant_rat.png`
+- [x] `giant_spider.png`
+- [x] `gelatinous_cube.png`
 - [ ] `troll.png`
 - [ ] `ogre.png`
 - [ ] `wraith.png`
@@ -322,8 +322,8 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - [ ] `lich.png`
 - [ ] `imp.png`
 - [x] `daemon.png`
-- [ ] `balron.png`
-- [ ] `dragon.png`
+- [x] `balron.png`
+- [x] `dragon.png`
 - [ ] `pirate.png`
 - [ ] `sea_serpent.png`
 - [ ] `guard.png`
