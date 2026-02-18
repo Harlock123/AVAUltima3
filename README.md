@@ -119,10 +119,21 @@ UltimaIII.sln
 - **Towns**: 32x32 with shops, paths, signs, and decorative features
 - **Dungeons**: 8 levels deep with stairs, traps, secret doors, and treasure
 
+### Tavern Recruitment
+- **Recruitable NPCs**: Each town's tavern has a randomly generated companion available
+- **Recruit Tab**: Press 3 in the tavern to browse the available NPC's stats, race, and class
+- **Direct Recruit**: If the party has an open slot (fewer than 4 members), the NPC joins immediately
+- **Swap System**: If the party is full, choose which member to leave behind at the tavern
+- **Parked Characters**: Left-behind characters remain at the tavern and can be recruited later
+- **Persistent**: Tavern NPCs and parked characters save and load with the game
+
 ### Audio System
-- **Procedural Chiptune Audio**: All music and sound effects generated programmatically
+- **OGG Music Support**: Place `.ogg` files in `Assets/Music/` to replace any synthesized track (e.g., `Overworld.ogg`, `Combat.ogg`, `Town.ogg`)
+- **Automatic Fallback**: Tracks without a matching OGG file use procedural chiptune synthesis
+- **Smart Track Matching**: Dungeon-specific combat tracks (e.g., `CombatDoom`) fall back to `Combat.ogg` if no specific file exists; same for dungeon exploration tracks
+- **Procedural Chiptune Audio**: Built-in synthesized music and sound effects as default
 - **Waveform Synthesis**: Square, triangle, sawtooth waves, and white noise
-- **Cross-Platform**: Uses Silk.NET.OpenAL for Windows, macOS, and Linux support
+- **Cross-Platform**: Uses Silk.NET.OpenAL for Windows (x64/ARM64), macOS (Intel/Apple Silicon), and Linux support
 - **Music Tracks**:
   - Main Menu - Epic/mysterious arpeggios
   - Overworld - Adventurous march (day/night variations)
@@ -203,8 +214,8 @@ dotnet run --project src/UltimaIII.Avalonia
 |-----|--------|
 | W/S / Up/Down | Browse items |
 | A/D / Left/Right | Switch character |
-| Enter / Space | Confirm purchase/sale/equip |
-| 1-4 | Switch tab (Buy/Sell/Equip/Services) |
+| Enter / Space | Confirm purchase/sale/equip/recruit |
+| 1-4 | Switch tab (Buy/Sell/Recruit/Equip/Services) |
 | Tab | Cycle tabs |
 | Q | Toggle sell source (Character/Party inventory) |
 | Esc | Leave shop |
@@ -296,10 +307,10 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - [x] `ranger.png`
 
 **Monsters (by ID):**
-- [ ] `orc.png`
-- [ ] `goblin.png`
-- [ ] `skeleton.png`
-- [ ] `zombie.png`
+- [x] `orc.png`
+- [x] `goblin.png`
+- [x] `skeleton.png`
+- [x] `zombie.png`
 - [ ] `ghoul.png`
 - [ ] `giant_rat.png`
 - [ ] `giant_spider.png`
@@ -310,7 +321,7 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - [ ] `vampire.png`
 - [ ] `lich.png`
 - [ ] `imp.png`
-- [ ] `daemon.png`
+- [x] `daemon.png`
 - [ ] `balron.png`
 - [ ] `dragon.png`
 - [ ] `pirate.png`
@@ -329,7 +340,7 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - **UI**: Avalonia UI 11.2
 - **Pattern**: MVVM with CommunityToolkit.Mvvm
 - **Graphics**: Custom tile rendering with retro CGA/EGA color palette
-- **Audio**: Silk.NET.OpenAL for cross-platform procedural audio synthesis
+- **Audio**: Silk.NET.OpenAL for cross-platform audio, NVorbis for OGG Vorbis decoding
 
 ## License
 
