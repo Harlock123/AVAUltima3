@@ -263,9 +263,9 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 - [ ] `dungeonentrance.png`
 
 **Structures:**
-- [ ] `wall.png`
-- [ ] `floor.png`
-- [ ] `door.png`
+- [x] `wall.png`
+- [x] `floor.png`
+- [x] `door.png`
 - [ ] `lockeddoor.png`
 - [ ] `secretdoor.png`
 - [ ] `castlewall.png`
@@ -274,8 +274,8 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 - [ ] `sign.png`
 
 **Dungeon Features:**
-- [ ] `stairsup.png`
-- [ ] `stairsdown.png`
+- [x] `stairsup.png`
+- [x] `stairsdown.png`
 - [ ] `ladder.png`
 - [ ] `pit.png`
 - [ ] `ceilinghole.png`
