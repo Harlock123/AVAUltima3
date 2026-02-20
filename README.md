@@ -79,8 +79,10 @@ UltimaIII.sln
 - **Loot Drops**: Defeated monsters can drop weapons, armor, shields, and consumables based on per-monster loot tables
 
 ### Magic System
-- **Wizard Spells**: 16 spells (offensive, utility, teleportation)
-- **Cleric Spells**: 16 spells (healing, protection, cure, resurrection)
+- **Wizard Spells**: 19 spells (offensive, utility, teleportation)
+  - Includes AOE: Vas Flam (fireball), Grav Por (ice storm), Noxum (poison cloud), Dag Mentar (confusion), Xen Ang (chain lightning)
+- **Cleric Spells**: 19 spells (healing, protection, cure, resurrection, holy offense)
+  - Includes AOE: Vas Sanct (holy nova), An Corp (divine judgment), Sominae (sleep)
 - **Status Cures**: Sanctu cures poison; Lib Rec removes all ailments (poison, confusion, sleep, paralysis)
 - **Combat Casting**: CuresStatus spells work in combat to heal afflicted party members
 - **Field Casting**: Press C outside of combat to cast support spells — heal injured allies, cure poison or paralysis, resurrect fallen party members, and more without needing a Healer shop

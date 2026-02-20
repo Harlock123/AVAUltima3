@@ -32,6 +32,11 @@ public enum SpellType
     Malor,      // O - Great teleport
     Anju_Sermani, // P - Kill
 
+    // Wizard AOE Spells (expanded)
+    Vas_Flam,     // Fireball
+    Grav_Por,     // Ice Storm
+    Xen_Ang,      // Chain Lightning
+
     // Cleric Spells (A-P)
     Pontori,    // A - Heal
     Appar_Unem, // B - Protection from undead
@@ -48,5 +53,10 @@ public enum SpellType
     Zxkuqyb,    // M - Death
     Xen_Corp,   // N - Mass healing
     Yaulp,      // O - Divine power
-    Vas_Mani    // P - Great healing
+    Vas_Mani,   // P - Great healing
+
+    // Cleric AOE/Healing Spells (expanded)
+    Mani,       // Moderate heal
+    Vas_Sanct,  // Holy Nova
+    An_Corp     // Divine Judgment
 }

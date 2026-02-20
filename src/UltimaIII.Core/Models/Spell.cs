@@ -222,6 +222,53 @@ public class Spell
             IsCombatOnly = true
         },
 
+        // Wizard AOE Spells (expanded)
+        [SpellType.Vas_Flam] = new Spell
+        {
+            Type = SpellType.Vas_Flam,
+            Name = "Vas Flam",
+            Description = "Hurls an exploding fireball",
+            School = SpellSchool.Wizard,
+            Level = 6,
+            ManaCost = 14,
+            MinDamage = 20,
+            MaxDamage = 35,
+            Range = 5,
+            AreaOfEffect = 2,
+            TargetsEnemy = true,
+            IsCombatOnly = true
+        },
+        [SpellType.Grav_Por] = new Spell
+        {
+            Type = SpellType.Grav_Por,
+            Name = "Grav Por",
+            Description = "Unleashes a storm of ice shards",
+            School = SpellSchool.Wizard,
+            Level = 9,
+            ManaCost = 20,
+            MinDamage = 25,
+            MaxDamage = 40,
+            Range = 5,
+            AreaOfEffect = 2,
+            TargetsEnemy = true,
+            IsCombatOnly = true
+        },
+        [SpellType.Xen_Ang] = new Spell
+        {
+            Type = SpellType.Xen_Ang,
+            Name = "Xen Ang",
+            Description = "Arcs lightning across a wide area",
+            School = SpellSchool.Wizard,
+            Level = 14,
+            ManaCost = 30,
+            MinDamage = 35,
+            MaxDamage = 60,
+            Range = 6,
+            AreaOfEffect = 3,
+            TargetsEnemy = true,
+            IsCombatOnly = true
+        },
+
         // Cleric Spells
         [SpellType.Pontori] = new Spell
         {
@@ -405,6 +452,50 @@ public class Spell
             ManaCost = 45,
             HealAmount = 999,
             TargetsParty = true
+        },
+
+        // Cleric AOE/Healing Spells (expanded)
+        [SpellType.Mani] = new Spell
+        {
+            Type = SpellType.Mani,
+            Name = "Mani",
+            Description = "Moderate healing",
+            School = SpellSchool.Cleric,
+            Level = 4,
+            ManaCost = 10,
+            HealAmount = 40,
+            TargetsSelf = true,
+            TargetsParty = true
+        },
+        [SpellType.Vas_Sanct] = new Spell
+        {
+            Type = SpellType.Vas_Sanct,
+            Name = "Vas Sanct",
+            Description = "Erupts in a burst of holy light",
+            School = SpellSchool.Cleric,
+            Level = 7,
+            ManaCost = 16,
+            MinDamage = 20,
+            MaxDamage = 35,
+            Range = 4,
+            AreaOfEffect = 2,
+            TargetsEnemy = true,
+            IsCombatOnly = true
+        },
+        [SpellType.An_Corp] = new Spell
+        {
+            Type = SpellType.An_Corp,
+            Name = "An Corp",
+            Description = "Calls divine judgment upon foes",
+            School = SpellSchool.Cleric,
+            Level = 12,
+            ManaCost = 28,
+            MinDamage = 30,
+            MaxDamage = 50,
+            Range = 5,
+            AreaOfEffect = 2,
+            TargetsEnemy = true,
+            IsCombatOnly = true
         }
     };
 
