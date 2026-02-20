@@ -1,4 +1,5 @@
 using System;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UltimaIII.Avalonia.Services.Audio;
@@ -21,6 +22,12 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _hasSaveFile;
+
+    [ObservableProperty]
+    private bool _isScreenshotMode = false;
+
+    [ObservableProperty]
+    private ScreenshotViewModel? _screenshotVm;
 
     public MainViewModel()
     {
@@ -162,5 +169,34 @@ public partial class MainViewModel : ViewModelBase
         var withoutPrefix = mapId["dungeon_".Length..];
         var underscoreIndex = withoutPrefix.IndexOf('_');
         return underscoreIndex > 0 ? withoutPrefix[..underscoreIndex] : withoutPrefix;
+    }
+
+    public void OpenScreenshot(RenderTargetBitmap capturedBitmap, string defaultName)
+    {
+        if (IsScreenshotMode) return;
+        IsScreenshotMode = true;
+        ScreenshotVm = new ScreenshotViewModel(this, capturedBitmap, defaultName);
+    }
+
+    public void CloseScreenshot(string? message = null)
+    {
+        ScreenshotVm?.Dispose();
+        IsScreenshotMode = false;
+        ScreenshotVm = null;
+        if (message != null && CurrentView is GameViewModel gameVm)
+            gameVm.GameEngine.AddMessage(message);
+    }
+
+    public string GetCurrentScreenName()
+    {
+        if (IsMainMenuVisible) return "MainMenu";
+        return CurrentView switch
+        {
+            GameViewModel gameVm => gameVm.GetCurrentModeName(),
+            LoadGameViewModel => "LoadGame",
+            CharacterCreationViewModel => "CharacterCreation",
+            FortuneTellerViewModel => "FortuneTeller",
+            _ => "Screenshot"
+        };
     }
 }

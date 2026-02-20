@@ -99,5 +99,14 @@
                 </DataTemplate>
             </ContentControl.DataTemplates>
         </ContentControl>
+
+        <!-- Screenshot Dialog (on top of all screens) -->
+        <ContentControl Content="{Binding ScreenshotVm}" IsVisible="{Binding IsScreenshotMode}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="vm:ScreenshotViewModel">
+                    <views:ScreenshotView/>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
     </Grid>
 </Window>

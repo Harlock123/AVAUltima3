@@ -401,6 +401,17 @@ public partial class GameViewModel : ViewModelBase
         RefreshDisplay();
     }
 
+    public string GetCurrentModeName()
+    {
+        if (IsCombatMode) return "Combat";
+        if (IsShopMode) return "Shop";
+        if (IsInventoryMode) return "Inventory";
+        if (IsQuestDialogMode) return "QuestDialog";
+        if (IsQuestLogMode) return "QuestLog";
+        if (IsFieldSpellMode) return "FieldSpell";
+        return _gameEngine.State.ToString();
+    }
+
     private void TryTalkToNpc()
     {
         if (IsCombatMode || IsShopMode || IsQuestDialogMode || IsQuestLogMode) return;

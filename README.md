@@ -2,6 +2,16 @@
 
 A faithful recreation of the classic 1983 RPG "Ultima III: Exodus" using .NET 9 and Avalonia UI for cross-platform compatibility.
 
+## Screenshots
+
+| Main Menu | Overworld | Town |
+|-----------|-----------|------|
+| ![Main Menu](Screenshots/MainMenu_2026-02-20.png) | ![Overworld](Screenshots/Overworld_2026-02-20.png) | ![Town](Screenshots/Town_2026-02-20.png) |
+
+| Combat | Dungeon | Character Creation |
+|--------|---------|-------------------|
+| ![Combat](Screenshots/Combat_2026-02-20.png) | ![Dungeon](Screenshots/Dungeon_2026-02-20.png) | ![Character Creation](Screenshots/CharacterCreation_2026-02-20.png) |
+
 ## Author
 
 **Lonnie Watson**
@@ -56,6 +66,7 @@ UltimaIII.sln
 - **Fog of War**: Exploration reveals the map
 - **Safe Zones**: Towns have no random encounters
 - **Save/Load**: Persistent game saves with full party, inventory, and quest state
+- **Screenshots**: Press Ctrl+Shift+S on any screen (main menu, gameplay, combat, shops, etc.) to capture a PNG screenshot with a custom name (defaults to current screen + date)
 
 ### Combat System
 - **Turn-Based Tactical Combat**: 11x11 grid
@@ -175,6 +186,7 @@ dotnet run --project src/UltimaIII.Avalonia
 | I | Open Party Inventory |
 | J | Open Quest Log |
 | X | Exit current location |
+| Ctrl+Shift+S | Take screenshot |
 | F5 | Save game |
 | F12 | Quit game |
 
