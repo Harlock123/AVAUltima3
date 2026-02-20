@@ -316,17 +316,17 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - [x] `giant_spider.png`
 - [x] `gelatinous_cube.png`
 - [x] `troll.png`
-- [ ] `ogre.png`
-- [ ] `wraith.png`
-- [ ] `vampire.png`
-- [ ] `lich.png`
+- [x] `ogre.png`
+- [x] `wraith.png`
+- [x] `vampire.png`
+- [x] `lich.png`
 - [x] `imp.png`
 - [x] `daemon.png`
 - [x] `balron.png`
 - [x] `dragon.png`
-- [ ] `pirate.png`
-- [ ] `sea_serpent.png`
-- [ ] `guard.png`
+- [x] `pirate.png`
+- [x] `sea_serpent.png`
+- [x] `guard.png`
 
 **Combat Terrain (optional overrides):**
 - [ ] `combat_grass.png`
