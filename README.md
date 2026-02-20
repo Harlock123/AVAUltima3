@@ -341,10 +341,10 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 - [x] `guard.png`
 
 **Combat Terrain (optional overrides):**
-- [ ] `combat_grass.png`
-- [ ] `combat_forest.png`
+- [x] `combat_grass.png`
+- [x] `combat_forest.png`
 - [ ] `combat_mountain.png`
-- [ ] `combat_floor.png`
+- [x] `combat_floor.png`
 
 ## Technical Details
 

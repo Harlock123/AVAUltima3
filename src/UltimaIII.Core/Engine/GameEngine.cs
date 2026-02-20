@@ -513,7 +513,7 @@ public class GameEngine
         var monsters = GenerateEncounter();
         if (monsters.Count == 0) return;
 
-        var terrain = CurrentMap?.GetTile(Party.X, Party.Y).Type ?? TileType.Grass;
+        var terrain = NormalizeCombatTerrain(CurrentMap?.GetTile(Party.X, Party.Y).Type ?? TileType.Grass);
         StartCombat(monsters, terrain);
     }
 
@@ -546,6 +546,27 @@ public class GameEngine
         }
 
         return monsters;
+    }
+
+    private TileType NormalizeCombatTerrain(TileType tile)
+    {
+        // Only allow standard terrain types for combat arenas
+        return tile switch
+        {
+            TileType.Grass => TileType.Grass,
+            TileType.Forest => TileType.Forest,
+            TileType.Mountain => TileType.Mountain,
+            TileType.Desert => TileType.Desert,
+            TileType.Swamp => TileType.Swamp,
+            // Dungeon and structure tiles normalize to Floor
+            TileType.Floor or TileType.StairsUp or TileType.StairsDown or
+            TileType.Door or TileType.LockedDoor or TileType.SecretDoor or
+            TileType.Trap or TileType.Pit or TileType.CeilingHole or
+            TileType.Altar or TileType.Fountain or TileType.Chest or
+            TileType.CastleFloor or TileType.Counter => TileType.Floor,
+            // Default: Grass for overworld, Floor for dungeons
+            _ => CurrentMap?.MapType == MapType.Dungeon ? TileType.Floor : TileType.Grass
+        };
     }
 
     public void StartCombat(List<Monster> monsters, TileType terrain = TileType.Grass)

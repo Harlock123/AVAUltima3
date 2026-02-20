@@ -138,6 +138,7 @@ public class CombatSystem
         Monsters.Clear();
         _turnOrder.Clear();
         CombatLog.Clear();
+        _fleeAttempts = 0;
 
         // Initialize terrain
         InitializeTerrain(baseTerrain);
@@ -436,18 +437,20 @@ public class CombatSystem
         return new CombatResult(true, $"{character.Name} casts {spell.Name}.");
     }
 
+    private int _fleeAttempts;
+
     private CombatResult AttemptFlee(CharacterCombatant character)
     {
-        // 50% chance to flee, modified by dexterity
-        int fleeChance = 50 + character.Character.Stats.Dexterity;
+        _fleeAttempts++;
+        // Base 50% + dexterity + 15% per previous failed attempt
+        int fleeChance = 50 + character.Character.Stats.Dexterity + (_fleeAttempts - 1) * 15;
         if (_rng.Next(100) < fleeChance)
         {
-            // Remove all party members from combat
             IsCombatActive = false;
             OnCombatEnd?.Invoke();
             return new CombatResult(true, "The party flees from combat!");
         }
-        return new CombatResult(true, $"{character.Name} fails to escape!");
+        return new CombatResult(true, $"{character.Name} fails to escape! ({_fleeAttempts} attempts)");
     }
 
     public void ExecuteMonsterTurn()
