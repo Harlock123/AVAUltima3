@@ -227,7 +227,9 @@ public class GameEngine
         CurrentMap.ClearVisibility();
         int radius = Party.IsNight ? 3 : 5;
 
-        if (State == GameState.Dungeon)
+        if (State == GameState.Town)
+            radius = 5; // Towns are always well-lit
+        else if (State == GameState.Dungeon)
             radius = 2;
 
         CurrentMap.RevealArea(Party.X, Party.Y, radius);
