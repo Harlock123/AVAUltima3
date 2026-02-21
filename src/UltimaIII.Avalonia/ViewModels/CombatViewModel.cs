@@ -99,7 +99,7 @@ public partial class CombatViewModel : ViewModelBase
 
     public CombatSystem Combat => _combat;
 
-    public event Action<int, int, bool>? OnSpellEffect;
+    public event Action<int, int, bool, bool>? OnSpellEffect; // (x, y, isBeneficial, isAoe)
 
     public CombatViewModel(CombatSystem combat, GameViewModel parentViewModel)
     {
@@ -124,10 +124,15 @@ public partial class CombatViewModel : ViewModelBase
         _combat.OnSpellEffect -= HandleSpellEffect;
     }
 
-    private void HandleSpellEffect(int x, int y, bool isBeneficial)
+    public DateTime LastSpellEffectTime { get; private set; }
+    public bool LastSpellWasAoe { get; private set; }
+
+    private void HandleSpellEffect(int x, int y, bool isBeneficial, bool isAoe)
     {
         _audioService.PlaySoundEffect(isBeneficial ? SoundEffect.SpellHeal : SoundEffect.SpellDamage);
-        OnSpellEffect?.Invoke(x, y, isBeneficial);
+        LastSpellEffectTime = DateTime.UtcNow;
+        LastSpellWasAoe = LastSpellWasAoe || isAoe;
+        OnSpellEffect?.Invoke(x, y, isBeneficial, isAoe);
     }
 
     private void OnCombatMessage(string message)
@@ -199,9 +204,9 @@ public partial class CombatViewModel : ViewModelBase
 
     private void OnCombatEnd()
     {
+        // ExitCombat on GameViewModel handles the spell effect delay.
         // Music is handled by MainViewModel.OnGameStateChanged when the engine
         // transitions back to the appropriate state (Dungeon/Overworld/Town).
-        // Playing Victory here would override the location music and loop forever.
         _parentViewModel.ExitCombat();
     }
 

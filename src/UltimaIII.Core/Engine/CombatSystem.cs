@@ -124,7 +124,7 @@ public class CombatSystem
     public event Action<string>? OnCombatMessage;
     public event Action? OnCombatEnd;
     public event Action? OnTurnChanged;
-    public event Action<int, int, bool>? OnSpellEffect; // (targetX, targetY, isBeneficial)
+    public event Action<int, int, bool, bool>? OnSpellEffect; // (targetX, targetY, isBeneficial, isAoe)
 
     public CombatSystem(Random? rng = null)
     {
@@ -377,6 +377,7 @@ public class CombatSystem
 
         // Execute spell effect
         bool isBeneficial = spell.HealAmount > 0 || spell.CuresStatus != StatusEffect.None;
+        bool isAoe = spell.AreaOfEffect > 0;
 
         if (spell.HealAmount > 0)
         {
@@ -385,26 +386,87 @@ public class CombatSystem
             if (target != null)
             {
                 target.Character.Heal(spell.HealAmount);
-                OnSpellEffect?.Invoke(targetX, targetY, true);
+                OnSpellEffect?.Invoke(targetX, targetY, true, false);
                 return new CombatResult(true, $"{character.Name} casts {spell.Name}, healing {target.Name} for {spell.HealAmount}!");
             }
         }
 
         if (spell.MinDamage > 0)
         {
-            // Damage spell
+            // Fire visual effect for all tiles in AOE radius (circular) or just center for single-target
+            if (isAoe)
+            {
+                for (int dx = -spell.AreaOfEffect; dx <= spell.AreaOfEffect; dx++)
+                {
+                    for (int dy = -spell.AreaOfEffect; dy <= spell.AreaOfEffect; dy++)
+                    {
+                        int ex = targetX + dx;
+                        int ey = targetY + dy;
+                        if (ex >= 0 && ex < GridWidth && ey >= 0 && ey < GridHeight
+                            && IsInAoeRadius(targetX, targetY, ex, ey, spell.AreaOfEffect))
+                            OnSpellEffect?.Invoke(ex, ey, false, true);
+                    }
+                }
+            }
+            else
+            {
+                OnSpellEffect?.Invoke(targetX, targetY, false, false);
+            }
+
+            // Damage the primary target if present
             var target = GetCombatantAt(targetX, targetY);
-            if (target == null)
+            var messages = new List<string>();
+            int totalDamage = 0;
+            bool anyKilled = false;
+
+            if (target != null)
+            {
+                int damage = spell.RollDamage(_rng);
+                target.TakeDamage(damage);
+                totalDamage += damage;
+                bool killed = !target.IsAlive;
+                if (killed) anyKilled = true;
+                messages.Add($"{character.Name} casts {spell.Name} on {target.Name} for {damage} damage!" + (killed ? " It is destroyed!" : ""));
+
+                if (spell.AppliesStatus != StatusEffect.None && target.IsAlive)
+                {
+                    target.Status |= spell.AppliesStatus;
+                    messages.Add($"{target.Name} is {spell.AppliesStatus}!");
+                }
+            }
+            else if (!isAoe)
+            {
                 return new CombatResult(true, $"{character.Name} casts {spell.Name} but hits nothing!");
+            }
+            else
+            {
+                messages.Add($"{character.Name} casts {spell.Name}!");
+            }
 
-            int damage = spell.RollDamage(_rng);
-            target.TakeDamage(damage);
-            OnSpellEffect?.Invoke(targetX, targetY, false);
+            // AOE: hit nearby monsters too
+            if (isAoe)
+            {
+                foreach (var monster in Monsters)
+                {
+                    if (monster == target || !monster.IsAlive) continue;
+                    if (IsInAoeRadius(targetX, targetY, monster.X, monster.Y, spell.AreaOfEffect))
+                    {
+                        int aoeDamage = spell.RollDamage(_rng);
+                        monster.TakeDamage(aoeDamage);
+                        totalDamage += aoeDamage;
+                        bool killed = !monster.IsAlive;
+                        if (killed) anyKilled = true;
+                        if (spell.AppliesStatus != StatusEffect.None && monster.IsAlive)
+                            monster.Status |= spell.AppliesStatus;
+                        messages.Add($"{monster.Name} is caught in the {spell.Name} for {aoeDamage} damage!" + (killed ? " It is destroyed!" : ""));
+                    }
+                }
+            }
 
-            bool killed = !target.IsAlive;
-            return new CombatResult(true,
-                $"{character.Name} casts {spell.Name} on {target.Name} for {damage} damage!" + (killed ? " It is destroyed!" : ""),
-                damage, killed);
+            foreach (var msg in messages)
+                LogMessage(msg);
+
+            return new CombatResult(true, messages[0], totalDamage, anyKilled);
         }
 
         if (spell.CuresStatus != StatusEffect.None)
@@ -416,7 +478,7 @@ public class CombatSystem
                 if (cured != StatusEffect.None)
                 {
                     target.Status &= ~spell.CuresStatus;
-                    OnSpellEffect?.Invoke(targetX, targetY, true);
+                    OnSpellEffect?.Invoke(targetX, targetY, true, false);
                     return new CombatResult(true, $"{character.Name} casts {spell.Name}, curing {target.Name} of {cured}!");
                 }
                 return new CombatResult(true, $"{character.Name} casts {spell.Name} on {target.Name}, but there is nothing to cure.");
@@ -425,13 +487,62 @@ public class CombatSystem
 
         if (spell.AppliesStatus != StatusEffect.None)
         {
+            // Fire visual effect for all tiles in AOE radius (circular)
+            if (isAoe)
+            {
+                for (int dx = -spell.AreaOfEffect; dx <= spell.AreaOfEffect; dx++)
+                {
+                    for (int dy = -spell.AreaOfEffect; dy <= spell.AreaOfEffect; dy++)
+                    {
+                        int ex = targetX + dx;
+                        int ey = targetY + dy;
+                        if (ex >= 0 && ex < GridWidth && ey >= 0 && ey < GridHeight
+                            && IsInAoeRadius(targetX, targetY, ex, ey, spell.AreaOfEffect))
+                            OnSpellEffect?.Invoke(ex, ey, false, true);
+                    }
+                }
+            }
+            else
+            {
+                OnSpellEffect?.Invoke(targetX, targetY, false, false);
+            }
+
             var target = GetCombatantAt(targetX, targetY);
+            var messages = new List<string>();
+
             if (target != null)
             {
                 target.Status |= spell.AppliesStatus;
-                OnSpellEffect?.Invoke(targetX, targetY, false);
-                return new CombatResult(true, $"{character.Name} casts {spell.Name} on {target.Name}!");
+                messages.Add($"{character.Name} casts {spell.Name} on {target.Name}!");
+                messages.Add($"{target.Name} is {spell.AppliesStatus}!");
             }
+            else if (!isAoe)
+            {
+                return new CombatResult(true, $"{character.Name} casts {spell.Name} but hits nothing!");
+            }
+            else
+            {
+                messages.Add($"{character.Name} casts {spell.Name}!");
+            }
+
+            // AOE: apply status to nearby monsters
+            if (isAoe)
+            {
+                foreach (var monster in Monsters)
+                {
+                    if (monster == target || !monster.IsAlive) continue;
+                    if (IsInAoeRadius(targetX, targetY, monster.X, monster.Y, spell.AreaOfEffect))
+                    {
+                        monster.Status |= spell.AppliesStatus;
+                        messages.Add($"{monster.Name} is caught in the {spell.Name}! {monster.Name} is {spell.AppliesStatus}!");
+                    }
+                }
+            }
+
+            foreach (var msg in messages)
+                LogMessage(msg);
+
+            return new CombatResult(true, messages[0]);
         }
 
         return new CombatResult(true, $"{character.Name} casts {spell.Name}.");
@@ -670,11 +781,13 @@ public class CombatSystem
 
     private void ExecuteMonsterSpell(MonsterCombatant monster, Spell spell, CharacterCombatant target)
     {
+        bool isAoe = spell.AreaOfEffect > 0;
+
         if (spell.MinDamage > 0)
         {
             int damage = spell.RollDamage(_rng);
             target.TakeDamage(damage);
-            OnSpellEffect?.Invoke(target.X, target.Y, false);
+            OnSpellEffect?.Invoke(target.X, target.Y, false, isAoe);
 
             bool killed = !target.IsAlive;
             string msg = killed
@@ -689,17 +802,16 @@ public class CombatSystem
             }
 
             // AOE: hit nearby player characters too
-            if (spell.AreaOfEffect > 0)
+            if (isAoe)
             {
                 foreach (var pc in PlayerCharacters)
                 {
                     if (pc == target || !pc.IsAlive) continue;
-                    int dist = Math.Max(Math.Abs(target.X - pc.X), Math.Abs(target.Y - pc.Y));
-                    if (dist <= spell.AreaOfEffect)
+                    if (IsInAoeRadius(target.X, target.Y, pc.X, pc.Y, spell.AreaOfEffect))
                     {
                         int aoeDamage = spell.RollDamage(_rng);
                         pc.TakeDamage(aoeDamage);
-                        OnSpellEffect?.Invoke(pc.X, pc.Y, false);
+                        OnSpellEffect?.Invoke(pc.X, pc.Y, false, true);
                         if (spell.AppliesStatus != StatusEffect.None)
                             pc.Status |= spell.AppliesStatus;
                         LogMessage($"{pc.Name} is caught in the {spell.Name} for {aoeDamage} damage!");
@@ -710,10 +822,18 @@ public class CombatSystem
         else if (spell.AppliesStatus != StatusEffect.None)
         {
             target.Status |= spell.AppliesStatus;
-            OnSpellEffect?.Invoke(target.X, target.Y, false);
+            OnSpellEffect?.Invoke(target.X, target.Y, false, isAoe);
             LogMessage($"{monster.Name} casts {spell.Name} on {target.Name}!");
             LogMessage($"{target.Name} is {spell.AppliesStatus}!");
         }
+    }
+
+    private static bool IsInAoeRadius(int centerX, int centerY, int x, int y, int radius)
+    {
+        int dx = centerX - x;
+        int dy = centerY - y;
+        // Use radius + 0.5 so that tiles whose center is within the circle are included
+        return dx * dx + dy * dy <= (radius + 0.5) * (radius + 0.5);
     }
 
     private bool IsValidMove(int x, int y)

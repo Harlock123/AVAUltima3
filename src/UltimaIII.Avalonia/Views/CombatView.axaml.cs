@@ -48,9 +48,9 @@ public partial class CombatView : UserControl
         }
     }
 
-    private void OnSpellEffect(int x, int y, bool isBeneficial)
+    private void OnSpellEffect(int x, int y, bool isBeneficial, bool isAoe)
     {
-        Dispatcher.UIThread.Post(() => CombatMap?.ShowSpellEffect(x, y, isBeneficial));
+        Dispatcher.UIThread.Post(() => CombatMap?.ShowSpellEffect(x, y, isBeneficial, isAoe));
     }
 
     private void OnTargetSelected(object? sender, TargetSelectedEventArgs e)

@@ -73,10 +73,11 @@ public class CombatMapControl : Control
     private static readonly IBrush DefaultTerrainBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60));
 
     // Spell effect animation
-    private record SpellEffect(int X, int Y, bool IsBeneficial, DateTime StartTime, int Seed);
+    private record SpellEffect(int X, int Y, bool IsBeneficial, DateTime StartTime, int Seed, double DurationMs);
     private readonly List<SpellEffect> _activeEffects = new();
     private DispatcherTimer? _effectTimer;
     private const double EffectDurationMs = 600;
+    private const double AoeEffectDurationMs = 1200;
 
     static CombatMapControl()
     {
@@ -95,16 +96,17 @@ public class CombatMapControl : Control
         ClipToBounds = true;
     }
 
-    public void ShowSpellEffect(int x, int y, bool isBeneficial)
+    public void ShowSpellEffect(int x, int y, bool isBeneficial, bool isAoe = false)
     {
-        _activeEffects.Add(new SpellEffect(x, y, isBeneficial, DateTime.UtcNow, (x * 31 + y * 17) ^ Environment.TickCount));
+        double duration = isAoe ? AoeEffectDurationMs : EffectDurationMs;
+        _activeEffects.Add(new SpellEffect(x, y, isBeneficial, DateTime.UtcNow, (x * 31 + y * 17) ^ Environment.TickCount, duration));
 
         if (_effectTimer == null)
         {
             _effectTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
             _effectTimer.Tick += (_, _) =>
             {
-                _activeEffects.RemoveAll(e => (DateTime.UtcNow - e.StartTime).TotalMilliseconds > EffectDurationMs);
+                _activeEffects.RemoveAll(e => (DateTime.UtcNow - e.StartTime).TotalMilliseconds > e.DurationMs);
                 if (_activeEffects.Count == 0)
                 {
                     _effectTimer.Stop();
@@ -252,7 +254,7 @@ public class CombatMapControl : Control
         foreach (var effect in _activeEffects)
         {
             double elapsed = (now - effect.StartTime).TotalMilliseconds;
-            double progress = Math.Clamp(elapsed / EffectDurationMs, 0, 1);
+            double progress = Math.Clamp(elapsed / effect.DurationMs, 0, 1);
 
             // Alpha fades out over the duration
             byte alpha = (byte)(255 * (1.0 - progress));

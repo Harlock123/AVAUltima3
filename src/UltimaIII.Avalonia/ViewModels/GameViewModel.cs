@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UltimaIII.Avalonia.Services.Audio;
@@ -350,11 +352,29 @@ public partial class GameViewModel : ViewModelBase
         CombatVm = new CombatViewModel(_gameEngine.Combat, this);
     }
 
-    public void ExitCombat()
+    private bool _exitingCombat;
+
+    public async void ExitCombat()
     {
+        if (_exitingCombat) return;
+        _exitingCombat = true;
+
+        // Wait for spell effects to finish playing before closing combat
+        if (CombatVm != null)
+        {
+            var elapsed = (DateTime.UtcNow - CombatVm.LastSpellEffectTime).TotalMilliseconds;
+            double effectDuration = CombatVm.LastSpellWasAoe ? 1200 : 600;
+            if (elapsed < effectDuration)
+            {
+                var delayMs = (int)(effectDuration - elapsed) + 100;
+                await Task.Delay(delayMs);
+            }
+        }
+
         CombatVm?.Cleanup();
         IsCombatMode = false;
         CombatVm = null;
+        _exitingCombat = false;
         RefreshDisplay();
     }
 
