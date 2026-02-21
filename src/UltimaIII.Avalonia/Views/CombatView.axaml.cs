@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -37,6 +38,7 @@ public partial class CombatView : UserControl
         if (_subscribedVm != null)
         {
             _subscribedVm.OnSpellEffect -= OnSpellEffect;
+            _subscribedVm.PropertyChanged -= OnVmPropertyChanged;
             _subscribedVm = null;
         }
 
@@ -44,7 +46,41 @@ public partial class CombatView : UserControl
         if (DataContext is CombatViewModel vm)
         {
             vm.OnSpellEffect += OnSpellEffect;
+            vm.PropertyChanged += OnVmPropertyChanged;
             _subscribedVm = vm;
+        }
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CombatViewModel.SelectedSpellIndex) && _subscribedVm != null)
+        {
+            ScrollSpellIntoView(_subscribedVm.SelectedSpellIndex);
+        }
+    }
+
+    private void ScrollSpellIntoView(int index)
+    {
+        if (index < 0) return;
+
+        // Each spell row is roughly 27px (13px font + 6+3 padding + 2 margin)
+        const double rowHeight = 27;
+        double targetTop = index * rowHeight;
+        double targetBottom = targetTop + rowHeight;
+
+        var sv = SpellScrollViewer;
+        if (sv == null) return;
+
+        var viewportHeight = sv.Viewport.Height;
+        var currentOffset = sv.Offset.Y;
+
+        if (targetBottom > currentOffset + viewportHeight)
+        {
+            sv.Offset = new global::Avalonia.Vector(0, targetBottom - viewportHeight);
+        }
+        else if (targetTop < currentOffset)
+        {
+            sv.Offset = new global::Avalonia.Vector(0, targetTop);
         }
     }
 
@@ -79,6 +115,7 @@ public partial class CombatView : UserControl
         if (_subscribedVm != null)
         {
             _subscribedVm.OnSpellEffect -= OnSpellEffect;
+            _subscribedVm.PropertyChanged -= OnVmPropertyChanged;
             _subscribedVm = null;
         }
     }

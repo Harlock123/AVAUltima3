@@ -168,6 +168,16 @@ public partial class ShopViewModel : ViewModelBase
         return null;
     }
 
+    private bool ShopWouldBuy(Item item)
+    {
+        return _shopDef.Type switch
+        {
+            ShopType.WeaponShop => item is Weapon,
+            ShopType.ArmorShop => item is Armor or Shield,
+            _ => true // Taverns and other shops accept anything
+        };
+    }
+
     private void RefreshItems()
     {
         Items.Clear();
@@ -200,7 +210,7 @@ public partial class ShopViewModel : ViewModelBase
                 {
                     foreach (var item in _gameEngine.Party.GetInventoryItems())
                     {
-                        if (item.Value > 0)
+                        if (item.Value > 0 && ShopWouldBuy(item))
                             Items.Add(new ShopItemViewModel(item, true, true, isSelling: true));
                     }
                 }
@@ -208,7 +218,7 @@ public partial class ShopViewModel : ViewModelBase
                 {
                     foreach (var item in character.Inventory)
                     {
-                        if (item.Value > 0)
+                        if (item.Value > 0 && ShopWouldBuy(item))
                             Items.Add(new ShopItemViewModel(item, true, true, isSelling: true));
                     }
                 }
@@ -217,6 +227,7 @@ public partial class ShopViewModel : ViewModelBase
             case ShopTab.Equip:
                 if (character != null)
                 {
+                    // Character inventory equipment
                     foreach (var item in character.Inventory)
                     {
                         if (item is Weapon or Armor or Shield)
@@ -226,6 +237,16 @@ public partial class ShopViewModel : ViewModelBase
                                               item == character.EquippedArmor ||
                                               item == character.EquippedShield;
                             Items.Add(new ShopItemViewModel(item, true, canUse, isEquipped: isEquipped));
+                        }
+                    }
+
+                    // Shared party inventory equipment
+                    foreach (var item in _gameEngine.Party.GetInventoryItems())
+                    {
+                        if (item is Weapon or Armor or Shield)
+                        {
+                            bool canUse = ShopEngine.CanCharacterUse(character, item);
+                            Items.Add(new ShopItemViewModel(item, true, canUse, isFromParty: true));
                         }
                     }
                 }
@@ -343,7 +364,10 @@ public partial class ShopViewModel : ViewModelBase
 
             case ShopTab.Equip:
                 if (selectedItem.Item == null) return;
-                result = ShopEngine.EquipItem(character, selectedItem.Item);
+                if (selectedItem.IsFromParty)
+                    result = ShopEngine.EquipFromParty(_gameEngine.Party, character, selectedItem.Item);
+                else
+                    result = ShopEngine.EquipItem(character, selectedItem.Item);
                 break;
 
             case ShopTab.Services:
@@ -638,6 +662,7 @@ public partial class ShopItemViewModel : ObservableObject
     public bool CanAfford { get; }
     public bool CanUse { get; }
     public bool IsEquipped { get; }
+    public bool IsFromParty { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
@@ -653,12 +678,13 @@ public partial class ShopItemViewModel : ObservableObject
             var price = Price > 0 ? $" {Price}g" : "";
             var usable = !CanUse ? " [Cannot use]" : "";
             var equipped = IsEquipped ? " [Equipped]" : "";
-            return $"{marker}{Name}{price}{usable}{equipped}";
+            var fromParty = IsFromParty ? " [Party]" : "";
+            return $"{marker}{Name}{price}{usable}{equipped}{fromParty}";
         }
     }
 
     // Constructor for real items
-    public ShopItemViewModel(Item item, bool canAfford, bool canUse, bool isSelling = false, bool isEquipped = false)
+    public ShopItemViewModel(Item item, bool canAfford, bool canUse, bool isSelling = false, bool isEquipped = false, bool isFromParty = false)
     {
         Item = item;
         Name = item.Name;
@@ -666,6 +692,7 @@ public partial class ShopItemViewModel : ObservableObject
         CanAfford = canAfford;
         CanUse = canUse;
         IsEquipped = isEquipped;
+        IsFromParty = isFromParty;
 
         StatsText = item switch
         {

@@ -84,39 +84,6 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Spell Selection -->
-                <StackPanel IsVisible="{Binding IsSelectingSpell}" HorizontalAlignment="Center" MaxWidth="600">
-                    <TextBlock Text="SELECT SPELL: W/S to browse, Enter to cast, Esc to cancel"
-                               FontSize="11"
-                               Foreground="#ffd700"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,6"/>
-                    <ScrollViewer MaxHeight="150" HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl ItemsSource="{Binding AvailableSpells}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="{x:Type vm:SpellChoiceViewModel}">
-                                    <TextBlock Text="{Binding DisplayText}"
-                                               FontSize="12"
-                                               Opacity="{Binding ItemOpacity}"
-                                               Margin="0,1"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                    <Border Background="#1a1a30" CornerRadius="4" Padding="8,4" Margin="0,6,0,0"
-                            MinHeight="20">
-                        <TextBlock Text="{Binding SelectedSpellDescription}"
-                                   FontSize="11"
-                                   Foreground="#a0c0ff"
-                                   TextWrapping="Wrap"
-                                   HorizontalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" Margin="0,6,0,0">
-                        <Button Content="[Enter] Cast" Command="{Binding ConfirmSpellSelectionCommand}"/>
-                        <Button Content="[Esc] Cancel" Command="{Binding CancelSpellSelectionCommand}"/>
-                    </StackPanel>
-                </StackPanel>
-
                 <!-- Target Selection -->
                 <StackPanel IsVisible="{Binding IsSelectingTarget}" HorizontalAlignment="Center">
                     <TextBlock Text="Select Target: Click to select, Double-click to confirm | WASD to move cursor, Enter/Space to confirm, Esc to cancel"
@@ -131,5 +98,66 @@
                 </StackPanel>
             </Grid>
         </Border>
+
+        <!-- Spell Selection Overlay -->
+        <Grid Grid.RowSpan="3" IsVisible="{Binding IsSelectingSpell}">
+            <Border Background="#80000000"/>
+            <Border Background="#0d0a1a" CornerRadius="8"
+                    BorderBrush="#4a4a8a" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="500" MaxHeight="450">
+                <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+                    <!-- Header -->
+                    <Border Grid.Row="0" Background="#1a1530" Padding="15,10" CornerRadius="6,6,0,0">
+                        <StackPanel>
+                            <TextBlock Text="CAST SPELL"
+                                       FontSize="20" FontWeight="Bold" Foreground="#ffd700"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding CurrentCombatantName, StringFormat='Caster: {0}'}"
+                                       FontSize="12" Foreground="#a0a0c0"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Spell List -->
+                    <Border Grid.Row="1" Padding="10,6" MinHeight="120">
+                        <ScrollViewer x:Name="SpellScrollViewer" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding AvailableSpells}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:SpellChoiceViewModel}">
+                                        <Border Padding="6,3" Margin="0,1"
+                                                CornerRadius="3"
+                                                Background="{Binding RowBackground}">
+                                            <TextBlock Text="{Binding DisplayText}"
+                                                       FontSize="13"
+                                                       Opacity="{Binding ItemOpacity}"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Spell Description -->
+                    <Border Grid.Row="2" Background="#1a1a30" Padding="10,6" Margin="8,2,8,6"
+                            CornerRadius="4" MinHeight="30">
+                        <TextBlock Text="{Binding SelectedSpellDescription}"
+                                   FontSize="11"
+                                   Foreground="#a0c0ff"
+                                   TextWrapping="Wrap"
+                                   HorizontalAlignment="Center"/>
+                    </Border>
+
+                    <!-- Controls Footer -->
+                    <Border Grid.Row="3" Background="#15120d" Padding="10,8" CornerRadius="0,0,6,6">
+                        <TextBlock Text="W/S: Browse   Enter: Cast   Esc: Cancel"
+                                   FontSize="11" Foreground="#606080"
+                                   HorizontalAlignment="Center"/>
+                    </Border>
+
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

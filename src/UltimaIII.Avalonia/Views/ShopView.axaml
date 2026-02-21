@@ -132,7 +132,7 @@
             <!-- Standard Item List (hidden on Recruit tab) -->
             <Border Grid.Row="4" Padding="10,6" MinHeight="150"
                     IsVisible="{Binding !IsRecruitTab}">
-                <ScrollViewer>
+                <ScrollViewer x:Name="ItemScrollViewer">
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ShopItemViewModel}">

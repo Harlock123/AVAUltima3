@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UltimaIII.Avalonia.Services.Audio;
@@ -569,6 +570,7 @@ public partial class SpellChoiceViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
+    [NotifyPropertyChangedFor(nameof(RowBackground))]
     private bool _isSelected;
 
     public string DisplayText
@@ -583,6 +585,10 @@ public partial class SpellChoiceViewModel : ObservableObject
     }
 
     public double ItemOpacity => CanAfford ? 1.0 : 0.5;
+
+    public IBrush RowBackground => IsSelected
+        ? new SolidColorBrush(Color.FromArgb(60, 100, 100, 200))
+        : Brushes.Transparent;
 
     public SpellChoiceViewModel(Spell spell, bool canAfford, bool isSelected)
     {
