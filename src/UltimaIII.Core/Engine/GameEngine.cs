@@ -537,7 +537,17 @@ public class GameEngine
         if (weightedMonsters.Count == 0)
             weightedMonsters = availableMonsters;
 
-        var selectedDef = weightedMonsters[_rng.Next(weightedMonsters.Count)];
+        // Quest-weighted encounters: monsters targeted by active quests get 3x weight
+        var questTargetIds = GetActiveQuestTargetMonsterIds();
+        var weightedPool = new List<MonsterDefinition>();
+        foreach (var m in weightedMonsters)
+        {
+            int weight = questTargetIds.Contains(m.Id) ? 3 : 1;
+            for (int w = 0; w < weight; w++)
+                weightedPool.Add(m);
+        }
+
+        var selectedDef = weightedPool[_rng.Next(weightedPool.Count)];
 
         // Scale enemy count: 1 to 2x party size
         int maxEnemies = Math.Max(1, Party.Count * 2);
@@ -548,6 +558,34 @@ public class GameEngine
         }
 
         return monsters;
+    }
+
+    private HashSet<string> GetActiveQuestTargetMonsterIds()
+    {
+        var ids = new HashSet<string>();
+        foreach (var progress in Party.QuestLog.GetAllProgress())
+        {
+            var quest = QuestRegistry.FindById(progress.QuestId);
+            if (quest == null) continue;
+
+            // Kill quests: boost the target monster types
+            if (quest.Type == QuestType.Kill && progress.KillCount < quest.Objective.TargetCount)
+            {
+                foreach (var monsterId in quest.Objective.TargetMonsterIds)
+                    ids.Add(monsterId);
+            }
+
+            // Fetch quests: boost monsters that drop the quest item
+            if (quest.Type == QuestType.Fetch)
+            {
+                foreach (var drop in QuestRegistry.GetFetchDropsForQuest(quest.Id))
+                {
+                    foreach (var monsterId in drop.DropMonsterIds)
+                        ids.Add(monsterId);
+                }
+            }
+        }
+        return ids;
     }
 
     private TileType NormalizeCombatTerrain(TileType tile)

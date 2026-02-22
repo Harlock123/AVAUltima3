@@ -294,6 +294,11 @@ public static class QuestRegistry
         return FetchDrops.Where(f => f.DropMonsterIds.Contains(monsterId)).ToList();
     }
 
+    public static List<FetchDropInfo> GetFetchDropsForQuest(string questId)
+    {
+        return FetchDrops.Where(f => f.QuestId == questId).ToList();
+    }
+
     public static List<QuestDefinition> GetQuestsForTown(string townId)
     {
         return AllQuests.Values.Where(q => q.GiverTownId == townId).ToList();
