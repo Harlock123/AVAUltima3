@@ -63,7 +63,7 @@
             <Grid>
                 <!-- Normal Actions -->
                 <StackPanel IsVisible="{Binding IsNormalMode}" HorizontalAlignment="Center">
-                    <TextBlock Text="WASD/Arrows: Move    T: Attack    C: Cast    P: Pass    F: Flee"
+                    <TextBlock Text="WASD/Arrows: Move    T: Attack    C: Cast    U: Use Item    P: Pass    F: Flee"
                                FontSize="11"
                                Foreground="#808080"
                                HorizontalAlignment="Center"
@@ -74,6 +74,9 @@
                                 IsEnabled="{Binding IsPlayerTurn}"/>
                         <Button Content="[C] Cast"
                                 Command="{Binding CastCommand}"
+                                IsEnabled="{Binding IsPlayerTurn}"/>
+                        <Button Content="[U] Use Item"
+                                Command="{Binding UseItemCommand}"
                                 IsEnabled="{Binding IsPlayerTurn}"/>
                         <Button Content="[P] Pass"
                                 Command="{Binding PassCommand}"
@@ -152,6 +155,66 @@
                     <!-- Controls Footer -->
                     <Border Grid.Row="3" Background="#15120d" Padding="10,8" CornerRadius="0,0,6,6">
                         <TextBlock Text="W/S: Browse   Enter: Cast   Esc: Cancel"
+                                   FontSize="11" Foreground="#606080"
+                                   HorizontalAlignment="Center"/>
+                    </Border>
+
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Item Selection Overlay -->
+        <Grid Grid.RowSpan="3" IsVisible="{Binding IsSelectingItem}">
+            <Border Background="#80000000"/>
+            <Border Background="#0d0a1a" CornerRadius="8"
+                    BorderBrush="#4a6a4a" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="400" MaxHeight="400">
+                <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+                    <!-- Header -->
+                    <Border Grid.Row="0" Background="#1a2510" Padding="15,10" CornerRadius="6,6,0,0">
+                        <StackPanel>
+                            <TextBlock Text="USE ITEM"
+                                       FontSize="20" FontWeight="Bold" Foreground="#90ee90"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding CurrentCombatantName, StringFormat='User: {0}'}"
+                                       FontSize="12" Foreground="#a0c0a0"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Item List -->
+                    <Border Grid.Row="1" Padding="10,6" MinHeight="80">
+                        <ScrollViewer x:Name="ItemScrollViewer" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding AvailableItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:CombatItemViewModel}">
+                                        <Border Padding="6,3" Margin="0,1"
+                                                CornerRadius="3"
+                                                Background="{Binding RowBackground}">
+                                            <TextBlock Text="{Binding DisplayText}"
+                                                       FontSize="13"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Item Description -->
+                    <Border Grid.Row="2" Background="#1a1a30" Padding="10,6" Margin="8,2,8,6"
+                            CornerRadius="4" MinHeight="24">
+                        <TextBlock Text="{Binding SelectedItemDescription}"
+                                   FontSize="11"
+                                   Foreground="#a0c0a0"
+                                   TextWrapping="Wrap"
+                                   HorizontalAlignment="Center"/>
+                    </Border>
+
+                    <!-- Controls Footer -->
+                    <Border Grid.Row="3" Background="#15120d" Padding="10,8" CornerRadius="0,0,6,6">
+                        <TextBlock Text="W/S: Browse   Enter: Use   Esc: Cancel"
                                    FontSize="11" Foreground="#606080"
                                    HorizontalAlignment="Center"/>
                     </Border>

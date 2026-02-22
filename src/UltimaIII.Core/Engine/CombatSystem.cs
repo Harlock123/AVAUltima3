@@ -1,3 +1,4 @@
+using System.Linq;
 using UltimaIII.Core.Enums;
 using UltimaIII.Core.Models;
 
@@ -113,10 +114,12 @@ public class CombatSystem
     private readonly List<ICombatant> _turnOrder = new();
     private int _currentTurnIndex;
     private TileType[,] _terrain;
+    private Party? _party;
 
     public List<CharacterCombatant> PlayerCharacters { get; } = new();
     public List<MonsterCombatant> Monsters { get; } = new();
     public bool IsCombatActive { get; private set; }
+    public Party? Party => _party;
     public ICombatant? CurrentCombatant => _turnOrder.Count > 0 ? _turnOrder[_currentTurnIndex] : null;
     public bool IsPlayerTurn => CurrentCombatant is CharacterCombatant;
     public List<string> CombatLog { get; } = new();
@@ -134,6 +137,7 @@ public class CombatSystem
 
     public void StartCombat(Party party, List<Monster> monsters, TileType baseTerrain = TileType.Grass)
     {
+        _party = party;
         PlayerCharacters.Clear();
         Monsters.Clear();
         _turnOrder.Clear();
@@ -270,6 +274,7 @@ public class CombatSystem
         {
             CombatActionType.Attack => ExecuteAttack(combatant, action.TargetX, action.TargetY),
             CombatActionType.Cast => ExecuteSpell(combatant, action.Spell!.Value, action.TargetX, action.TargetY),
+            CombatActionType.UseItem => ExecuteUseItem(combatant, action.ItemId),
             CombatActionType.Move => ExecuteMove(combatant, action.TargetX, action.TargetY),
             CombatActionType.Pass => new CombatResult(true, $"{combatant.Name} waits."),
             CombatActionType.Flee => AttemptFlee(combatant),
@@ -357,6 +362,39 @@ public class CombatSystem
         character.Y = targetY;
 
         return new CombatResult(true, $"{character.Name} moves.");
+    }
+
+    private CombatResult ExecuteUseItem(CharacterCombatant user, string? itemId)
+    {
+        if (_party == null || string.IsNullOrEmpty(itemId))
+            return new CombatResult(false, "No item selected.");
+
+        var item = _party.GetInventoryItems(ItemCategory.Consumable)
+            .OfType<Consumable>()
+            .FirstOrDefault(i => i.Id == itemId);
+
+        if (item == null)
+            return new CombatResult(false, "Item not found in inventory.");
+
+        var character = user.Character;
+
+        string message;
+        switch (item.Effect)
+        {
+            case "heal":
+                if (character.CurrentHP >= character.MaxHP)
+                    return new CombatResult(false, $"{character.Name} is already at full health.");
+                character.Heal(item.EffectStrength);
+                OnSpellEffect?.Invoke(user.X, user.Y, true, false);
+                message = $"{character.Name} uses {item.Name}, restoring {item.EffectStrength} HP!";
+                break;
+            default:
+                message = $"{character.Name} uses {item.Name}.";
+                break;
+        }
+
+        _party.RemoveFromInventory(item);
+        return new CombatResult(true, message);
     }
 
     private CombatResult ExecuteSpell(CharacterCombatant caster, SpellType spellType, int targetX, int targetY)

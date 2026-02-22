@@ -33,12 +33,22 @@ public partial class CombatViewModel : ViewModelBase
     private bool _isSelectingSpell;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNormalMode))]
+    [NotifyPropertyChangedFor(nameof(SelectedItemDescription))]
+    private bool _isSelectingItem;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedSpellDescription))]
     private int _selectedSpellIndex;
 
-    public ObservableCollection<SpellChoiceViewModel> AvailableSpells { get; } = new();
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedItemDescription))]
+    private int _selectedItemIndex;
 
-    public bool IsNormalMode => !IsSelectingTarget && !IsSelectingSpell;
+    public ObservableCollection<SpellChoiceViewModel> AvailableSpells { get; } = new();
+    public ObservableCollection<CombatItemViewModel> AvailableItems { get; } = new();
+
+    public bool IsNormalMode => !IsSelectingTarget && !IsSelectingSpell && !IsSelectingItem;
 
     public string SelectedSpellDescription
     {
@@ -79,6 +89,18 @@ public partial class CombatViewModel : ViewModelBase
                 parts.Add($"Target: {string.Join("/", targets)}");
 
             return string.Join("  |  ", parts);
+        }
+    }
+
+    public string SelectedItemDescription
+    {
+        get
+        {
+            if (!IsSelectingItem || SelectedItemIndex < 0 || SelectedItemIndex >= AvailableItems.Count)
+                return string.Empty;
+
+            var item = AvailableItems[SelectedItemIndex].Item;
+            return item.Description;
         }
     }
 
@@ -422,6 +444,79 @@ public partial class CombatViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void UseItem()
+    {
+        if (!IsPlayerTurn || !_combat.IsCombatActive) return;
+
+        var party = _combat.Party;
+        if (party == null) return;
+
+        var consumables = party.GetInventoryItems(UltimaIII.Core.Enums.ItemCategory.Consumable)
+            .OfType<Consumable>()
+            .ToList();
+
+        if (consumables.Count == 0)
+        {
+            CombatMessages.Add("No usable items!");
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+            return;
+        }
+
+        AvailableItems.Clear();
+        for (int i = 0; i < consumables.Count; i++)
+        {
+            AvailableItems.Add(new CombatItemViewModel(consumables[i], i == 0));
+        }
+
+        SelectedItemIndex = 0;
+        IsSelectingItem = true;
+        _audioService.PlaySoundEffect(SoundEffect.MenuSelect);
+    }
+
+    [RelayCommand]
+    private void ConfirmItemSelection()
+    {
+        if (!IsSelectingItem || SelectedItemIndex < 0 || SelectedItemIndex >= AvailableItems.Count) return;
+
+        var selectedItemVm = AvailableItems[SelectedItemIndex];
+        var item = selectedItemVm.Item;
+
+        IsSelectingItem = false;
+        AvailableItems.Clear();
+
+        var action = new CombatAction(CombatActionType.UseItem, ItemId: item.Id);
+        var result = _combat.ExecutePlayerAction(action);
+
+        if (result.Success)
+        {
+            _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+            _parentViewModel.RefreshPartyStats();
+        }
+        else
+        {
+            CombatMessages.Add(result.Message);
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+        }
+    }
+
+    [RelayCommand]
+    private void CancelItemSelection()
+    {
+        _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
+        IsSelectingItem = false;
+        AvailableItems.Clear();
+    }
+
+    private void MoveItemSelection(int delta)
+    {
+        if (AvailableItems.Count == 0) return;
+
+        AvailableItems[SelectedItemIndex].IsSelected = false;
+        SelectedItemIndex = Math.Clamp(SelectedItemIndex + delta, 0, AvailableItems.Count - 1);
+        AvailableItems[SelectedItemIndex].IsSelected = true;
+    }
+
+    [RelayCommand]
     private void MoveTarget(string direction)
     {
         if (!IsSelectingTarget) return;
@@ -456,6 +551,28 @@ public partial class CombatViewModel : ViewModelBase
                     break;
                 case "ESCAPE":
                     CancelSpellSelection();
+                    break;
+            }
+        }
+        else if (IsSelectingItem)
+        {
+            switch (key.ToUpper())
+            {
+                case "W":
+                case "UP":
+                    MoveItemSelection(-1);
+                    break;
+                case "S":
+                case "DOWN":
+                    MoveItemSelection(1);
+                    break;
+                case "RETURN":
+                case "ENTER":
+                case "SPACE":
+                    ConfirmItemSelection();
+                    break;
+                case "ESCAPE":
+                    CancelItemSelection();
                     break;
             }
         }
@@ -517,6 +634,9 @@ public partial class CombatViewModel : ViewModelBase
                     break;
                 case "C":
                     Cast();
+                    break;
+                case "U":
+                    UseItem();
                     break;
                 case "P":
                     Pass();
@@ -594,6 +714,36 @@ public partial class SpellChoiceViewModel : ObservableObject
     {
         Spell = spell;
         CanAfford = canAfford;
+        _isSelected = isSelected;
+    }
+}
+
+public partial class CombatItemViewModel : ObservableObject
+{
+    public Consumable Item { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    [NotifyPropertyChangedFor(nameof(RowBackground))]
+    private bool _isSelected;
+
+    public string DisplayText
+    {
+        get
+        {
+            var marker = IsSelected ? "> " : "  ";
+            var qty = Item.Quantity > 1 ? $" x{Item.Quantity}" : "";
+            return $"{marker}{Item.Name}{qty}";
+        }
+    }
+
+    public IBrush RowBackground => IsSelected
+        ? new SolidColorBrush(Color.FromArgb(60, 100, 100, 200))
+        : Brushes.Transparent;
+
+    public CombatItemViewModel(Consumable item, bool isSelected)
+    {
+        Item = item;
         _isSelected = isSelected;
     }
 }

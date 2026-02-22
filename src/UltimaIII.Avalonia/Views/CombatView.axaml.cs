@@ -57,6 +57,10 @@ public partial class CombatView : UserControl
         {
             ScrollSpellIntoView(_subscribedVm.SelectedSpellIndex);
         }
+        else if (e.PropertyName == nameof(CombatViewModel.SelectedItemIndex) && _subscribedVm != null)
+        {
+            ScrollItemIntoView(_subscribedVm.SelectedItemIndex);
+        }
     }
 
     private void ScrollSpellIntoView(int index)
@@ -69,6 +73,30 @@ public partial class CombatView : UserControl
         double targetBottom = targetTop + rowHeight;
 
         var sv = SpellScrollViewer;
+        if (sv == null) return;
+
+        var viewportHeight = sv.Viewport.Height;
+        var currentOffset = sv.Offset.Y;
+
+        if (targetBottom > currentOffset + viewportHeight)
+        {
+            sv.Offset = new global::Avalonia.Vector(0, targetBottom - viewportHeight);
+        }
+        else if (targetTop < currentOffset)
+        {
+            sv.Offset = new global::Avalonia.Vector(0, targetTop);
+        }
+    }
+
+    private void ScrollItemIntoView(int index)
+    {
+        if (index < 0) return;
+
+        const double rowHeight = 27;
+        double targetTop = index * rowHeight;
+        double targetBottom = targetTop + rowHeight;
+
+        var sv = ItemScrollViewer;
         if (sv == null) return;
 
         var viewportHeight = sv.Viewport.Height;

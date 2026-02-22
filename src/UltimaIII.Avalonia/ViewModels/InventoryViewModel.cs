@@ -168,6 +168,12 @@ public partial class InventoryViewModel : ViewModelBase
         var character = GetSelectedCharacter();
         if (character == null) return;
 
+        if (selectedItem.Item is Consumable consumable)
+        {
+            UseConsumable(character, consumable);
+            return;
+        }
+
         if (selectedItem.Item is not (Weapon or Armor or Shield))
         {
             StatusMessage = "Cannot equip that item.";
@@ -179,6 +185,49 @@ public partial class InventoryViewModel : ViewModelBase
         _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
         RefreshItems();
         PartyGold = _gameEngine.Party.Gold;
+        _parentViewModel.RefreshPartyStats();
+    }
+
+    private void UseConsumable(Character character, Consumable consumable)
+    {
+        if (!character.IsAlive)
+        {
+            StatusMessage = $"{character.Name} is dead!";
+            _audioService.PlaySoundEffect(SoundEffect.Blocked);
+            return;
+        }
+
+        string result;
+        switch (consumable.Effect)
+        {
+            case "heal":
+                if (character.CurrentHP >= character.MaxHP)
+                {
+                    StatusMessage = $"{character.Name} is already at full health.";
+                    _audioService.PlaySoundEffect(SoundEffect.Blocked);
+                    return;
+                }
+                character.Heal(consumable.EffectStrength);
+                result = $"{character.Name} uses {consumable.Name}, restoring {consumable.EffectStrength} HP!";
+                break;
+
+            case "light":
+                result = $"{character.Name} uses a {consumable.Name}. The way ahead is lit!";
+                break;
+
+            case "unlock":
+                result = $"{character.Name} readies the {consumable.Name}.";
+                break;
+
+            default:
+                result = $"{character.Name} uses {consumable.Name}.";
+                break;
+        }
+
+        _gameEngine.Party.RemoveFromInventory(consumable);
+        StatusMessage = result;
+        _audioService.PlaySoundEffect(SoundEffect.MenuConfirm);
+        RefreshItems();
         _parentViewModel.RefreshPartyStats();
     }
 
