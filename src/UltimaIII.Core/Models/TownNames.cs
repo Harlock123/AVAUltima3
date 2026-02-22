@@ -33,6 +33,11 @@ public static class TownNames
         {
             "The Weary Traveler", "Moonlight Rest", "Hearthstone Inn",
             "The Cozy Hearth", "Pilgrim's Lodge", "The Soft Pillow"
+        },
+        ["temple"] = new()
+        {
+            "Temple of the Stars", "The Gemforge", "Shrine of Brilliance",
+            "The Crystal Sanctum", "The Radiant Altar", "The Jeweled Shrine"
         }
     };
 

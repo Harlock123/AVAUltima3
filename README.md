@@ -76,7 +76,8 @@ UltimaIII.sln
 - **Target Selection**: Keyboard (WASD) or mouse (click to select, double-click to confirm)
 - **Monster AI**: Simple pathfinding and attack behavior
 - **20+ Monster Types**: Orcs, Skeletons, Dragons, Demons, etc.
-- **Loot Drops**: Defeated monsters can drop weapons, armor, shields, and consumables based on per-monster loot tables
+- **Loot Drops**: Defeated monsters can drop weapons, armor, shields, consumables, and gems based on per-monster loot tables
+- **Gem Combat Effects**: Socketed gems provide passive bonuses during combat -- bonus damage, lifesteal, damage reflection, status resistance, and more
 
 ### Magic System
 - **Wizard Spells**: 19 spells (offensive, utility, teleportation)
@@ -89,11 +90,12 @@ UltimaIII.sln
 - **Class Restrictions**: Each class has access to different spell levels
 
 ### Shop System
-- **6 Shop Types**: Weapon Shop, Armor Shop, Tavern, Healer, Guild, Inn
+- **7 Shop Types**: Weapon Shop, Armor Shop, Tavern, Healer, Guild, Inn, Temple
 - **Unique Shop Names**: Each town has procedurally named shops (e.g. "The Rusty Blade", "The Silver Stag")
 - **Buy/Sell/Equip Tabs**: Purchase equipment, sell items, and equip gear
 - **Party Inventory Selling**: Press Q on the Sell tab to toggle between selling from character inventory or party inventory
 - **Services**: Healing, cure, resurrection (Healer); rest to restore HP/MP (Inn); food (Tavern)
+- **Temple**: Socket gems into equipment (see Gem Socketing System below)
 - **Class Restrictions**: Equipment restricted by character class
 
 ### Party Inventory System
@@ -139,6 +141,76 @@ UltimaIII.sln
 - **Swap System**: If the party is full, choose which member to leave behind at the tavern
 - **Parked Characters**: Left-behind characters remain at the tavern and can be recruited later
 - **Persistent**: Tavern NPCs and parked characters save and load with the game
+
+### Gem Socketing System
+
+Gems are rare drops from defeated monsters that can be permanently socketed into equipment at **Temples** found in every town. Each gem grants a specific combat bonus depending on its type and which equipment slot it occupies. Gems cannot be purchased — they can only be found through combat or earned as quest rewards.
+
+#### Gem Types and Effects
+
+| Gem | Tier | Slot | Effect |
+|-----|------|------|--------|
+| **Ruby** | Chipped / Flawed / Perfect | Weapon | +1 / +2 / +4 bonus damage on every attack |
+| **Sapphire** | Chipped / Flawed / Perfect | Weapon | +1 / +2 / +3 attack hit bonus |
+| **Emerald** | Chipped / Flawed / Perfect | Armor, Shield | +3 / +6 / +10 max HP |
+| **Diamond** | Chipped / Flawed / Perfect | Weapon | +3% / +5% / +8% critical hit chance |
+| **Diamond** | Chipped / Flawed / Perfect | Armor | +1 / +2 / +3 defense |
+| **Topaz** | Chipped / Flawed / Perfect | Weapon | +2 / +3 / +5 bonus damage vs Undead |
+| **Topaz** | Chipped / Flawed / Perfect | Armor | +1 / +2 / +3 magic defense (reduces spell damage) |
+| **Amethyst** | Chipped / Flawed / Perfect | Armor, Shield | 10% / 20% / 35% status effect resistance |
+| **Onyx** | Chipped / Flawed / Perfect | Weapon | 5% / 10% / 15% lifesteal (heal % of damage dealt) |
+| **Opal** | Chipped / Flawed / Perfect | Shield | Reflect 1 / 2 / 4 damage back to melee attackers |
+
+#### How to Obtain Gems
+
+**Monster Drops**: Every defeated monster has a chance to drop a gem based on its dungeon level. Higher dungeon levels yield rarer tiers:
+
+| Monster Level | Chipped | Flawed | Perfect |
+|---------------|---------|--------|---------|
+| 1 (Rats, Goblins) | 8% | -- | -- |
+| 2 (Ghouls, Trolls) | 12% | 4% | -- |
+| 3 (Wraiths, Imps) | 10% | 8% | -- |
+| 4 (Vampires) | 5% | 12% | 3% |
+| 5 (Liches) | -- | 15% | 5% |
+| 6 (Daemons) | -- | 12% | 8% |
+| 7 (Balrons) | -- | 10% | 12% |
+| 8 (Dragons) | -- | 8% | 15% |
+
+**Quest Rewards**: Four quests grant guaranteed gem rewards:
+- **Troll Bridge** (Fawn) -- Flawed Ruby
+- **Undead Purge** (Moon) -- Flawed Topaz
+- **Daemon Bane** (Devil Guard) -- Perfect Onyx
+- **The Time Shard** (Moon) -- Perfect Diamond
+
+#### Equipment Socket Counts
+
+Not all equipment has sockets. Higher-tier gear has more:
+
+| Sockets | Weapons | Armor | Shields |
+|---------|---------|-------|---------|
+| 0 | Dagger, Sling, Mace | Cloth | Small Shield |
+| 1 | Short Sword, Axe, Bow, Long Sword, Staff, Crossbow | Leather, Chain Mail | Large Shield, Tower Shield |
+| 2 | Halberd, Great Sword, 2H Axe, Wand | Plate Mail | -- |
+
+#### Socketing at Temples
+
+1. Enter a town and walk into the **Temple** building (bottom-right area of town)
+2. Press **B** at the counter to enter the Temple
+3. Select a **character** (A/D to cycle)
+4. Select the **equipment** to socket
+5. Select the **socket slot** (empty or occupied)
+6. Select the **gem** from your inventory
+7. **Confirm** the socketing and pay the gold cost
+
+**Socketing Costs** scale by gem tier and equipment value:
+
+| Gem Tier | Equipment value up to 100g | 101-300g | Over 300g |
+|----------|-------------|----------|-----------|
+| Chipped | 50g | 100g | 150g |
+| Flawed | 150g | 300g | 450g |
+| Perfect | 400g | 800g | 1,200g |
+
+**Important**: Replacing a socketed gem destroys the old gem. There is no way to remove a gem without replacing it.
 
 ### Audio System
 - **OGG Music Support**: Place `.ogg` files in `Assets/Music/` to replace any synthesized track (e.g., `Overworld.ogg`, `Combat.ogg`, `Town.ogg`)
@@ -201,6 +273,7 @@ dotnet run --project src/UltimaIII.Avalonia
 | D / Right Arrow | Move character east |
 | T | Attack (select target) |
 | C | Cast spell |
+| U | Use item (consumables) |
 | P | Pass turn |
 | F | Flee from combat |
 
@@ -246,6 +319,14 @@ dotnet run --project src/UltimaIII.Avalonia
 |-----|--------|
 | W/S / Up/Down | Browse quests |
 | Esc / J | Close quest log |
+
+### Temple (B key at temple counter)
+| Key | Action |
+|-----|--------|
+| W/S / Up/Down | Browse equipment, sockets, or gems |
+| A/D / Left/Right | Switch character |
+| Enter / Space | Select / confirm |
+| Esc | Go back / close temple |
 
 ### Quest Dialog (T key, when adjacent to NPC)
 | Key | Action |

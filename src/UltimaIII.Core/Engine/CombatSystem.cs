@@ -329,6 +329,14 @@ public class CombatSystem
 
             target.TakeDamage(damage);
 
+            // Onyx gem: lifesteal
+            int lifestealPercent = attacker.Character.GetGemLifestealPercent();
+            if (lifestealPercent > 0 && damage > 0)
+            {
+                int healAmount = Math.Max(1, damage * lifestealPercent / 100);
+                attacker.Character.Heal(healAmount);
+            }
+
             bool killed = !target.IsAlive;
             string critText = isCritical ? "CRITICAL! " : "";
             string message = killed
@@ -668,11 +676,31 @@ public class CombatSystem
                     : $"{monster.Name} strikes down {target.Name}!";
                 LogMessage(message);
 
-                // Apply status effects
+                // Opal gem: reflect damage back to attacker
+                var charTarget = target as CharacterCombatant;
+                if (charTarget != null)
+                {
+                    int reflectDmg = charTarget.Character.GetGemReflectDamage();
+                    if (reflectDmg > 0 && monster.IsAlive)
+                    {
+                        monster.TakeDamage(reflectDmg);
+                        LogMessage($"{monster.Name} takes {reflectDmg} reflected damage!");
+                    }
+                }
+
+                // Apply status effects (with Amethyst resistance)
                 if (monster.Monster.Definition.InflictsStatus != StatusEffect.None && _rng.Next(100) < 25)
                 {
-                    target.Status |= monster.Monster.Definition.InflictsStatus;
-                    LogMessage($"{target.Name} is affected by {monster.Monster.Definition.InflictsStatus}!");
+                    int resistance = charTarget?.Character.GetGemStatusResistance() ?? 0;
+                    if (resistance <= 0 || _rng.Next(100) >= resistance)
+                    {
+                        target.Status |= monster.Monster.Definition.InflictsStatus;
+                        LogMessage($"{target.Name} is affected by {monster.Monster.Definition.InflictsStatus}!");
+                    }
+                    else
+                    {
+                        LogMessage($"{target.Name} resists the {monster.Monster.Definition.InflictsStatus}!");
+                    }
                 }
             }
             else
@@ -824,6 +852,9 @@ public class CombatSystem
         if (spell.MinDamage > 0)
         {
             int damage = spell.RollDamage(_rng);
+            // Topaz gem: magic defense reduces incoming spell damage
+            int magicDef = target.Character.GetGemMagicDefense();
+            damage = Math.Max(1, damage - magicDef);
             target.TakeDamage(damage);
             OnSpellEffect?.Invoke(target.X, target.Y, false, isAoe);
 
@@ -835,8 +866,16 @@ public class CombatSystem
 
             if (spell.AppliesStatus != StatusEffect.None)
             {
-                target.Status |= spell.AppliesStatus;
-                LogMessage($"{target.Name} is {spell.AppliesStatus}!");
+                int resistance = target.Character.GetGemStatusResistance();
+                if (resistance <= 0 || _rng.Next(100) >= resistance)
+                {
+                    target.Status |= spell.AppliesStatus;
+                    LogMessage($"{target.Name} is {spell.AppliesStatus}!");
+                }
+                else
+                {
+                    LogMessage($"{target.Name} resists the {spell.AppliesStatus}!");
+                }
             }
 
             // AOE: hit nearby player characters too
@@ -848,10 +887,18 @@ public class CombatSystem
                     if (IsInAoeRadius(target.X, target.Y, pc.X, pc.Y, spell.AreaOfEffect))
                     {
                         int aoeDamage = spell.RollDamage(_rng);
+                        int pcMagicDef = pc.Character.GetGemMagicDefense();
+                        aoeDamage = Math.Max(1, aoeDamage - pcMagicDef);
                         pc.TakeDamage(aoeDamage);
                         OnSpellEffect?.Invoke(pc.X, pc.Y, false, true);
                         if (spell.AppliesStatus != StatusEffect.None)
-                            pc.Status |= spell.AppliesStatus;
+                        {
+                            int pcResist = pc.Character.GetGemStatusResistance();
+                            if (pcResist <= 0 || _rng.Next(100) >= pcResist)
+                                pc.Status |= spell.AppliesStatus;
+                            else
+                                LogMessage($"{pc.Name} resists the {spell.AppliesStatus}!");
+                        }
                         LogMessage($"{pc.Name} is caught in the {spell.Name} for {aoeDamage} damage!");
                     }
                 }
@@ -859,10 +906,20 @@ public class CombatSystem
         }
         else if (spell.AppliesStatus != StatusEffect.None)
         {
-            target.Status |= spell.AppliesStatus;
-            OnSpellEffect?.Invoke(target.X, target.Y, false, isAoe);
-            LogMessage($"{monster.Name} casts {spell.Name} on {target.Name}!");
-            LogMessage($"{target.Name} is {spell.AppliesStatus}!");
+            int resistance = target.Character.GetGemStatusResistance();
+            if (resistance <= 0 || _rng.Next(100) >= resistance)
+            {
+                target.Status |= spell.AppliesStatus;
+                OnSpellEffect?.Invoke(target.X, target.Y, false, isAoe);
+                LogMessage($"{monster.Name} casts {spell.Name} on {target.Name}!");
+                LogMessage($"{target.Name} is {spell.AppliesStatus}!");
+            }
+            else
+            {
+                OnSpellEffect?.Invoke(target.X, target.Y, false, isAoe);
+                LogMessage($"{monster.Name} casts {spell.Name} on {target.Name}!");
+                LogMessage($"{target.Name} resists the {spell.AppliesStatus}!");
+            }
         }
     }
 
@@ -947,6 +1004,17 @@ public class CombatSystem
                         {
                             loot.Add(ItemRegistry.CloneItem(template));
                         }
+                    }
+                }
+
+                // Roll for gem drop based on monster's dungeon level
+                var gemId = GemDropTable.RollGemDrop(monster.Monster.Definition.DungeonLevel, _rng);
+                if (gemId != null)
+                {
+                    var gemTemplate = ItemRegistry.FindById(gemId);
+                    if (gemTemplate != null)
+                    {
+                        loot.Add(ItemRegistry.CloneItem(gemTemplate));
                     }
                 }
             }

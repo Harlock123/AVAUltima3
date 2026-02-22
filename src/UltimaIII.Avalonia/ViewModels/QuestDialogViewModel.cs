@@ -152,9 +152,15 @@ public partial class QuestDialogViewModel : ViewModelBase
 
         if (Mode == DialogMode.TurnIn)
         {
-            var (gold, xp, _) = QuestEngine.TurnInQuest(_gameEngine.Party, _selectedQuest);
+            var (gold, xp, itemId) = QuestEngine.TurnInQuest(_gameEngine.Party, _selectedQuest);
             _gameEngine.AddMessage($"Quest complete: {_selectedQuest.Name}!");
             _gameEngine.AddMessage($"Received {gold} gold and {xp} experience.");
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                var rewardItem = ItemRegistry.FindById(itemId);
+                if (rewardItem != null)
+                    _gameEngine.AddMessage($"Received {rewardItem.Name}!");
+            }
             _audioService.PlaySoundEffect(SoundEffect.LevelUp);
             _gameVm.RefreshPartyDisplay();
 

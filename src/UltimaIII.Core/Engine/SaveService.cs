@@ -25,6 +25,10 @@ public class CharacterSaveData
     public string ArmorId { get; set; } = "armor_none";
     public string ShieldId { get; set; } = "shield_none";
     public List<string> InventoryIds { get; set; } = new();
+    // Gem socket data (null = empty socket, string = gem item ID)
+    public List<string?> WeaponSocketGems { get; set; } = new();
+    public List<string?> ArmorSocketGems { get; set; } = new();
+    public List<string?> ShieldSocketGems { get; set; } = new();
 }
 
 public class InventoryEntrySave
@@ -344,7 +348,7 @@ public static class SaveService
             Dexterity = c.Stats.Dexterity,
             Intelligence = c.Stats.Intelligence,
             Wisdom = c.Stats.Wisdom,
-            MaxHP = c.MaxHP,
+            MaxHP = c.BaseMaxHP,
             CurrentHP = c.CurrentHP,
             MaxMP = c.MaxMP,
             CurrentMP = c.CurrentMP,
@@ -354,12 +358,30 @@ public static class SaveService
             WeaponId = c.EquippedWeapon?.Id ?? "hands",
             ArmorId = c.EquippedArmor?.Id ?? "armor_none",
             ShieldId = c.EquippedShield?.Id ?? "shield_none",
-            InventoryIds = c.Inventory.Select(i => i.Id).ToList()
+            InventoryIds = c.Inventory.Select(i => i.Id).ToList(),
+            WeaponSocketGems = SerializeSockets(c.EquippedWeapon?.Sockets),
+            ArmorSocketGems = SerializeSockets(c.EquippedArmor?.Sockets),
+            ShieldSocketGems = SerializeSockets(c.EquippedShield?.Sockets)
         };
+    }
+
+    private static List<string?> SerializeSockets(List<Gem?>? sockets)
+    {
+        if (sockets == null || sockets.Count == 0) return new List<string?>();
+        return sockets.Select(g => g?.Id).ToList();
     }
 
     private static Character DeserializeCharacter(CharacterSaveData data)
     {
+        var weapon = ResolveWeapon(data.WeaponId);
+        var armor = ResolveArmor(data.ArmorId);
+        var shield = ResolveShield(data.ShieldId);
+
+        // Restore socketed gems
+        RestoreSockets(weapon.Sockets, data.WeaponSocketGems);
+        RestoreSockets(armor.Sockets, data.ArmorSocketGems);
+        RestoreSockets(shield.Sockets, data.ShieldSocketGems);
+
         var character = new Character
         {
             Name = data.Name,
@@ -369,9 +391,9 @@ public static class SaveService
             Level = data.Level,
             Experience = data.Experience,
             Status = data.Status,
-            EquippedWeapon = ResolveWeapon(data.WeaponId),
-            EquippedArmor = ResolveArmor(data.ArmorId),
-            EquippedShield = ResolveShield(data.ShieldId)
+            EquippedWeapon = weapon,
+            EquippedArmor = armor,
+            EquippedShield = shield
         };
 
         character.MaxHP = data.MaxHP;
@@ -383,30 +405,49 @@ public static class SaveService
         {
             var item = ItemRegistry.FindById(itemId);
             if (item != null)
-                character.Inventory.Add(item);
+                character.Inventory.Add(ItemRegistry.CloneItem(item));
         }
 
         return character;
+    }
+
+    private static void RestoreSockets(List<Gem?> sockets, List<string?> savedGemIds)
+    {
+        if (savedGemIds == null || savedGemIds.Count == 0) return;
+        for (int i = 0; i < sockets.Count && i < savedGemIds.Count; i++)
+        {
+            if (savedGemIds[i] != null)
+            {
+                var gemTemplate = ItemRegistry.FindById(savedGemIds[i]!);
+                sockets[i] = gemTemplate as Gem;
+            }
+        }
     }
 
     private static Weapon ResolveWeapon(string id)
     {
         if (string.IsNullOrEmpty(id) || id == "hands") return Weapon.Hands;
         var item = ItemRegistry.FindById(id);
-        return item as Weapon ?? Weapon.Hands;
+        if (item is Weapon)
+            return (Weapon)ItemRegistry.CloneItem(item);
+        return Weapon.Hands;
     }
 
     private static Armor ResolveArmor(string id)
     {
         if (string.IsNullOrEmpty(id) || id == "armor_none" || id == "none") return Armor.None;
         var item = ItemRegistry.FindById(id);
-        return item as Armor ?? Armor.None;
+        if (item is Armor)
+            return (Armor)ItemRegistry.CloneItem(item);
+        return Armor.None;
     }
 
     private static Shield ResolveShield(string id)
     {
         if (string.IsNullOrEmpty(id) || id == "shield_none" || id == "none") return Shield.None;
         var item = ItemRegistry.FindById(id);
-        return item as Shield ?? Shield.None;
+        if (item is Shield)
+            return (Shield)ItemRegistry.CloneItem(item);
+        return Shield.None;
     }
 }

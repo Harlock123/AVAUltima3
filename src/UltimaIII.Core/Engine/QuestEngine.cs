@@ -73,6 +73,16 @@ public static class QuestEngine
             member.GainExperience(quest.Reward.Experience);
         }
 
+        // Award item reward if specified
+        if (!string.IsNullOrEmpty(quest.Reward.ItemId))
+        {
+            var rewardTemplate = ItemRegistry.FindById(quest.Reward.ItemId);
+            if (rewardTemplate != null)
+            {
+                party.AddToInventory(ItemRegistry.CloneItem(rewardTemplate));
+            }
+        }
+
         // Mark completed
         party.QuestLog.RemoveQuest(quest.Id);
         party.CompletedQuests.Add(quest.Id);

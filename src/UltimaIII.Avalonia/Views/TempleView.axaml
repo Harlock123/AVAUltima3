@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimaIII.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="UltimaIII.Avalonia.Views.TempleView"
+             x:DataType="vm:TempleViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#c0d0e0"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#0a0a20" CornerRadius="8" Padding="0" BorderBrush="#3a3a8a" BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#1a1a4a" Padding="15,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding TempleName}" FontSize="18" FontWeight="Bold" Foreground="#8888ff"/>
+                    <TextBlock Grid.Column="1" FontSize="14" Foreground="#ffd700">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="Gold: {0}">
+                                <Binding Path="PartyGold"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <!-- Character Selector -->
+            <Border Grid.Row="1" Background="#151535" Padding="10,8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15">
+                    <TextBlock Text="[A]" Foreground="#606080" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding SelectedCharacterName}" FontSize="16" FontWeight="Bold" Foreground="#e0e0ff" VerticalAlignment="Center"/>
+                    <TextBlock Text="[D]" Foreground="#606080" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Step Title -->
+            <Border Grid.Row="2" Background="#12122e" Padding="10,6">
+                <TextBlock Text="{Binding StepTitle}" FontSize="14" Foreground="#aaaadd" HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Main Content Area -->
+            <Grid Grid.Row="3" Margin="10">
+                <!-- Equipment Selection -->
+                <ScrollViewer IsVisible="{Binding IsEquipmentStep}" Name="EquipmentScrollViewer">
+                    <ItemsControl ItemsSource="{Binding EquipmentItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TempleEquipmentItem">
+                                <Border Background="{Binding RowBackground}" Padding="10,6" CornerRadius="3" Margin="0,1">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="13"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Socket Selection -->
+                <ScrollViewer IsVisible="{Binding IsSocketStep}" Name="SocketScrollViewer">
+                    <ItemsControl ItemsSource="{Binding SocketItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TempleSocketItem">
+                                <Border Background="{Binding RowBackground}" Padding="10,6" CornerRadius="3" Margin="0,1">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="13">
+                                        <TextBlock.Foreground>
+                                            <MultiBinding>
+                                                <Binding Path="IsEmpty"/>
+                                            </MultiBinding>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Gem Selection -->
+                <ScrollViewer IsVisible="{Binding IsGemStep}" Name="GemScrollViewer">
+                    <ItemsControl ItemsSource="{Binding GemItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TempleGemItem">
+                                <Border Background="{Binding RowBackground}" Padding="10,6" CornerRadius="3" Margin="0,1">
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="13" Foreground="{Binding TextColor}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Confirm Panel -->
+                <Border IsVisible="{Binding IsConfirmStep}" Background="#1a1a3a" CornerRadius="5" Padding="20" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Spacing="8" MinWidth="350">
+                        <TextBlock Text="Confirm Socketing" FontSize="16" FontWeight="Bold" Foreground="#8888ff" HorizontalAlignment="Center"/>
+                        <Border Background="#12122e" CornerRadius="3" Padding="10">
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <TextBlock Text="Equipment:" Foreground="#808090" FontSize="13"/>
+                                    <TextBlock Text="{Binding ConfirmEquipmentName}" FontSize="13" Foreground="#e0e0ff"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <TextBlock Text="Socket:" Foreground="#808090" FontSize="13"/>
+                                    <TextBlock Text="{Binding ConfirmSocketInfo}" FontSize="13" Foreground="#e0e0ff"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <TextBlock Text="Gem:" Foreground="#808090" FontSize="13"/>
+                                    <TextBlock Text="{Binding ConfirmGemName}" FontSize="13" Foreground="#44ff44"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding ConfirmGemDescription}" FontSize="12" Foreground="#aaaaaa" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding ConfirmOldGem}" FontSize="12" Foreground="#ff6666" IsVisible="{Binding ConfirmOldGem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <Border Background="#0a0a1a" CornerRadius="3" Padding="8,4" Margin="0,4,0,0">
+                                    <TextBlock Text="{Binding ConfirmCost}" FontSize="14" FontWeight="Bold" Foreground="#ffd700" HorizontalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Status Bar -->
+            <Border Grid.Row="4" Background="#151535" Padding="10,8">
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#8888aa" HorizontalAlignment="Center"/>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

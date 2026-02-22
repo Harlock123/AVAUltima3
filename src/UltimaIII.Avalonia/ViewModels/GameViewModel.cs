@@ -82,6 +82,12 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty]
     private FieldSpellViewModel? _fieldSpellVm;
 
+    [ObservableProperty]
+    private bool _isTempleMode = false;
+
+    [ObservableProperty]
+    private TempleViewModel? _templeVm;
+
     private bool _recentlySaved;
 
     public ObservableCollection<PartyMemberViewModel> PartyMembers { get; } = new();
@@ -185,6 +191,12 @@ public partial class GameViewModel : ViewModelBase
             ShopVm = null;
         }
 
+        if (IsTempleMode && newState != GameState.Shop)
+        {
+            IsTempleMode = false;
+            TempleVm = null;
+        }
+
         RefreshDisplay();
     }
 
@@ -238,7 +250,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void Move(Direction direction)
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode || IsTempleMode) return;
         _recentlySaved = false;
         _gameEngine.MoveParty(direction);
         RefreshDisplay();
@@ -247,14 +259,14 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void Search()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsTempleMode) return;
         _gameEngine.Search();
     }
 
     [RelayCommand]
     private void Rest()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsTempleMode) return;
         _gameEngine.Rest();
         RefreshDisplay();
     }
@@ -262,7 +274,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void ExitLocation()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsTempleMode) return;
         _gameEngine.ExitLocation();
         RefreshDisplay();
     }
@@ -270,7 +282,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void SaveGame()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsTempleMode) return;
         IsSaveMode = true;
         SaveDialogVm = new SaveDialogViewModel(_gameEngine, this);
     }
@@ -286,7 +298,7 @@ public partial class GameViewModel : ViewModelBase
     [RelayCommand]
     private void QuitGame()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuitMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode || IsTempleMode) return;
         IsQuitMode = true;
         QuitDialogVm = new QuitDialogViewModel(_gameEngine, this, _recentlySaved);
     }
@@ -317,7 +329,16 @@ public partial class GameViewModel : ViewModelBase
 
     public void EnterShop(ShopType shopType, string? displayName = null)
     {
-        if (IsShopMode || IsCombatMode) return;
+        if (IsShopMode || IsCombatMode || IsTempleMode) return;
+
+        if (shopType == ShopType.Temple)
+        {
+            IsTempleMode = true;
+            TempleVm = new TempleViewModel(_gameEngine, this, displayName);
+            _audioService.PlaySoundEffect(SoundEffect.DoorOpen);
+            return;
+        }
+
         IsShopMode = true;
         ShopVm = new ShopViewModel(_gameEngine, this, shopType, displayName);
         _audioService.PlaySoundEffect(SoundEffect.DoorOpen);
@@ -327,6 +348,14 @@ public partial class GameViewModel : ViewModelBase
     {
         IsShopMode = false;
         ShopVm = null;
+        _gameEngine.ExitShop();
+        RefreshDisplay();
+    }
+
+    public void CloseTemple()
+    {
+        IsTempleMode = false;
+        TempleVm = null;
         _gameEngine.ExitShop();
         RefreshDisplay();
     }
@@ -380,7 +409,7 @@ public partial class GameViewModel : ViewModelBase
 
     public void OpenQuestDialog(string townId, string npcName)
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsTempleMode) return;
         IsQuestDialogMode = true;
         QuestDialogVm = new QuestDialogViewModel(_gameEngine, this, townId, npcName);
     }
@@ -394,7 +423,7 @@ public partial class GameViewModel : ViewModelBase
 
     public void OpenQuestLog()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsTempleMode) return;
         IsQuestLogMode = true;
         QuestLogVm = new QuestLogViewModel(_gameEngine, this);
     }
@@ -408,7 +437,7 @@ public partial class GameViewModel : ViewModelBase
 
     public void OpenFieldSpellCasting()
     {
-        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode) return;
+        if (IsCombatMode || IsShopMode || IsInventoryMode || IsSaveMode || IsQuestDialogMode || IsQuestLogMode || IsFieldSpellMode || IsTempleMode) return;
         IsFieldSpellMode = true;
         FieldSpellVm = new FieldSpellViewModel(_gameEngine, this);
     }
@@ -507,6 +536,12 @@ public partial class GameViewModel : ViewModelBase
             return;
         }
 
+        if (IsTempleMode && TempleVm != null)
+        {
+            TempleVm.HandleKeyPress(key);
+            return;
+        }
+
         switch (key.ToUpper())
         {
             case "W":
@@ -560,7 +595,7 @@ public partial class GameViewModel : ViewModelBase
 
     private void TryEnterShop()
     {
-        if (IsCombatMode || IsShopMode) return;
+        if (IsCombatMode || IsShopMode || IsTempleMode) return;
 
         if (_gameEngine.TryEnterShop() && _gameEngine.CurrentShopType.HasValue)
         {

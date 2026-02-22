@@ -225,7 +225,8 @@ public static class MapGenerator
             (3, 12, 8, 6, "tavern"),
             (14, 12, 8, 6, "healer"),
             (24, 3, 6, 6, "guild"),
-            (24, 12, 6, 6, "inn")
+            (24, 12, 6, 6, "inn"),
+            (24, 20, 6, 6, "temple")
         };
 
         // Generate unique shop names for this town

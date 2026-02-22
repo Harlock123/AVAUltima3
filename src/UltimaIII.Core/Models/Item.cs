@@ -28,6 +28,8 @@ public class Weapon : Item
     public int Range { get; init; } = 1; // 1 = melee, >1 = ranged
     public int HitBonus { get; init; }
     public bool IsTwoHanded { get; init; }
+    public int MaxSockets { get; init; }
+    public List<Gem?> Sockets { get; } = new();
 
     public Weapon()
     {
@@ -58,6 +60,8 @@ public class Armor : Item
     public ArmorType ArmorType { get; init; }
     public int Defense { get; init; }
     public int MagicDefense { get; init; }
+    public int MaxSockets { get; init; }
+    public List<Gem?> Sockets { get; } = new();
 
     public Armor()
     {
@@ -82,6 +86,8 @@ public class Shield : Item
 {
     public ShieldType ShieldType { get; init; }
     public int Defense { get; init; }
+    public int MaxSockets { get; init; }
+    public List<Gem?> Sockets { get; } = new();
 
     public Shield()
     {
@@ -124,5 +130,20 @@ public class QuestItem : Item
     public QuestItem()
     {
         Category = ItemCategory.QuestItem;
+    }
+}
+
+public class Gem : Item
+{
+    public GemType GemType { get; init; }
+    public GemTier Tier { get; init; }
+    public GemSlotTarget SlotTarget { get; init; }
+    public int BonusValue { get; init; }
+    public int BonusPercent { get; init; }
+
+    public Gem()
+    {
+        Category = ItemCategory.Gem;
+        IsStackable = true;
     }
 }

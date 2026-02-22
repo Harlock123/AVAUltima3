@@ -20,9 +20,12 @@ public class Character
 
     public int MaxHP
     {
-        get => _maxHp;
+        get => _maxHp + GetGemMaxHPBonus();
         set => _maxHp = Math.Max(1, value);
     }
+
+    /// <summary>Base max HP without gem bonuses (for serialization).</summary>
+    public int BaseMaxHP => _maxHp;
 
     public int CurrentHP
     {
@@ -89,6 +92,9 @@ public class Character
         if (EquippedWeapon != null)
             bonus += EquippedWeapon.HitBonus;
 
+        // Sapphire gem: hit bonus
+        bonus += GetWeaponGemBonus(GemType.Sapphire);
+
         // Class-specific attack bonus
         bonus += Class switch
         {
@@ -128,6 +134,9 @@ public class Character
         if (EquippedShield != null)
             defense += EquippedShield.Defense;
 
+        // Diamond gem: armor defense bonus
+        defense += GetArmorGemBonus(GemType.Diamond);
+
         // Class-specific defense bonus
         defense += Class switch
         {
@@ -151,6 +160,9 @@ public class Character
         int baseDamage = weapon.RollDamage(rng);
         int strBonus = Stats.Strength / 4;
         int total = baseDamage + strBonus;
+
+        // Ruby gem: flat bonus damage
+        total += GetWeaponGemBonus(GemType.Ruby);
 
         // Class-specific damage bonus
         total += Class switch
@@ -180,6 +192,10 @@ public class Character
                 total += 3;
             if (Class == CharacterClass.Druid && target.IsDemon)
                 total += 2;
+
+            // Topaz gem: bonus damage vs undead
+            if (target.IsUndead)
+                total += GetWeaponGemBonus(GemType.Topaz, usePercent: true);
         }
 
         return Math.Max(1, total);
@@ -187,12 +203,17 @@ public class Character
 
     public int GetCriticalHitChance()
     {
-        return Class switch
+        int chance = Class switch
         {
             CharacterClass.Thief => 15 + Level,
             CharacterClass.Lark => 10 + Level / 2,
             _ => 0
         };
+
+        // Diamond gem: crit chance % from weapon
+        chance += GetWeaponGemBonus(GemType.Diamond, usePercent: true);
+
+        return chance;
     }
 
     public int GetWeaponRange()
@@ -304,6 +325,73 @@ public class Character
         {
             LevelUp();
         }
+    }
+
+    // === Gem Socket Helpers ===
+
+    /// <summary>
+    /// Sum BonusValue (or BonusPercent) from weapon sockets matching the given gem type.
+    /// </summary>
+    public int GetWeaponGemBonus(GemType type, bool usePercent = false)
+    {
+        if (EquippedWeapon == null) return 0;
+        int total = 0;
+        foreach (var gem in EquippedWeapon.Sockets)
+        {
+            if (gem != null && gem.GemType == type)
+                total += usePercent ? gem.BonusPercent : gem.BonusValue;
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// Sum BonusValue (or BonusPercent) from armor + shield sockets matching the given gem type.
+    /// </summary>
+    public int GetArmorGemBonus(GemType type, bool usePercent = false)
+    {
+        int total = 0;
+        if (EquippedArmor != null)
+        {
+            foreach (var gem in EquippedArmor.Sockets)
+            {
+                if (gem != null && gem.GemType == type)
+                    total += usePercent ? gem.BonusPercent : gem.BonusValue;
+            }
+        }
+        if (EquippedShield != null)
+        {
+            foreach (var gem in EquippedShield.Sockets)
+            {
+                if (gem != null && gem.GemType == type)
+                    total += usePercent ? gem.BonusPercent : gem.BonusValue;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>Max HP bonus from Emerald gems in armor/shield.</summary>
+    public int GetGemMaxHPBonus() => GetArmorGemBonus(GemType.Emerald);
+
+    /// <summary>Status resistance % from Amethyst gems in armor/shield.</summary>
+    public int GetGemStatusResistance() => GetArmorGemBonus(GemType.Amethyst, usePercent: true);
+
+    /// <summary>Magic defense bonus from Topaz gems in armor.</summary>
+    public int GetGemMagicDefense() => GetArmorGemBonus(GemType.Topaz);
+
+    /// <summary>Lifesteal % from Onyx gems in weapon.</summary>
+    public int GetGemLifestealPercent() => GetWeaponGemBonus(GemType.Onyx, usePercent: true);
+
+    /// <summary>Flat reflect damage from Opal gems in shield.</summary>
+    public int GetGemReflectDamage()
+    {
+        if (EquippedShield == null) return 0;
+        int total = 0;
+        foreach (var gem in EquippedShield.Sockets)
+        {
+            if (gem != null && gem.GemType == GemType.Opal)
+                total += gem.BonusValue;
+        }
+        return total;
     }
 
     public static Character Create(string name, Race race, CharacterClass charClass, Stats baseStats)

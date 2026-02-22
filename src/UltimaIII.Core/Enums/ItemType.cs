@@ -11,7 +11,36 @@ public enum ItemCategory
     Consumable,
     QuestItem,
     Gold,
-    Tool
+    Tool,
+    Gem
+}
+
+public enum GemType
+{
+    Ruby,       // Weapon: bonus damage
+    Sapphire,   // Weapon: bonus hit chance
+    Emerald,    // Armor/Shield: bonus max HP
+    Diamond,    // Weapon: crit chance / Armor: defense
+    Topaz,      // Weapon: undead damage / Armor: magic defense
+    Amethyst,   // Armor/Shield: status resistance
+    Onyx,       // Weapon: lifesteal
+    Opal        // Shield: damage reflect
+}
+
+public enum GemTier
+{
+    Chipped,
+    Flawed,
+    Perfect
+}
+
+[Flags]
+public enum GemSlotTarget
+{
+    Weapon = 1,
+    Armor = 2,
+    Shield = 4,
+    Any = Weapon | Armor | Shield
 }
 
 /// <summary>

@@ -128,7 +128,7 @@ public static class QuestRegistry
             ProgressText = "The dead still walk. Continue your holy work!",
             CompleteText = "The sanctity of our grounds is restored. Blessings upon you!",
             Objective = new QuestObjective { TargetMonsterIds = new[] { "skeleton", "zombie", "ghoul", "wraith", "vampire", "lich" }, TargetCount = 12 },
-            Reward = new QuestReward { Gold = 250, Experience = 120 },
+            Reward = new QuestReward { Gold = 250, Experience = 120, ItemId = "gem_topaz_flawed" },
             MinPartyLevel = 3
         });
 
@@ -167,7 +167,7 @@ public static class QuestRegistry
             ProgressText = "The trolls still hold the bridges. We need them cleared!",
             CompleteText = "The roads are open! Trade flows freely again. Fawn is in your debt.",
             Objective = new QuestObjective { TargetMonsterIds = new[] { "troll" }, TargetCount = 6 },
-            Reward = new QuestReward { Gold = 300, Experience = 150 },
+            Reward = new QuestReward { Gold = 300, Experience = 150, ItemId = "gem_ruby_flawed" },
             MinPartyLevel = 4
         });
 
@@ -235,7 +235,7 @@ public static class QuestRegistry
             ProgressText = "The daemons still come. We need them destroyed!",
             CompleteText = "Three daemons banished! The rift weakens. Devil Guard stands because of you.",
             Objective = new QuestObjective { TargetMonsterIds = new[] { "daemon" }, TargetCount = 3 },
-            Reward = new QuestReward { Gold = 500, Experience = 350 },
+            Reward = new QuestReward { Gold = 500, Experience = 350, ItemId = "gem_onyx_perfect" },
             PrerequisiteQuestId = "explore_snake5",
             MinPartyLevel = 6
         });
@@ -263,7 +263,7 @@ public static class QuestRegistry
             ProgressText = "The Time Shard eludes us still. The balrons are fearsome guardians.",
             CompleteText = "The Time Shard! With moonstone, fire, and time united... the way forward is clear!",
             Objective = new QuestObjective { RequiredItemId = "quest_time_shard" },
-            Reward = new QuestReward { Gold = 1000, Experience = 750 },
+            Reward = new QuestReward { Gold = 1000, Experience = 750, ItemId = "gem_diamond_perfect" },
             PrerequisiteQuestId = "fetch_fire_crystal",
             MinPartyLevel = 7
         });

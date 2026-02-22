@@ -7,7 +7,8 @@ public enum ShopType
     Tavern,
     Healer,
     Guild,
-    Inn
+    Inn,
+    Temple
 }
 
 public class ShopDefinition
@@ -47,7 +48,8 @@ public class ShopDefinition
         ["tavern"] = ShopType.Tavern,
         ["healer"] = ShopType.Healer,
         ["guild"] = ShopType.Guild,
-        ["inn"] = ShopType.Inn
+        ["inn"] = ShopType.Inn,
+        ["temple"] = ShopType.Temple
     };
 
     public static readonly Dictionary<ShopType, ShopDefinition> AllShops = new()
@@ -98,6 +100,13 @@ public class ShopDefinition
             Type = ShopType.Inn,
             Name = "Inn",
             WelcomeMessage = "Rest thy weary bones. A warm bed awaits.",
+            HasServicesTab = true
+        },
+        [ShopType.Temple] = new ShopDefinition
+        {
+            Type = ShopType.Temple,
+            Name = "Temple",
+            WelcomeMessage = "Welcome, seeker. Bring thy gems and I shall bind their power to thy equipment.",
             HasServicesTab = true
         }
     };
