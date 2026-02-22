@@ -163,3 +163,6 @@ coverage/
 *.coverage
 *.coveragexml
 lcov.info
+
+# Publish builds
+BUILDS/
