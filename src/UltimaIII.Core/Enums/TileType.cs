@@ -46,6 +46,7 @@ public enum TileType
     Pit,
     CeilingHole,
     Trap,
+    ExitPortal,
 
     // Overworld locations
     Town,
@@ -76,6 +77,7 @@ public static class TileTypeExtensions
         TileType.Bridge => true,
         TileType.Ladder => true,
         TileType.Portal => true,
+        TileType.ExitPortal => true,
         TileType.Town => true,
         TileType.DungeonEntrance => true,
         _ => false

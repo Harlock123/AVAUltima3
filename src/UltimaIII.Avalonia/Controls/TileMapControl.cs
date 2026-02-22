@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
@@ -78,6 +79,7 @@ public class TileMapControl : Control
         [TileType.Pit] = new SolidColorBrush(Color.FromRgb(30, 30, 30)),
         [TileType.CeilingHole] = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
         [TileType.Trap] = new SolidColorBrush(Color.FromRgb(170, 170, 170)),
+        [TileType.ExitPortal] = new SolidColorBrush(Color.FromRgb(60, 130, 255)),
         [TileType.Path] = new SolidColorBrush(Color.FromRgb(160, 140, 120)),
         [TileType.Flowers] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
         [TileType.Lamppost] = new SolidColorBrush(Color.FromRgb(0, 170, 0)),
@@ -203,6 +205,27 @@ public class TileMapControl : Control
                 context.DrawLine(pen, new Point(center.X, center.Y + 8), new Point(center.X, center.Y - 8));
                 context.DrawLine(pen, new Point(center.X - 5, center.Y - 3), new Point(center.X, center.Y - 8));
                 context.DrawLine(pen, new Point(center.X + 5, center.Y - 3), new Point(center.X, center.Y - 8));
+                break;
+
+            case TileType.ExitPortal:
+                // Shimmering portal: glow circle + up arrow with cycling colors
+                var portalColors = new[]
+                {
+                    Color.FromRgb(60, 130, 255),
+                    Color.FromRgb(120, 200, 255),
+                    Color.FromRgb(220, 240, 255)
+                };
+                int colorIndex = (DateTime.Now.Millisecond / 200) % portalColors.Length;
+                var portalColor = portalColors[colorIndex];
+                // Glow circle behind the arrow
+                var glowBrush = new SolidColorBrush(Color.FromArgb(100, portalColor.R, portalColor.G, portalColor.B));
+                var portalGlow = new EllipseGeometry(new Rect(center.X - 10, center.Y - 10, 20, 20));
+                context.DrawGeometry(glowBrush, null, portalGlow);
+                // Up arrow in shimmer color
+                var portalPen = new Pen(new SolidColorBrush(portalColor), 2);
+                context.DrawLine(portalPen, new Point(center.X, center.Y + 8), new Point(center.X, center.Y - 8));
+                context.DrawLine(portalPen, new Point(center.X - 5, center.Y - 3), new Point(center.X, center.Y - 8));
+                context.DrawLine(portalPen, new Point(center.X + 5, center.Y - 3), new Point(center.X, center.Y - 8));
                 break;
 
             case TileType.Chest:

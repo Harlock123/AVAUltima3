@@ -282,6 +282,10 @@ public class GameEngine
         {
             GoUpstairs();
         }
+        else if (tile.Type == TileType.ExitPortal && State == GameState.Dungeon)
+        {
+            ExitDungeonViaPortal();
+        }
 
         // Check for nearby signs
         CheckAdjacentSigns();
@@ -494,6 +498,14 @@ public class GameEngine
         }
     }
 
+    private void ExitDungeonViaPortal()
+    {
+        string baseDungeonId = Party.CurrentMapId[..Party.CurrentMapId.LastIndexOf("_l")];
+        Party.CurrentMapId = $"{baseDungeonId}_l1";
+        AddMessage("The portal shimmers and you are whisked to the surface!");
+        ExitLocation();
+    }
+
     private void CheckForEncounter()
     {
         if (State == GameState.Combat) return;
@@ -603,7 +615,8 @@ public class GameEngine
             TileType.Door or TileType.LockedDoor or TileType.SecretDoor or
             TileType.Trap or TileType.Pit or TileType.CeilingHole or
             TileType.Altar or TileType.Fountain or TileType.Chest or
-            TileType.CastleFloor or TileType.Counter => TileType.Floor,
+            TileType.CastleFloor or TileType.Counter or
+            TileType.ExitPortal => TileType.Floor,
             // Default: Grass for overworld, Floor for dungeons
             _ => CurrentMap?.MapType == MapType.Dungeon ? TileType.Floor : TileType.Grass
         };

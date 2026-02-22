@@ -490,6 +490,34 @@ public static class MapGenerator
         // Add dungeon features
         AddDungeonFeatures(map, rooms, rng, level);
 
+        // Place exit portal on levels 5-8 (after features, so nothing overwrites it)
+        if (level >= 5 && rooms.Count >= 3)
+        {
+            var middleRooms = rooms.Skip(1).Take(rooms.Count - 2).ToList();
+            // Try middle rooms and find one with a free Floor tile at center
+            for (int attempt = 0; attempt < middleRooms.Count; attempt++)
+            {
+                var portalRoom = middleRooms[rng.Next(middleRooms.Count)];
+                int portalX = portalRoom.x + portalRoom.w / 2;
+                int portalY = portalRoom.y + portalRoom.h / 2;
+                if (map.GetTile(portalX, portalY).Type == TileType.Floor)
+                {
+                    map.SetTile(portalX, portalY, new MapTile { Type = TileType.ExitPortal });
+                    map.EntryPoints["exit_portal"] = (portalX, portalY);
+                    break;
+                }
+            }
+        }
+
+        // Final integrity pass: re-stamp stairs so nothing can overwrite them
+        map.SetTile(stairsUpX, stairsUpY, new MapTile { Type = TileType.StairsUp });
+        if (level < 8)
+        {
+            int sdx = lastRoom.x + lastRoom.w / 2;
+            int sdy = lastRoom.y + lastRoom.h / 2;
+            map.SetTile(sdx, sdy, new MapTile { Type = TileType.StairsDown });
+        }
+
         return map;
     }
 
@@ -577,10 +605,12 @@ public static class MapGenerator
 
             if (feature == TileType.SecretDoor)
             {
-                // Place secret door in a wall
+                // Place secret door in a wall — only if the tile is still a Wall
+                // (corridors carve Floor through walls, so don't block those)
                 int wallX = room.x + (rng.Next(2) == 0 ? 0 : room.w - 1);
                 int wallY = room.y + rng.Next(1, room.h - 1);
-                map.SetTile(wallX, wallY, new MapTile { Type = feature });
+                if (map.GetTile(wallX, wallY).Type == TileType.Wall)
+                    map.SetTile(wallX, wallY, new MapTile { Type = feature });
             }
             else
             {
@@ -597,7 +627,7 @@ public static class MapGenerator
                 var room = rooms[rng.Next(rooms.Count)];
                 int x = room.x + rng.Next(room.w);
                 int y = room.y + rng.Next(room.h);
-                if (map.GetTile(x, y).Type == TileType.Floor)
+                if (map.GetTile(x, y).Type == TileType.Floor && !IsNearCorridor(map, x, y))
                 {
                     map.SetTile(x, y, new MapTile { Type = TileType.Lava });
                 }
@@ -661,6 +691,33 @@ public static class MapGenerator
         }
 
         return noise;
+    }
+
+    /// <summary>
+    /// Returns true if the tile — or any of its 4 neighbors — is a 1-wide corridor
+    /// (walls on two opposite sides). Placing impassable tiles here or next to a
+    /// corridor entrance would block passage entirely.
+    /// </summary>
+    private static bool IsNearCorridor(GameMap map, int x, int y)
+    {
+        // Check the tile itself and all 4 adjacent tiles
+        int[] dx = { 0, 0, 0, -1, 1 };
+        int[] dy = { 0, -1, 1, 0, 0 };
+        for (int i = 0; i < 5; i++)
+        {
+            int cx = x + dx[i];
+            int cy = y + dy[i];
+            if (!map.IsInBounds(cx, cy)) continue;
+            if (map.GetTile(cx, cy).Type != TileType.Floor) continue;
+
+            bool wallAboveAndBelow = map.GetTile(cx, cy - 1).Type == TileType.Wall
+                                  && map.GetTile(cx, cy + 1).Type == TileType.Wall;
+            bool wallLeftAndRight  = map.GetTile(cx - 1, cy).Type == TileType.Wall
+                                  && map.GetTile(cx + 1, cy).Type == TileType.Wall;
+            if (wallAboveAndBelow || wallLeftAndRight)
+                return true;
+        }
+        return false;
     }
 
     private static float Lerp(float a, float b, float t) => a + (b - a) * t;
