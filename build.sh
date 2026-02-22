@@ -1,18 +1,18 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 set -euo pipefail
 
 SOLUTION_ROOT="$(cd "$(dirname "$0")" && pwd)"
 PROJECT="$SOLUTION_ROOT/src/UltimaIII.Avalonia/UltimaIII.Avalonia.csproj"
 BUILDS_DIR="$SOLUTION_ROOT/BUILDS"
 
-# Runtime ID → folder name mapping
-declare -A TARGETS=(
-    ["win-x64"]="WINDOWSx86"
-    ["win-arm64"]="WINDOWSarm"
-    ["osx-x64"]="MACOSx86"
-    ["osx-arm64"]="MACOSarm"
-    ["linux-x64"]="LINUXx86"
-    ["linux-arm64"]="LINUXarm"
+# Each entry: "RID|FolderName"
+TARGETS=(
+    "win-x64|WINDOWSx86"
+    "win-arm64|WINDOWSarm"
+    "osx-x64|MACOSx86"
+    "osx-arm64|MACOSarm"
+    "linux-x64|LINUXx86"
+    "linux-arm64|LINUXarm"
 )
 
 echo "========================================"
@@ -29,8 +29,9 @@ mkdir -p "$BUILDS_DIR"
 
 FAILED=()
 
-for RID in "${!TARGETS[@]}"; do
-    FOLDER="${TARGETS[$RID]}"
+for ENTRY in "${TARGETS[@]}"; do
+    RID="${ENTRY%%|*}"
+    FOLDER="${ENTRY##*|}"
     OUTPUT="$BUILDS_DIR/$FOLDER"
 
     echo ""
@@ -58,8 +59,8 @@ echo "========================================"
 echo "  Build Summary"
 echo "========================================"
 
-for RID in "${!TARGETS[@]}"; do
-    FOLDER="${TARGETS[$RID]}"
+for ENTRY in "${TARGETS[@]}"; do
+    FOLDER="${ENTRY##*|}"
     OUTPUT="$BUILDS_DIR/$FOLDER"
     if [ -d "$OUTPUT" ] && [ "$(ls -A "$OUTPUT" 2>/dev/null)" ]; then
         SIZE=$(du -sh "$OUTPUT" | cut -f1)
