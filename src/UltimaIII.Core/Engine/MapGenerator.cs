@@ -310,11 +310,18 @@ public static class MapGenerator
         }
         // Fountain at center
         map.SetTile(sqCenterX, sqCenterY, new MapTile { Type = TileType.Fountain });
-        // Flowers on corners of the square
-        map.SetTile(sqCenterX - 2, sqCenterY - 2, new MapTile { Type = TileType.Flowers });
-        map.SetTile(sqCenterX + 2, sqCenterY - 2, new MapTile { Type = TileType.Flowers });
-        map.SetTile(sqCenterX - 2, sqCenterY + 2, new MapTile { Type = TileType.Flowers });
-        map.SetTile(sqCenterX + 2, sqCenterY + 2, new MapTile { Type = TileType.Flowers });
+        // Flowers on corners of the square (only on grass or path, never over walls)
+        (int fx, int fy)[] cornerFlowers =
+        {
+            (sqCenterX - 2, sqCenterY - 2), (sqCenterX + 2, sqCenterY - 2),
+            (sqCenterX - 2, sqCenterY + 2), (sqCenterX + 2, sqCenterY + 2)
+        };
+        foreach (var (cfx, cfy) in cornerFlowers)
+        {
+            var existing = map.GetTile(cfx, cfy).Type;
+            if (existing is TileType.Grass or TileType.Path)
+                map.SetTile(cfx, cfy, new MapTile { Type = TileType.Flowers });
+        }
 
         // Main avenue: path from entrance (16, 30) north to town square (16, 14)
         int entranceX = TownSize / 2; // 16
