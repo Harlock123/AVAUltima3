@@ -132,7 +132,7 @@ UltimaIII.sln
 ### Map System
 - **Overworld**: 64x64 procedurally generated world with 8 towns and 4 dungeons
 - **Towns**: 32x32 with shops, paths, signs, and decorative features
-- **Dungeons**: 8 levels deep with stairs, traps, secret doors, and treasure
+- **Dungeons**: 8 levels deep with stairs, traps, secret doors, treasure, and shimmering exit portals on levels 5-8 for quick return to the surface
 
 ### Tavern Recruitment
 - **Recruitable NPCs**: Each town's tavern has a randomly generated companion available
@@ -352,7 +352,7 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 - [x] `lava.png`
 - [ ] `bridge.png`
 - [ ] `path.png`
-- [ ] `flowers.png`
+- [x] `flowers.png`
 - [ ] `lamppost.png`
 - [ ] `town.png`
 - [ ] `dungeonentrance.png`
@@ -375,6 +375,7 @@ The game supports PNG sprite overrides for any tile type. Place a 32x32 PNG in `
 - [ ] `pit.png`
 - [ ] `ceilinghole.png`
 - [ ] `trap.png`
+- [ ] `exitportal.png`
 - [ ] `void.png`
 
 **Special:**
