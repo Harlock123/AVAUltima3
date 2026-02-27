@@ -132,7 +132,46 @@ UltimaIII.sln
 ### Map System
 - **Overworld**: 64x64 procedurally generated world with 8 towns and 4 dungeons
 - **Towns**: 32x32 with shops, paths, signs, and decorative features
-- **Dungeons**: 8 levels deep with stairs, traps, secret doors, treasure, and shimmering exit portals on levels 5-8 for quick return to the surface
+
+### Dungeon System
+
+Each of the 4 dungeons (Doom, Fire, Time, Snake) has 8 procedurally generated levels with increasing difficulty.
+
+#### Layout
+- **32x32 maps** with 9-16 rooms per level (more rooms on deeper levels)
+- **Room size variety**: Tight closets (2-3 tiles), standard rooms (4-6 tiles), and large chambers (7-9 tiles)
+- **MST corridors**: Prim's minimum spanning tree guarantees all rooms are reachable, with extra random connections creating loops and alternate paths
+- **Wide corridors**: On levels 5+, some corridors are 2 tiles wide (25% chance)
+- **Doors**: Automatically placed at corridor chokepoints; more frequent on deeper levels (20% on L1, 55% on L8)
+
+#### Stairs and Portals
+- **Stairs up**: Always in the first room (entrance from previous level or surface)
+- **Stairs down**: Always present on levels 1-7, placed in the last room
+- **Exit portals**: Shimmering portals on levels 5-8 for quick return to the surface
+
+#### Room Features
+Every room can contain multiple features, with more in larger rooms:
+
+| Feature | Chance | Notes |
+|---------|--------|-------|
+| Chest | 20% | Contains gold scaled by level, plus a 35% chance of item drops (consumables, gems, or equipment) -- 20% chance of being trapped |
+| Fountain | 15% | Interactable water source |
+| Trap | 5% + 2% per level | More dangerous on deeper levels |
+| Secret Door | 10% | Hidden in room walls (all 4 sides); appears as a grey wall tile until revealed by Searching (Space) |
+| Lava Cluster | 3% per level | 1-3 tile clusters; only on deeper levels |
+
+#### Chest Loot
+Searching a chest (Space) awards gold and may drop an item:
+
+| Drop | Chance | Details |
+|------|--------|---------|
+| Gold | Always | 10-100 base x (dungeon level + 1) |
+| Consumable | 10% | Healing Potion or Rations |
+| Gem | 10% | Tier scaled by dungeon level (same rates as monster gem drops) |
+| Equipment | 15% | Random weapon, armor, or shield; better gear available on deeper levels |
+
+#### Encounter Rate
+Random encounters occur with each step: `5 + dungeon level`% chance (6% on L1, 13% on L8). Larger maps mean more exploration between fights.
 
 ### Tavern Recruitment
 - **Recruitable NPCs**: Each town's tavern has a randomly generated companion available
