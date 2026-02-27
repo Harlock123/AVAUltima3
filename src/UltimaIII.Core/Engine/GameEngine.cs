@@ -28,6 +28,7 @@ public class GameEngine
 
     private string? _lastSignShown;
     private string? _lastNpcGreeted;
+    private bool _lowFoodWarned;
 
     // Message log
     public List<string> MessageLog { get; } = new();
@@ -206,7 +207,28 @@ public class GameEngine
         Party.Facing = direction;
 
         // Advance game time
+        int foodBefore = Party.Food;
         Party.AdvanceTime();
+
+        // Food alert checks
+        if (foodBefore > 0 && Party.Food == 0)
+        {
+            AddMessage("Your party is starving! Find food or visit a tavern!");
+        }
+        else if (Party.Food == 0 && Party.TurnCount % 20 == 0)
+        {
+            AddMessage("The party weakens from hunger...");
+        }
+
+        if (Party.Food > 0 && Party.Food <= 25 && !_lowFoodWarned)
+        {
+            _lowFoodWarned = true;
+            AddMessage("Food supplies are running low...");
+        }
+        else if (Party.Food > 25)
+        {
+            _lowFoodWarned = false;
+        }
 
         UpdateVisibility();
         OnPartyMoved?.Invoke();
@@ -516,7 +538,7 @@ public class GameEngine
         // Base encounter chance varies by location
         int encounterChance = State switch
         {
-            GameState.Dungeon => 8 + Party.DungeonLevel,
+            GameState.Dungeon => 5 + Party.DungeonLevel,
             GameState.Overworld => Party.IsNight ? 4 : 3,
             _ => 0 // No encounters in other states
         };
@@ -694,6 +716,14 @@ public class GameEngine
                 }
             }
 
+            // Chance to find food after victory
+            if (_rng.Next(100) < 30)
+            {
+                int foodAmount = _rng.Next(5, 16);
+                Party.Food += foodAmount;
+                AddMessage($"Found {foodAmount} rations!");
+            }
+
             // Return to previous state
             State = CurrentMap?.MapType switch
             {
@@ -742,6 +772,15 @@ public class GameEngine
             Party.AddGold(gold);
             CurrentMap.SetTileType(Party.X, Party.Y, TileType.Floor);
             AddMessage($"Found {gold} gold in the chest!");
+
+            // Roll for item drops
+            var chestItem = RollChestItem(Party.DungeonLevel);
+            if (chestItem != null)
+            {
+                Party.AddToInventory(chestItem);
+                AddMessage($"Found {chestItem.Name}!");
+            }
+
             OnMapChanged?.Invoke();
 
             // Small chance of trap
@@ -947,6 +986,72 @@ public class GameEngine
                 AddMessage($"{member.Name}'s poison fades.");
             }
         }
+    }
+
+    private Item? RollChestItem(int dungeonLevel)
+    {
+        int roll = _rng.Next(100);
+
+        // 35% chance of an item drop
+        if (roll >= 35) return null;
+
+        if (roll < 10)
+        {
+            // Consumable (10%): healing potion or rations
+            var id = _rng.Next(2) == 0 ? "healing_potion" : "rations";
+            var template = ItemRegistry.FindById(id);
+            return template != null ? ItemRegistry.CloneItem(template) : null;
+        }
+
+        if (roll < 20)
+        {
+            // Gem (10%): use dungeon level for tier scaling
+            int gemLevel = Math.Max(1, dungeonLevel);
+            var gemId = GemDropTable.RollGemDrop(gemLevel, _rng);
+            if (gemId != null)
+            {
+                var template = ItemRegistry.FindById(gemId);
+                if (template != null) return ItemRegistry.CloneItem(template);
+            }
+            // Fallback to a healing potion if gem roll fails
+            var fallback = ItemRegistry.FindById("healing_potion");
+            return fallback != null ? ItemRegistry.CloneItem(fallback) : null;
+        }
+
+        // Equipment (15%): tier based on dungeon level
+        return RollChestEquipment(dungeonLevel);
+    }
+
+    private Item? RollChestEquipment(int dungeonLevel)
+    {
+        int category = _rng.Next(3); // 0=weapon, 1=armor, 2=shield
+
+        if (category == 0)
+        {
+            var weapons = ItemRegistry.GetAllWeapons()
+                .Where(w => w.Value <= 50 + dungeonLevel * 50)
+                .ToList();
+            if (weapons.Count > 0)
+                return ItemRegistry.CloneItem(weapons[_rng.Next(weapons.Count)]);
+        }
+        else if (category == 1)
+        {
+            var armors = ItemRegistry.GetAllArmor()
+                .Where(a => a.Value <= 50 + dungeonLevel * 100)
+                .ToList();
+            if (armors.Count > 0)
+                return ItemRegistry.CloneItem(armors[_rng.Next(armors.Count)]);
+        }
+        else
+        {
+            var shields = ItemRegistry.GetAllShields()
+                .Where(s => s.Value <= 50 + dungeonLevel * 60)
+                .ToList();
+            if (shields.Count > 0)
+                return ItemRegistry.CloneItem(shields[_rng.Next(shields.Count)]);
+        }
+
+        return null;
     }
 
 }

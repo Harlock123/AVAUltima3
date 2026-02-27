@@ -11,6 +11,7 @@ public class Party
 
     private readonly List<Character> _members = new();
     private readonly List<Item> _sharedInventory = new();
+    private readonly Random _rng = new();
 
     public IReadOnlyList<Character> Members => _members;
     public IReadOnlyList<Item> SharedInventory => _sharedInventory;
@@ -44,6 +45,8 @@ public class Party
     public HashSet<string> CompletedQuests { get; } = new();
     public QuestLog QuestLog { get; } = new();
 
+    public bool IsStarving => Food == 0;
+
     public bool IsFull => _members.Count >= MaxPartySize;
     public bool IsEmpty => _members.Count == 0;
     public int Count => _members.Count;
@@ -54,12 +57,15 @@ public class Party
     {
         if (IsFull) return false;
         _members.Add(character);
+        character.Party = this;
         return true;
     }
 
     public bool RemoveMember(Character character)
     {
-        return _members.Remove(character);
+        var removed = _members.Remove(character);
+        if (removed) character.Party = null;
+        return removed;
     }
 
     public void ReorderMember(int fromIndex, int toIndex)
@@ -99,12 +105,14 @@ public class Party
             if (Food < 0) Food = 0;
         }
 
-        // Starvation damage
+        // Starvation damage (3-5 per tick, but won't push below half HP)
         if (Food == 0 && TurnCount % 20 == 0)
         {
             foreach (var member in GetLivingMembers())
             {
-                member.TakeDamage(1);
+                if (member.CurrentHP <= member.MaxHP / 2)
+                    continue; // Already at or below half HP — starvation weakens but doesn't kill
+                member.TakeDamage(_rng.Next(3, 6));
             }
         }
 

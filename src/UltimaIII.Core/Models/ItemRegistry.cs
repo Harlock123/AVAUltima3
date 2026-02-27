@@ -41,6 +41,7 @@ public static class ItemRegistry
         new Consumable { Id = "torch", Name = "Torch", Description = "Lights the darkness", Effect = "light", EffectStrength = 5, Value = 20 },
         new Consumable { Id = "healing_potion", Name = "Healing Potion", Description = "Restores 30 HP", Effect = "heal", EffectStrength = 30, Value = 75 },
         new Consumable { Id = "keys", Name = "Keys", Description = "Opens locked doors", Effect = "unlock", EffectStrength = 1, Value = 30 },
+        new Consumable { Id = "rations", Name = "Rations", Description = "Restores 25 food", Effect = "food", EffectStrength = 25, Value = 15 },
     };
 
     private static readonly List<QuestItem> QuestItems = new()

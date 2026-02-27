@@ -57,6 +57,9 @@ public class Character
     // Inventory (shared with party in original, but tracked per character)
     public List<Item> Inventory { get; } = new();
 
+    // Back-reference to owning party (for starvation checks etc.)
+    public Party? Party { get; set; }
+
     // Combat position
     public int CombatX { get; set; }
     public int CombatY { get; set; }
@@ -110,6 +113,10 @@ public class Character
             _ => 0
         };
 
+        // Starvation penalty
+        if (Party?.IsStarving == true)
+            bonus -= 3;
+
         return bonus;
     }
 
@@ -150,6 +157,10 @@ public class Character
             CharacterClass.Cleric => 1 + Level / 5,
             _ => 0
         };
+
+        // Starvation penalty
+        if (Party?.IsStarving == true)
+            defense -= 2;
 
         return defense;
     }
@@ -197,6 +208,10 @@ public class Character
             if (target.IsUndead)
                 total += GetWeaponGemBonus(GemType.Topaz, usePercent: true);
         }
+
+        // Starvation penalty
+        if (Party?.IsStarving == true)
+            total -= 2;
 
         return Math.Max(1, total);
     }

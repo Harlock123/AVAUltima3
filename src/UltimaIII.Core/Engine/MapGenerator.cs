@@ -10,7 +10,7 @@ public static class MapGenerator
 {
     private const int OverworldSize = 64;
     private const int TownSize = 32;
-    private const int DungeonSize = 16;
+    private const int DungeonSize = 32;
 
     public static GameMap GenerateOverworld(Random rng)
     {
@@ -451,8 +451,8 @@ public static class MapGenerator
             }
         }
 
-        // Generate rooms using BSP-like approach
-        var rooms = GenerateRooms(DungeonSize, DungeonSize, rng, 4 + level / 2);
+        // Generate rooms with size variety
+        var rooms = GenerateRooms(DungeonSize, DungeonSize, rng, 8 + level);
 
         // Carve rooms
         foreach (var room in rooms)
@@ -466,26 +466,27 @@ public static class MapGenerator
             }
         }
 
-        // Connect rooms with corridors
-        for (int i = 1; i < rooms.Count; i++)
-        {
-            var from = rooms[i - 1];
-            var to = rooms[i];
-            ConnectRooms(map, from, to);
-        }
+        // Connect rooms with MST corridors + extra loops
+        ConnectRoomsWithMST(map, rooms, rng, level);
 
-        // Place stairs
+        // Place doors at corridor chokepoints
+        PlaceDungeonDoors(map, rng, level);
+
+        // Add dungeon features (before stairs/portal so they can't overwrite them)
+        AddDungeonFeatures(map, rooms, rng, level);
+
+        // --- Place stairs and portal LAST so nothing can overwrite them ---
         var firstRoom = rooms[0];
         var lastRoom = rooms[^1];
 
-        // Stairs up (entrance)
+        // Stairs up (entrance) — always in first room
         int stairsUpX = firstRoom.x + firstRoom.w / 2;
         int stairsUpY = firstRoom.y + firstRoom.h / 2;
         map.SetTile(stairsUpX, stairsUpY, new MapTile { Type = TileType.StairsUp });
         map.EntryPoints["default"] = (stairsUpX, stairsUpY);
         map.EntryPoints["stairs_up"] = (stairsUpX, stairsUpY);
 
-        // Stairs down (if not bottom level)
+        // Stairs down — always present on levels 1-7, placed in last room
         if (level < 8)
         {
             int stairsDownX = lastRoom.x + lastRoom.w / 2;
@@ -494,35 +495,55 @@ public static class MapGenerator
             map.EntryPoints["stairs_down"] = (stairsDownX, stairsDownY);
         }
 
-        // Add dungeon features
-        AddDungeonFeatures(map, rooms, rng, level);
-
-        // Place exit portal on levels 5-8 (after features, so nothing overwrites it)
+        // Exit portal on levels 5-8 — try every middle room until one works
         if (level >= 5 && rooms.Count >= 3)
         {
             var middleRooms = rooms.Skip(1).Take(rooms.Count - 2).ToList();
-            // Try middle rooms and find one with a free Floor tile at center
-            for (int attempt = 0; attempt < middleRooms.Count; attempt++)
+            bool placed = false;
+
+            // First pass: look for a Floor tile at room centers
+            foreach (var portalRoom in middleRooms)
             {
-                var portalRoom = middleRooms[rng.Next(middleRooms.Count)];
                 int portalX = portalRoom.x + portalRoom.w / 2;
                 int portalY = portalRoom.y + portalRoom.h / 2;
                 if (map.GetTile(portalX, portalY).Type == TileType.Floor)
                 {
                     map.SetTile(portalX, portalY, new MapTile { Type = TileType.ExitPortal });
                     map.EntryPoints["exit_portal"] = (portalX, portalY);
+                    placed = true;
                     break;
                 }
             }
-        }
 
-        // Final integrity pass: re-stamp stairs so nothing can overwrite them
-        map.SetTile(stairsUpX, stairsUpY, new MapTile { Type = TileType.StairsUp });
-        if (level < 8)
-        {
-            int sdx = lastRoom.x + lastRoom.w / 2;
-            int sdy = lastRoom.y + lastRoom.h / 2;
-            map.SetTile(sdx, sdy, new MapTile { Type = TileType.StairsDown });
+            // Fallback: scan any Floor tile inside a middle room
+            if (!placed)
+            {
+                foreach (var portalRoom in middleRooms)
+                {
+                    for (int ry = portalRoom.y; ry < portalRoom.y + portalRoom.h && !placed; ry++)
+                    {
+                        for (int rx = portalRoom.x; rx < portalRoom.x + portalRoom.w && !placed; rx++)
+                        {
+                            if (map.GetTile(rx, ry).Type == TileType.Floor)
+                            {
+                                map.SetTile(rx, ry, new MapTile { Type = TileType.ExitPortal });
+                                map.EntryPoints["exit_portal"] = (rx, ry);
+                                placed = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Last resort: force-place in the second room's center
+            if (!placed && rooms.Count >= 2)
+            {
+                var fallback = rooms[1];
+                int px = fallback.x + fallback.w / 2;
+                int py = fallback.y + fallback.h / 2;
+                map.SetTile(px, py, new MapTile { Type = TileType.ExitPortal });
+                map.EntryPoints["exit_portal"] = (px, py);
+            }
         }
 
         return map;
@@ -532,14 +553,36 @@ public static class MapGenerator
     {
         var rooms = new List<(int x, int y, int w, int h)>();
 
-        for (int i = 0; i < numRooms * 3; i++) // Try multiple times
+        for (int i = 0; i < numRooms * 10; i++)
         {
-            int w = rng.Next(3, 6);
-            int h = rng.Next(3, 6);
+            // Pick size category: 30% closet, 50% standard, 20% chamber
+            int roll = rng.Next(100);
+            int w, h;
+            if (roll < 30)
+            {
+                // Closet: 2-3 tiles
+                w = rng.Next(2, 4);
+                h = rng.Next(2, 4);
+            }
+            else if (roll < 80)
+            {
+                // Standard: 4-6 tiles
+                w = rng.Next(4, 7);
+                h = rng.Next(4, 7);
+            }
+            else
+            {
+                // Chamber: 7-9 tiles
+                w = rng.Next(7, 10);
+                h = rng.Next(7, 10);
+            }
+
+            if (w >= mapW - 2 || h >= mapH - 2) continue;
+
             int x = rng.Next(1, mapW - w - 1);
             int y = rng.Next(1, mapH - h - 1);
 
-            // Check for overlap
+            // Check for overlap (1-tile buffer between rooms)
             bool overlaps = false;
             foreach (var room in rooms)
             {
@@ -561,82 +604,251 @@ public static class MapGenerator
         return rooms;
     }
 
-    private static void ConnectRooms(GameMap map,
-        (int x, int y, int w, int h) from,
-        (int x, int y, int w, int h) to)
+    private static void ConnectRoomsWithMST(GameMap map, List<(int x, int y, int w, int h)> rooms, Random rng, int level)
+    {
+        if (rooms.Count < 2) return;
+
+        // Prim's MST: start with room 0, greedily add closest room
+        var inMST = new HashSet<int> { 0 };
+        var edges = new List<(int from, int to)>();
+
+        while (inMST.Count < rooms.Count)
+        {
+            int bestFrom = -1, bestTo = -1;
+            double bestDist = double.MaxValue;
+
+            foreach (int from in inMST)
+            {
+                for (int to = 0; to < rooms.Count; to++)
+                {
+                    if (inMST.Contains(to)) continue;
+
+                    double dist = RoomDistance(rooms[from], rooms[to]);
+                    if (dist < bestDist)
+                    {
+                        bestDist = dist;
+                        bestFrom = from;
+                        bestTo = to;
+                    }
+                }
+            }
+
+            if (bestTo == -1) break;
+
+            inMST.Add(bestTo);
+            edges.Add((bestFrom, bestTo));
+        }
+
+        // Carve MST corridors
+        foreach (var (from, to) in edges)
+        {
+            CarveCorridor(map, rooms[from], rooms[to], rng, level);
+        }
+
+        // Extra random connections (~25% of room count) create loops and alternate paths
+        int extraCount = Math.Max(1, rooms.Count / 4);
+        for (int i = 0; i < extraCount; i++)
+        {
+            int a = rng.Next(rooms.Count);
+            int b = rng.Next(rooms.Count);
+            if (a != b)
+            {
+                CarveCorridor(map, rooms[a], rooms[b], rng, level);
+            }
+        }
+    }
+
+    private static double RoomDistance((int x, int y, int w, int h) a, (int x, int y, int w, int h) b)
+    {
+        int ax = a.x + a.w / 2, ay = a.y + a.h / 2;
+        int bx = b.x + b.w / 2, by = b.y + b.h / 2;
+        return Math.Sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by));
+    }
+
+    private static void CarveCorridor(GameMap map, (int x, int y, int w, int h) from, (int x, int y, int w, int h) to, Random rng, int level)
     {
         int x1 = from.x + from.w / 2;
         int y1 = from.y + from.h / 2;
         int x2 = to.x + to.w / 2;
         int y2 = to.y + to.h / 2;
 
-        // Horizontal then vertical
-        int x = x1;
-        while (x != x2)
-        {
-            if (map.GetTile(x, y1).Type == TileType.Wall)
-                map.SetTile(x, y1, new MapTile { Type = TileType.Floor });
-            x += Math.Sign(x2 - x1);
-        }
+        bool wide = level >= 5 && rng.Next(100) < 25;
+        bool horizontalFirst = rng.Next(2) == 0;
 
-        int y = y1;
-        while (y != y2)
+        if (horizontalFirst)
         {
-            if (map.GetTile(x2, y).Type == TileType.Wall)
-                map.SetTile(x2, y, new MapTile { Type = TileType.Floor });
-            y += Math.Sign(y2 - y1);
+            CarveHorizontal(map, x1, x2, y1, wide);
+            CarveVertical(map, y1, y2, x2, wide);
+        }
+        else
+        {
+            CarveVertical(map, y1, y2, x1, wide);
+            CarveHorizontal(map, x1, x2, y2, wide);
+        }
+    }
+
+    private static void CarveHorizontal(GameMap map, int x1, int x2, int y, bool wide)
+    {
+        int step = Math.Sign(x2 - x1);
+        if (step == 0) return;
+        for (int x = x1; x != x2; x += step)
+        {
+            if (map.IsInBounds(x, y) && map.GetTile(x, y).Type == TileType.Wall)
+                map.SetTile(x, y, new MapTile { Type = TileType.Floor });
+            if (wide && map.IsInBounds(x, y + 1) && map.GetTile(x, y + 1).Type == TileType.Wall)
+                map.SetTile(x, y + 1, new MapTile { Type = TileType.Floor });
+        }
+    }
+
+    private static void CarveVertical(GameMap map, int y1, int y2, int x, bool wide)
+    {
+        int step = Math.Sign(y2 - y1);
+        if (step == 0) return;
+        for (int y = y1; y != y2; y += step)
+        {
+            if (map.IsInBounds(x, y) && map.GetTile(x, y).Type == TileType.Wall)
+                map.SetTile(x, y, new MapTile { Type = TileType.Floor });
+            if (wide && map.IsInBounds(x + 1, y) && map.GetTile(x + 1, y).Type == TileType.Wall)
+                map.SetTile(x + 1, y, new MapTile { Type = TileType.Floor });
+        }
+    }
+
+    private static void PlaceDungeonDoors(GameMap map, Random rng, int level)
+    {
+        int doorChance = 15 + level * 5;
+
+        for (int y = 1; y < map.Height - 1; y++)
+        {
+            for (int x = 1; x < map.Width - 1; x++)
+            {
+                if (map.GetTile(x, y).Type != TileType.Floor) continue;
+
+                // Check for 1-wide chokepoint: wall on opposite sides, floor on other two
+                bool wallAboveAndBelow = map.GetTile(x, y - 1).Type == TileType.Wall
+                                      && map.GetTile(x, y + 1).Type == TileType.Wall;
+                bool wallLeftAndRight = map.GetTile(x - 1, y).Type == TileType.Wall
+                                     && map.GetTile(x + 1, y).Type == TileType.Wall;
+
+                if ((wallAboveAndBelow || wallLeftAndRight) && rng.Next(100) < doorChance)
+                {
+                    map.SetTile(x, y, new MapTile { Type = TileType.Door });
+                }
+            }
         }
     }
 
     private static void AddDungeonFeatures(GameMap map, List<(int x, int y, int w, int h)> rooms, Random rng, int level)
     {
-        foreach (var room in rooms.Skip(1).Take(rooms.Count - 2))
+        var protectedTypes = new HashSet<TileType>
         {
-            // Add some features to each room
-            int featureX = room.x + rng.Next(1, room.w - 1);
-            int featureY = room.y + rng.Next(1, room.h - 1);
+            TileType.StairsUp, TileType.StairsDown, TileType.ExitPortal, TileType.Door
+        };
 
-            int roll = rng.Next(100);
-            TileType feature;
-
-            if (roll < 15)
-                feature = TileType.Chest;
-            else if (roll < 25)
-                feature = TileType.Fountain;
-            else if (roll < 35 && level > 3)
-                feature = TileType.Trap;
-            else if (roll < 40)
-                feature = TileType.SecretDoor;
-            else
-                continue;
-
-            if (feature == TileType.SecretDoor)
-            {
-                // Place secret door in a wall — only if the tile is still a Wall
-                // (corridors carve Floor through walls, so don't block those)
-                int wallX = room.x + (rng.Next(2) == 0 ? 0 : room.w - 1);
-                int wallY = room.y + rng.Next(1, room.h - 1);
-                if (map.GetTile(wallX, wallY).Type == TileType.Wall)
-                    map.SetTile(wallX, wallY, new MapTile { Type = feature });
-            }
-            else
-            {
-                map.SetTile(featureX, featureY, new MapTile { Type = feature });
-            }
-        }
-
-        // Add some lava at deeper levels
-        if (level >= 5)
+        foreach (var room in rooms)
         {
-            int lavaCount = level - 4;
-            for (int i = 0; i < lavaCount; i++)
+            int area = room.w * room.h;
+
+            // Max features based on room size category
+            int maxFeatures;
+            if (area <= 9)
+                maxFeatures = rng.Next(0, 2); // closet: 0-1
+            else if (area <= 36)
+                maxFeatures = rng.Next(1, 3); // standard: 1-2
+            else
+                maxFeatures = rng.Next(2, 5); // chamber: 2-4
+
+            int placed = 0;
+            int attempts = maxFeatures * 10;
+
+            while (placed < maxFeatures && attempts-- > 0)
             {
-                var room = rooms[rng.Next(rooms.Count)];
-                int x = room.x + rng.Next(room.w);
-                int y = room.y + rng.Next(room.h);
-                if (map.GetTile(x, y).Type == TileType.Floor && !IsNearCorridor(map, x, y))
+                int fx = room.x + rng.Next(room.w);
+                int fy = room.y + rng.Next(room.h);
+
+                if (!map.IsInBounds(fx, fy)) continue;
+                var existing = map.GetTile(fx, fy);
+                if (existing.Type != TileType.Floor || protectedTypes.Contains(existing.Type)) continue;
+
+                int roll = rng.Next(100);
+                int trapThreshold = 35 + 5 + level * 2; // 35 base + trap chance
+                int secretThreshold = trapThreshold + 10;
+                int lavaThreshold = secretThreshold + level * 3;
+
+                TileType feature;
+                if (roll < 20)
+                    feature = TileType.Chest;
+                else if (roll < 35)
+                    feature = TileType.Fountain;
+                else if (roll < trapThreshold)
+                    feature = TileType.Trap;
+                else if (roll < secretThreshold)
+                    feature = TileType.SecretDoor;
+                else if (roll < lavaThreshold)
+                    feature = TileType.Lava;
+                else
+                    continue;
+
+                if (feature == TileType.SecretDoor)
                 {
-                    map.SetTile(x, y, new MapTile { Type = TileType.Lava });
+                    // Place on room walls (all 4 sides), but skip walls
+                    // adjacent to corridors so we don't block room entrances
+                    var wallCandidates = new List<(int wx, int wy)>();
+                    for (int x = room.x; x < room.x + room.w; x++)
+                    {
+                        // Top wall — skip if tile above it (outside room) is floor/corridor
+                        if (map.IsInBounds(x, room.y - 1) && map.GetTile(x, room.y - 1).Type == TileType.Wall
+                            && (!map.IsInBounds(x, room.y - 2) || map.GetTile(x, room.y - 2).Type == TileType.Wall))
+                            wallCandidates.Add((x, room.y - 1));
+                        // Bottom wall
+                        if (map.IsInBounds(x, room.y + room.h) && map.GetTile(x, room.y + room.h).Type == TileType.Wall
+                            && (!map.IsInBounds(x, room.y + room.h + 1) || map.GetTile(x, room.y + room.h + 1).Type == TileType.Wall))
+                            wallCandidates.Add((x, room.y + room.h));
+                    }
+                    for (int y = room.y; y < room.y + room.h; y++)
+                    {
+                        // Left wall
+                        if (map.IsInBounds(room.x - 1, y) && map.GetTile(room.x - 1, y).Type == TileType.Wall
+                            && (!map.IsInBounds(room.x - 2, y) || map.GetTile(room.x - 2, y).Type == TileType.Wall))
+                            wallCandidates.Add((room.x - 1, y));
+                        // Right wall
+                        if (map.IsInBounds(room.x + room.w, y) && map.GetTile(room.x + room.w, y).Type == TileType.Wall
+                            && (!map.IsInBounds(room.x + room.w + 1, y) || map.GetTile(room.x + room.w + 1, y).Type == TileType.Wall))
+                            wallCandidates.Add((room.x + room.w, y));
+                    }
+
+                    if (wallCandidates.Count > 0)
+                    {
+                        var (wx, wy) = wallCandidates[rng.Next(wallCandidates.Count)];
+                        map.SetTile(wx, wy, new MapTile { Type = TileType.SecretDoor });
+                        placed++;
+                    }
+                }
+                else if (feature == TileType.Lava)
+                {
+                    // Lava cluster (1-3 tiles)
+                    if (!IsNearCorridor(map, fx, fy))
+                    {
+                        map.SetTile(fx, fy, new MapTile { Type = TileType.Lava });
+                        placed++;
+                        int clusterSize = rng.Next(1, 4);
+                        for (int c = 1; c < clusterSize; c++)
+                        {
+                            int lx = fx + rng.Next(-1, 2);
+                            int ly = fy + rng.Next(-1, 2);
+                            if (map.IsInBounds(lx, ly)
+                                && map.GetTile(lx, ly).Type == TileType.Floor
+                                && !protectedTypes.Contains(map.GetTile(lx, ly).Type)
+                                && !IsNearCorridor(map, lx, ly))
+                            {
+                                map.SetTile(lx, ly, new MapTile { Type = TileType.Lava });
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    map.SetTile(fx, fy, new MapTile { Type = feature });
+                    placed++;
                 }
             }
         }
