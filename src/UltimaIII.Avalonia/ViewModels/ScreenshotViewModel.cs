@@ -38,7 +38,10 @@ public partial class ScreenshotViewModel : ViewModelBase
 
         try
         {
-            var dir = Path.Combine(AppContext.BaseDirectory, "Screenshots");
+            // Next to the executable: in a single-file build AppContext.BaseDirectory is the
+            // temporary extraction folder, not where the program lives.
+            var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+            var dir = Path.Combine(exeDir, "Screenshots");
             Directory.CreateDirectory(dir);
 
             var safeName = string.Join("_", ScreenshotName.Trim().Split(Path.GetInvalidFileNameChars()));
