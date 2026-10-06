@@ -24,8 +24,10 @@ public unsafe class AudioService : IAudioService
     private readonly MusicPlayer _musicPlayerService;
 
     private uint _musicSource;
-    private uint _musicBuffer1;
-    private uint _musicBuffer2;
+    // Enough queued music (about 0.75 s) to ride out a stall: a virtual machine's audio above all.
+    private const int MusicBufferCount = 4;
+    private const int MusicBufferSamples = 8192;
+    private uint[] _musicBuffers = Array.Empty<uint>();
     private float[]? _currentMusicPattern;
     private int _musicPatternPosition;
     private Thread? _musicThread;
@@ -108,6 +110,9 @@ public unsafe class AudioService : IAudioService
     {
         try
         {
+            // Before OpenAL Soft first reads its configuration (on the first call below).
+            OpenAlConfig.UsePeriod(OpenAlConfig.PeriodFrames());
+
             _alc = ALContext.GetApi();
             _al = AL.GetApi();
 
@@ -132,8 +137,7 @@ public unsafe class AudioService : IAudioService
 
             // Create music source and buffers
             _musicSource = _al.GenSource();
-            _musicBuffer1 = _al.GenBuffer();
-            _musicBuffer2 = _al.GenBuffer();
+            _musicBuffers = _al.GenBuffers(MusicBufferCount);
 
             // Set music source properties
             _al.SetSourceProperty(_musicSource, SourceBoolean.Looping, false);
@@ -269,17 +273,16 @@ public unsafe class AudioService : IAudioService
     {
         if (_al == null || _currentMusicPattern == null) return;
 
-        const int bufferSizeSamples = 4096;
-        var pcmBuffer = new short[bufferSizeSamples];
+        var pcmBuffer = new short[MusicBufferSamples];
 
         try
         {
             // Fill initial buffers
-            FillMusicBuffer(_musicBuffer1, pcmBuffer);
-            FillMusicBuffer(_musicBuffer2, pcmBuffer);
+            foreach (var buffer in _musicBuffers)
+                FillMusicBuffer(buffer, pcmBuffer);
 
             // Queue buffers and start playing
-            _al.SourceQueueBuffers(_musicSource, new[] { _musicBuffer1, _musicBuffer2 });
+            _al.SourceQueueBuffers(_musicSource, _musicBuffers);
             _al.SourcePlay(_musicSource);
 
             while (_musicPlaying && !_disposed)
@@ -434,8 +437,7 @@ public unsafe class AudioService : IAudioService
 
             // Cleanup music
             _al.DeleteSource(_musicSource);
-            _al.DeleteBuffer(_musicBuffer1);
-            _al.DeleteBuffer(_musicBuffer2);
+            _al.DeleteBuffers(_musicBuffers);
         }
 
         if (_alc != null)

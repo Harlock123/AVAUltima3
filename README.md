@@ -258,6 +258,7 @@ Not all equipment has sockets. Higher-tier gear has more:
 - **Procedural Chiptune Audio**: Built-in synthesized music and sound effects as default
 - **Waveform Synthesis**: Square, triangle, sawtooth waves, and white noise
 - **Cross-Platform**: Uses Silk.NET.OpenAL for Windows (x64/ARM64), macOS (Intel/Apple Silicon), and Linux support
+- **Audio Buffer**: In a virtual machine (detected automatically on Linux) OpenAL mixes 2048 frames at a time, about 43 ms, so the emulated sound card doesn't break up. Set `AVAULTIMA3_AUDIO_BUFFER` to `small` (OpenAL's default), `medium` (1024 frames) or `large` (2048 frames) to choose yourself. Your own `ALSOFT_CONF`, if set, is left alone
 - **Music Tracks**:
   - Main Menu - Epic/mysterious arpeggios
   - Overworld - Adventurous march (day/night variations)
