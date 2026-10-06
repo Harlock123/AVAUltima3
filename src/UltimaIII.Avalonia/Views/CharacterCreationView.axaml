@@ -34,6 +34,19 @@
         <Style Selector="Button:pointerover">
             <Setter Property="Background" Value="#3a3a5a"/>
         </Style>
+        <!-- Stat +/- buttons: no padding, so the arrow isn't clipped out of the 30px button.
+             The arrow is drawn, not a glyph, and takes the buttons' text colour. -->
+        <Style Selector="Button.stat">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.stat > Path">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="10"/>
+            <Setter Property="Stretch" Value="Fill"/>
+            <Setter Property="Fill" Value="#e0e0e0"/>
+        </Style>
     </UserControl.Styles>
 
     <Grid Margin="20">
@@ -100,10 +113,14 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Strength:" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="{Binding Strength}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
-                                    Command="{Binding DecreaseStatCommand}" CommandParameter="STR"/>
-                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
-                                    Command="{Binding IncreaseStatCommand}" CommandParameter="STR"/>
+                            <Button Grid.Column="2" Classes="stat" Width="30" Height="30" ToolTip.Tip="Lower Strength"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="STR">
+                                <Path Data="M0,0 L12,0 L6,10 Z"/>
+                            </Button>
+                            <Button Grid.Column="3" Classes="stat" Width="30" Height="30" Margin="5,0,0,0" ToolTip.Tip="Raise Strength"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="STR">
+                                <Path Data="M0,10 L6,0 L12,10 Z"/>
+                            </Button>
                         </Grid>
 
                         <!-- Dexterity -->
@@ -116,10 +133,14 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Dexterity:" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="{Binding Dexterity}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
-                                    Command="{Binding DecreaseStatCommand}" CommandParameter="DEX"/>
-                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
-                                    Command="{Binding IncreaseStatCommand}" CommandParameter="DEX"/>
+                            <Button Grid.Column="2" Classes="stat" Width="30" Height="30" ToolTip.Tip="Lower Dexterity"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="DEX">
+                                <Path Data="M0,0 L12,0 L6,10 Z"/>
+                            </Button>
+                            <Button Grid.Column="3" Classes="stat" Width="30" Height="30" Margin="5,0,0,0" ToolTip.Tip="Raise Dexterity"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="DEX">
+                                <Path Data="M0,10 L6,0 L12,10 Z"/>
+                            </Button>
                         </Grid>
 
                         <!-- Intelligence -->
@@ -132,10 +153,14 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Intelligence:" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="{Binding Intelligence}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
-                                    Command="{Binding DecreaseStatCommand}" CommandParameter="INT"/>
-                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
-                                    Command="{Binding IncreaseStatCommand}" CommandParameter="INT"/>
+                            <Button Grid.Column="2" Classes="stat" Width="30" Height="30" ToolTip.Tip="Lower Intelligence"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="INT">
+                                <Path Data="M0,0 L12,0 L6,10 Z"/>
+                            </Button>
+                            <Button Grid.Column="3" Classes="stat" Width="30" Height="30" Margin="5,0,0,0" ToolTip.Tip="Raise Intelligence"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="INT">
+                                <Path Data="M0,10 L6,0 L12,10 Z"/>
+                            </Button>
                         </Grid>
 
                         <!-- Wisdom -->
@@ -148,10 +173,14 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Wisdom:" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="{Binding Wisdom}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Button Grid.Column="2" Content="-" Width="30" Height="30"
-                                    Command="{Binding DecreaseStatCommand}" CommandParameter="WIS"/>
-                            <Button Grid.Column="3" Content="+" Width="30" Height="30" Margin="5,0,0,0"
-                                    Command="{Binding IncreaseStatCommand}" CommandParameter="WIS"/>
+                            <Button Grid.Column="2" Classes="stat" Width="30" Height="30" ToolTip.Tip="Lower Wisdom"
+                                    Command="{Binding DecreaseStatCommand}" CommandParameter="WIS">
+                                <Path Data="M0,0 L12,0 L6,10 Z"/>
+                            </Button>
+                            <Button Grid.Column="3" Classes="stat" Width="30" Height="30" Margin="5,0,0,0" ToolTip.Tip="Raise Wisdom"
+                                    Command="{Binding IncreaseStatCommand}" CommandParameter="WIS">
+                                <Path Data="M0,10 L6,0 L12,10 Z"/>
+                            </Button>
                         </Grid>
                     </StackPanel>
 
