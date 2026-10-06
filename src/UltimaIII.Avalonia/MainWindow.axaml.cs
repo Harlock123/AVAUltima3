@@ -18,6 +18,9 @@ public partial class MainWindow : Window
         // Use tunneling event to capture keys before any child control
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
 
+        // Esc on the pre-game screens: bubbling, so an open drop-down closes on Esc first
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Bubble);
+
         // Ensure window can receive focus
         Focusable = true;
 
@@ -56,6 +59,17 @@ public partial class MainWindow : Window
         {
             string key = e.Key.ToString();
             loadVm.HandleKeyPress(key);
+            e.Handled = true;
+        }
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape || DataContext is not MainViewModel mainVm || mainVm.IsScreenshotMode) return;
+
+        if (mainVm.CurrentView is FortuneTellerViewModel or CharacterCreationViewModel)
+        {
+            mainVm.CancelToMainMenu();
             e.Handled = true;
         }
     }

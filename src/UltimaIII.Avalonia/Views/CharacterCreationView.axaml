@@ -241,6 +241,12 @@
                         Margin="0,20,0,0"
                         FontSize="16"
                         Background="#3a6a3a"/>
+
+                <Button Content="Back to Main Menu (Esc)"
+                        Command="{Binding BackToMenuCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Padding="10"/>
             </StackPanel>
         </Border>
     </Grid>

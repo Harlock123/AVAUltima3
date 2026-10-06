@@ -236,6 +236,9 @@ public partial class FortuneTellerViewModel : ViewModelBase
 
         _mainViewModel.StartGame();
     }
+
+    [RelayCommand]
+    private void BackToMenu() => _mainViewModel.CancelToMainMenu();
 }
 
 public partial class AnswerChoiceViewModel : ObservableObject

@@ -116,6 +116,12 @@
                             HorizontalAlignment="Center"
                             Classes="proceed"/>
                 </StackPanel>
+
+                <Button Content="Back to Main Menu (Esc)"
+                        Command="{Binding BackToMenuCommand}"
+                        HorizontalAlignment="Center"
+                        Classes="answer"
+                        Margin="0,10,0,0"/>
             </StackPanel>
         </Grid>
     </Border>

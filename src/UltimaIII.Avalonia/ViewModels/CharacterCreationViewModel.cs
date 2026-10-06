@@ -275,6 +275,9 @@ public partial class CharacterCreationViewModel : ViewModelBase
 
         _mainViewModel.StartGame();
     }
+
+    [RelayCommand]
+    private void BackToMenu() => _mainViewModel.CancelToMainMenu();
 }
 
 public partial class CharacterSlotViewModel : ObservableObject

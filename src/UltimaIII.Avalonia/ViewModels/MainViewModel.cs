@@ -77,6 +77,13 @@ public partial class MainViewModel : ViewModelBase
         _audioService.PlayMusic(MusicTrack.MainMenu);
     }
 
+    /// <summary>Leaves a pre-game screen (Fortune Teller, character creation) for the main menu.</summary>
+    public void CancelToMainMenu()
+    {
+        _audioService.PlaySoundEffect(SoundEffect.MenuCancel);
+        ReturnToMainMenu();
+    }
+
     [RelayCommand]
     private void Exit()
     {
