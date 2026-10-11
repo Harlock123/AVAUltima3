@@ -268,6 +268,28 @@ Not all equipment has sockets. Higher-tier gear has more:
   - Victory/Defeat - Triumphant fanfare or somber dirge
 - **Sound Effects**: Footsteps, sword swings, hits, misses, spell casting, monster deaths, UI feedback, and more
 
+## Download and run
+
+Ready-to-run builds for Windows, macOS and Linux, on both Intel/AMD and ARM, are on the
+[Releases page](https://github.com/Harlock123/AVAUltima3/releases). **Latest build** is rebuilt on
+every push to `main`. Each download is one self-contained executable: no .NET install is
+needed.
+
+```bash
+tar -xzf AVAUltima3-linux-arm64.tar.gz      # or linux-x64, linux-arm, osx-arm64, osx-x64
+./AVAUltima3
+```
+
+On Windows, unzip `AVAUltima3-win-x64.zip` (or `-win-arm64`) and run `AVAUltima3.exe`. On macOS, if
+Gatekeeper refuses to open it, run `xattr -d com.apple.quarantine AVAUltima3` once.
+
+### Linux: sound
+
+Nothing extra to install. Sound (OpenAL) is built into the download for every
+platform, ARM included, so you don't need `alsa-utils` (`aplay`) or a system OpenAL. Sound goes
+out through whatever your desktop already runs (PipeWire, PulseAudio or ALSA); if no audio
+device can be opened the game still runs, silently. You do need an X11 or XWayland session.
+
 ## Building and Running
 
 ### Prerequisites
