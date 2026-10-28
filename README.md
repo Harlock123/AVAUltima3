@@ -495,7 +495,7 @@ Combat sprites also go in `Assets/sprites/`. Player characters use their class n
 ## Technical Details
 
 - **Framework**: .NET 9
-- **UI**: Avalonia UI 11.2
+- **UI**: Avalonia UI 11.3
 - **Pattern**: MVVM with CommunityToolkit.Mvvm
 - **Graphics**: Custom tile rendering with retro CGA/EGA color palette
 - **Audio**: Silk.NET.OpenAL for cross-platform audio, NVorbis for OGG Vorbis decoding
